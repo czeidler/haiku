@@ -22,3 +22,5 @@ done
 # To launch certain applications at boot-up, put links to those applications in
 # the above boot launch directory.
 
+# restore last session
+hey registrar '_RLS'
