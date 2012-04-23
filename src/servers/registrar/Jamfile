@@ -1,6 +1,7 @@
 SubDir HAIKU_TOP src servers registrar ;
 
 UsePrivateHeaders app ;
+UsePrivateHeaders interface ;
 UsePrivateHeaders kernel ;
 	# for <util/KMessage.h>
 UsePrivateHeaders libroot ;
@@ -33,6 +34,7 @@ Server registrar
 	Registrar.cpp
 	RosterAppInfo.cpp
 	RosterSettingsCharStream.cpp
+	SessionManager.cpp
 	ShutdownProcess.cpp
 	TextSnifferAddon.cpp
 	TRoster.cpp

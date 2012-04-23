@@ -17,6 +17,7 @@
 #include <Clipboard.h>
 #include <Message.h>
 #include <OS.h>
+#include <Path.h>
 #include <RegistrarDefs.h>
 #include <RosterPrivate.h>
 
@@ -29,6 +30,7 @@
 #include "MessageRunnerManager.h"
 #include "MessagingService.h"
 #include "MIMEManager.h"
+#include "SessionManager.h"
 #include "ShutdownProcess.h"
 #include "TRoster.h"
 
@@ -48,6 +50,8 @@ static const char *kEventQueueName = "timer_thread";
 
 //! Time interval between two roster sanity checks (1 s).
 static const bigtime_t kRosterSanityEventInterval = 1000000LL;
+
+const int32 kRestoreLastSession = '_RLS';
 
 
 /*!	\brief Creates the registrar application class.
@@ -349,6 +353,12 @@ Registrar::_MessageReceived(BMessage *message)
 				fShutdownProcess = NULL;
 			}
 			break;
+		case kRestoreLastSession:
+		{
+			SessionManager sessionManager(fRoster);
+			sessionManager.RestoreSession(kLastSession);
+			break;
+		}
 
 		case kMsgRestartAppServer:
 		{

@@ -45,6 +45,7 @@
 #include "MessageEvent.h"
 #include "Registrar.h"
 #include "RosterAppInfo.h"
+#include "SessionManager.h"
 #include "TRoster.h"
 
 
@@ -1303,6 +1304,10 @@ ShutdownProcess::_WorkerDoShutdown()
 
 	// sync
 	sync();
+
+	// phase 0: save session
+	SessionManager sessionManager(fRoster);
+	sessionManager.SaveSession(kLastSession, fUserApps);
 
 	// phase 1: terminate the user apps
 	_SetPhase(USER_APP_TERMINATION_PHASE);
