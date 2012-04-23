@@ -10,11 +10,13 @@
 #include <InterfaceDefs.h>
 #include <Looper.h>
 #include <Messenger.h>
+#include <Path.h>
 #include <Point.h>
 #include <Rect.h>
 
 
 class BCursor;
+class BDataIO;
 class BList;
 class BLocker;
 class BMessageRunner;
@@ -27,6 +29,41 @@ namespace BPrivate {
 	class PortLink;
 	class ServerMemoryAllocator;
 }
+
+
+void restore_window_geometry(BWindow* window, const BMessage* windowGeometry);
+void save_window_geometry(const BWindow* window, BMessage* windowGeometry);
+
+
+class BApplicationState {
+public:
+								~BApplicationState();
+
+	// read state
+			status_t			OpenStorage(const char* name,
+									BDataIO** data) const;
+
+	// write state
+			status_t			AcquireStorage(const char* name,
+									BDataIO** data);
+			status_t			RemoveStorage(const char* name);
+
+	// general
+			void				SetProgress(float progress) const;
+			bool				HasBeenAborted() const;
+			status_t			ReleaseStorage(BDataIO* data) const;
+			
+
+protected:
+	friend class BApplication;
+								BApplicationState(BMessage* data);
+
+			BMessenger			fSessionMessenger;
+			BPath				fSessionPath;
+			team_id				fTeam;
+
+			BList				fStorageList;
+};
 
 
 class BApplication : public BLooper {
@@ -91,6 +128,14 @@ public:
 
 	class Private;
 
+protected:
+	// Session Manager
+			bool				HasBeenRestored();
+	virtual	status_t			RestoreState(const BMessage* state,
+									const BApplicationState* storage);
+	virtual	status_t			SaveState(BMessage* state,
+									BApplicationState* storage) const;
+
 private:
 	typedef BLooper _inherited;
 
@@ -103,8 +148,6 @@ private:
 								BApplication(const BApplication&);
 			BApplication&		operator=(const BApplication&);
 
-	virtual	void				_ReservedApplication1();
-	virtual	void				_ReservedApplication2();
 	virtual	void				_ReservedApplication3();
 	virtual	void				_ReservedApplication4();
 	virtual	void				_ReservedApplication5();
@@ -146,8 +189,9 @@ private:
 			BMessageRunner*		fPulseRunner;
 			status_t			fInitError;
 			void*				fServerReadOnlyMemory;
-			uint32				_reserved[12];
+			uint32				_reserved[11];
 
+			uint32				fHasBeenRestored;
 			bool				fReadyToRunCalled;
 };
 

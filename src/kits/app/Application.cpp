@@ -20,8 +20,11 @@
 
 #include <Alert.h>
 #include <AppFileInfo.h>
+#include <ApplicationPrivate.h>
+#include <binary_compatibility/App.h>
 #include <Cursor.h>
 #include <Debug.h>
+#include <Directory.h>
 #include <Entry.h>
 #include <File.h>
 #include <Locker.h>
@@ -32,6 +35,8 @@
 #include <RegistrarDefs.h>
 #include <Resources.h>
 #include <Roster.h>
+#include <Screen.h>
+#include <String.h>
 #include <Window.h>
 
 #include <AppMisc.h>
@@ -49,6 +54,213 @@
 
 
 using namespace BPrivate;
+
+
+void
+restore_window_geometry(BWindow* window, const BMessage* windowGeometry)
+{
+	BRect frame;
+	status_t status = windowGeometry->FindRect("frame", &frame);
+	if (status == B_OK) {
+		// make sure window is on the screen
+		BScreen screen;
+		BRect screenFrame = screen.Frame();
+		if (screenFrame.right < frame.left || screenFrame.bottom < frame.top)
+			frame.OffsetBy(-frame.top, -frame.left);
+
+		window->MoveTo(frame.LeftTop());
+		window->ResizeTo(frame.Width(), frame.Height());
+	}
+
+	uint32 workspaces;
+	status = windowGeometry->FindInt32("workspaces", (int32*)&workspaces);
+	if (status == B_OK)
+		window->SetWorkspaces(workspaces);
+
+	BMessage decoratorSettings;
+	status = windowGeometry->FindMessage("decorator_settings",
+		&decoratorSettings);
+	if (status == B_OK)
+		window->SetDecoratorSettings(decoratorSettings);
+}
+
+
+void
+save_window_geometry(const BWindow* window, BMessage* windowGeometry)
+{
+	windowGeometry->AddRect("frame", window->Frame());
+	windowGeometry->AddInt32("workspaces", window->Workspaces());
+	BMessage decoratorSettings;
+	if (window->GetDecoratorSettings(&decoratorSettings) == B_OK)
+		windowGeometry->AddMessage("decorator_settings", &decoratorSettings);
+}
+
+
+// TODO: took this from tracker lib, merge it...
+static status_t
+RecursiveCreateDirectory(const BPath& path)
+{
+	BEntry entry(path.Path());
+	if (entry.InitCheck() != B_OK) {
+		BPath parentPath;
+		status_t err = path.GetParent(&parentPath);
+		if (err != B_OK)
+			return err;
+
+		err = RecursiveCreateDirectory(parentPath);
+		if (err != B_OK)
+			return err;
+	}
+
+	entry.SetTo(path.Path());
+	if (entry.Exists())
+		return B_FILE_EXISTS;
+	else {
+		char name[B_FILE_NAME_LENGTH];
+		BDirectory parent;
+
+		entry.GetParent(&parent);
+		entry.GetName(name);
+		parent.CreateDirectory(name, NULL);
+	}
+
+	return B_OK;
+};
+
+
+static status_t
+GetStoragePath(const BPath& sessionPath, BPath& storagePath, team_id team)
+{
+	storagePath.SetTo(sessionPath.Path());
+	BString teamString;
+	if (team > 0)
+		teamString += team;
+	else
+		teamString += "BadTeam";
+	return storagePath.Append(teamString);
+
+}
+
+
+static status_t
+CreateStoragePath(const BPath& sessionPath, BPath& storagePath, team_id team)
+{
+	GetStoragePath(sessionPath, storagePath, team);
+
+	return RecursiveCreateDirectory(storagePath);
+}
+
+
+BApplicationState::~BApplicationState()
+{
+	for (int32 i = 0; i < fStorageList.CountItems(); i++)
+		delete (BFile*)fStorageList.ItemAt(i);
+}
+
+
+status_t
+BApplicationState::OpenStorage(const char* name, BDataIO** data) const
+{
+	BApplicationState* that = const_cast<BApplicationState*>(this);
+
+	*data = NULL;
+
+	BPath storagePath;
+	GetStoragePath(fSessionPath, storagePath, fTeam);
+	storagePath.Append(name);
+	BFile* file = new BFile(storagePath.Path(), B_READ_ONLY);
+	status_t status = file->InitCheck();
+	if (status != B_OK) {
+		delete file;
+		return status;
+	}
+	if (that->fStorageList.AddItem(file) == false) {
+		delete file;
+		return B_NO_MEMORY;
+	}
+	*data = file;
+	return B_OK;
+}
+
+
+status_t
+BApplicationState::AcquireStorage(const char* name, BDataIO** data)
+{
+	*data = NULL;
+
+	BPath storagePath;
+	CreateStoragePath(fSessionPath, storagePath, fTeam);
+	storagePath.Append(name);
+	BFile* file = new BFile(storagePath.Path(),
+		B_READ_WRITE | B_CREATE_FILE | B_FAIL_IF_EXISTS);
+	status_t status = file->InitCheck();
+	if (status != B_OK) {
+		delete file;
+		return status;
+	}
+	if (fStorageList.AddItem(file) == false) {
+		delete file;
+		BEntry entry(storagePath.Path());
+		entry.Remove();
+		return B_NO_MEMORY;
+	}
+	*data = file;
+	return B_OK;
+}
+
+
+status_t
+BApplicationState::RemoveStorage(const char* name)
+{
+	BPath storagePath;
+	GetStoragePath(fSessionPath, storagePath, fTeam);
+	storagePath.Append(name);
+	BEntry entry(storagePath.Path());
+	return entry.Remove();
+}
+
+
+void
+BApplicationState::SetProgress(float progress) const
+{
+	BMessage message(kSetProgressMsg);
+	message.AddFloat("progress", progress);
+	fSessionMessenger.SendMessage(&message);
+}
+
+
+bool
+BApplicationState::HasBeenAborted() const
+{
+	BMessage reply;
+	if (fSessionMessenger.SendMessage(kSaveAborted, &reply) != B_OK)
+		return true;
+	return false;
+}
+
+
+status_t
+BApplicationState::ReleaseStorage(BDataIO* data) const
+{
+	BApplicationState* that = const_cast<BApplicationState*>(this);
+	BFile* file = dynamic_cast<BFile*>(data);
+	if (file == NULL)
+		return B_ERROR;
+	if (that->fStorageList.RemoveItem(file) != true)
+		return B_ERROR;
+	delete file;
+	return B_OK;
+}
+
+
+BApplicationState::BApplicationState(BMessage* data)
+{
+	data->FindInt32("team", &fTeam);
+	data->FindMessenger("messenger", &fSessionMessenger);
+	BString path;
+	data->FindString("session_path", &path);
+	fSessionPath.SetTo(path);
+}
 
 
 BApplication *be_app = NULL;
@@ -277,6 +489,7 @@ BApplication::_InitData(const char *signature, bool initGUI, status_t *_error)
 	fServerAllocator = NULL;
 	fInitialWorkspace = 0;
 	//fDraggedMessage = NULL;
+	fHasBeenRestored = 0;
 	fReadyToRunCalled = false;
 
 	// initially, there is no pulse
@@ -575,6 +788,8 @@ BApplication::ReadyToRun()
 	// supposed to be implemented by subclasses
 }
 
+#include "ApplicationPrivate.h"
+
 
 void
 BApplication::MessageReceived(BMessage *message)
@@ -603,6 +818,27 @@ BApplication::MessageReceived(BMessage *message)
 		case kMsgAppServerRestarted:
 		{
 			_ReconnectToServer();
+			break;
+		}
+
+		case kRestoreStateMsg:
+		{
+			BApplicationState storage(message);
+			if (RestoreState(message, &storage) == B_OK)
+				fHasBeenRestored = 1;
+			break;
+		}
+
+		case kSaveStateMsg:
+		{
+			BMessage state;
+			BApplicationState storage(message);
+			SaveState(&state, &storage);
+
+			BMessage reply(kStateSavedMsg);
+			reply.AddInt32("be:team", Team());
+			reply.AddMessage("state", &state);
+			storage.fSessionMessenger.SendMessage(&reply);
 			break;
 		}
 
@@ -1031,14 +1267,110 @@ BApplication::GetSupportedSuites(BMessage *data)
 
 
 status_t
-BApplication::Perform(perform_code d, void *arg)
+BApplication::Perform(perform_code code, void *_data)
 {
-	return BLooper::Perform(d, arg);
+	switch (code) {
+		case PERFORM_CODE_RESTORE_STATE:
+		{
+			perform_data_save_restore_state* data
+				= (perform_data_save_restore_state*)_data;
+			data->return_value = BApplication::RestoreState(data->state,
+				data->storage);
+			return B_OK;
+		}
+
+		case PERFORM_CODE_SAVE_STATE:
+		{
+			perform_data_save_restore_state* data
+				= (perform_data_save_restore_state*)_data;
+			data->return_value = BApplication::SaveState(data->state,
+				data->storage);
+			return B_OK;
+		}
+	}
+	return BLooper::Perform(code, _data);
 }
 
 
-void BApplication::_ReservedApplication1() {}
-void BApplication::_ReservedApplication2() {}
+bool
+BApplication::HasBeenRestored()
+{
+	return fHasBeenRestored != 0;
+}
+
+
+status_t
+BApplication::RestoreState(const BMessage* state,
+	const BApplicationState* storage)
+{
+	BMessage windowState;
+	for (int32 i = 0; state->FindMessage("window", i, &windowState) == B_OK;
+		i++) {
+		BString title;
+		if (windowState.FindString("title", &title) != B_OK)
+			continue;
+
+		for (int i = 0; i < CountWindows(); i++) {
+			BWindow* window = WindowAt(i);
+			if (title != window->Title())
+				continue;
+			restore_window_geometry(window, &windowState);
+		}
+	}
+
+	return B_OK;
+}
+
+
+status_t
+BApplication::SaveState(BMessage* state, BApplicationState* storage) const
+{
+	// just store all window positions
+	for (int i = 0; i < CountWindows(); i++) {
+		BWindow* window = WindowAt(i);
+		
+		BMessage windowState;
+		save_window_geometry(window, &windowState);
+		windowState.AddString("title", window->Title());
+		state->AddMessage("window", &windowState);
+	}
+
+	return B_OK;
+}
+
+
+#if __GNUC__ == 2
+
+
+extern "C" status_t
+_ReservedApplication1__12BApplication(BApplication* app, const BMessage* state,
+	const BApplicationState* storage)
+{
+	// RestoreState(const BMessage* state, const BApplicationState* storage)
+	perform_data_save_restore_state data;
+	data.state = const_cast<BMessage*>(state);
+	data.storage = const_cast<BApplicationState*>(storage);
+	app->Perform(PERFORM_CODE_RESTORE_STATE, &data);
+	return data.return_value;
+}
+
+
+extern "C" status_t
+_ReservedApplication2__12BApplication(BApplication* app, BMessage* state,
+	BApplicationState* storage)
+{
+	// SaveState(BMessage* state, BApplicationState* storage)
+	perform_data_save_restore_state data;
+	data.state = state;
+	data.storage = storage;
+	app->Perform(PERFORM_CODE_SAVE_STATE, &data);
+	return data.return_value;
+}
+
+
+#endif
+
+
 void BApplication::_ReservedApplication3() {}
 void BApplication::_ReservedApplication4() {}
 void BApplication::_ReservedApplication5() {}

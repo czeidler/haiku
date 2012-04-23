@@ -14,6 +14,14 @@
 struct server_read_only_memory;
 
 
+// Session Manager
+const uint32 kRestoreStateMsg = '_RSM';
+const uint32 kSaveStateMsg = '_SSM';
+const uint32 kStateSavedMsg = '_SSa';
+const uint32 kSetProgressMsg = '_SPr';
+const uint32 kSaveAborted = '_SAb';
+
+
 class BApplication::Private {
 	public:
 		static inline BPrivate::PortLink *ServerLink()

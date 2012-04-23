@@ -17,6 +17,8 @@
 // method codes
 enum {
 	// app kit
+	PERFORM_CODE_RESTORE_STATE			= 900,
+	PERFORM_CODE_SAVE_STATE				= 901,
 
 	// interface kit
 	PERFORM_CODE_MIN_SIZE				= 1000,
