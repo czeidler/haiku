@@ -1,0 +1,41 @@
+SubDir HAIKU_TOP src tools pidgen ;
+
+SubDirSysHdrs $(HAIKU_TOP) src tools pidgen support ; 
+UsePrivateHeaders shared ;
+
+
+GENERATE_C++ on [ FGristFiles scanner.l yacc.y ] = true ;
+
+
+BinCommand pidgen :
+	AST.cpp
+	CPPBackend.cpp
+	CustomizableBackend.cpp
+	idlstruct.cpp
+	InterfaceRec.cpp
+	main.cpp
+	OutputCPP.cpp
+	OutputI.cpp
+	OutputUtil.cpp
+	PaladinBackend.cpp
+	symbol.cpp
+	symbolstack.cpp
+	TypeBank.cpp
+
+	SharedBuffer.cpp
+	SortedVector.cpp
+	String.cpp
+	TextStream.cpp
+	Vector.cpp
+	VectorIO.cpp
+	VFSFile.cpp
+
+	yacc.y
+	scanner.l
+
+	: $(HOST_LIBSUPC++) $(TARGET_LIBSTDC++) be
+;
+
+
+SEARCH on [ FGristFiles SharedBuffer.cpp SortedVector.cpp String.cpp TextStream.cpp Vector.cpp VectorIO.cpp VFSFile.cpp ]
+	= [ FDirName $(HAIKU_TOP) src tools pidgen support ] ;
