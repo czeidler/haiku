@@ -2,11 +2,77 @@ SubDir HAIKU_TOP src libs alm ;
 
 
 UseLibraryHeaders linprog alm ;
-UsePrivateHeaders shared ;
 UseHeaders [ FDirName $(SUBDIR) $(DOTDOT) $(DOTDOT) kits interface ] ;
 
 
+UseLibraryHeaders charlemagne ;
+SubDirSysHdrs [ FDirName $(HAIKU_TOP) headers libs alm customization ] ;
+
+
+local components_source =
+	UIComponents.cpp
+	ViewContainer.idl
+	CustomTypes.cpp
+	;
+
+
+SubDirSysHdrs [ FDirName $(HAIKU_TOP) headers libs alm editor ] ;
+UsePrivateHeaders interface shared ;
+local customization_source = 
+	Actions.cpp
+	BitmapLayerView.cpp
+	Customizable.cpp
+	CustomizableEditView.cpp
+	CustomizableNodeFactory.cpp
+	CustomizableNodeView.cpp
+	CustomizableRoster.cpp
+	CustomizableRosterView.cpp
+	CustomizableView.cpp
+	IPCLooper.cpp
+	Mangle.cpp
+	Object.cpp
+	TrashView.cpp
+	;
+
+
+local cdt_source =
+	quadedge.cpp
+	;
+
+local editor_source =
+	ALMEditor.cpp
+	EditAction.cpp
+	EditActionAreaDragging.cpp
+	EditActionResizing.cpp
+	EditAnimation.cpp
+	EditorWindow.cpp
+	InfoSystem.cpp
+	LayoutArchive.cpp
+	LayoutEditView.cpp
+	OverlapManager.cpp
+	PreviewWindow.cpp
+
+	$(cdt_source)
+	;
+
+# source directories
+local sourceDirs =
+	components
+	customization
+	editor
+	editor/cdt
+;
+
+local sourceDir ;
+for sourceDir in $(sourceDirs) {
+	SEARCH_SOURCE += [ FDirName $(HAIKU_TOP) src libs alm $(sourceDir) ] ;
+}
+
 SharedLibrary libalm.so :
+	$(components_source)
+	$(customization_source)
+	$(editor_source)
+
 	ALMGroup.cpp
 	ALMLayout.cpp
 	ALMLayoutBuilder.cpp
@@ -16,6 +82,8 @@ SharedLibrary libalm.so :
 	RowColumnManager.cpp
 	SharedSolver.cpp
 	Tab.cpp
+	TextStream.cpp
 	:
-	liblinprog.a be $(TARGET_LIBSTDC++)
+	liblinprog.a libcharlemagne.so
+	be libtracker.so $(TARGET_LIBSTDC++)
 ;

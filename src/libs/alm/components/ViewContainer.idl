@@ -1,0 +1,15 @@
+type BViewLocalPointer ;
+type BLayoutItemLocalPointer ;
+
+
+interface IViewContainer {
+methods:
+			BString				Identifier();
+			void					SetIdentifier(BString id);
+
+			BViewLocalPointer	View();
+			BViewLocalPointer	CreateConfigView();
+			BLayoutItemLocalPointer	LayoutItem();
+
+			void					RemoveSelf();
+}
