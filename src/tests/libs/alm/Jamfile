@@ -71,3 +71,10 @@ Application ALMFriendLayout :
 	:
 	be libalm.so $(TARGET_LIBSTDC++)
 ;
+
+
+Application ALMLayoutArchive :
+	LayoutArchive.cpp
+	:
+	be libalm.so $(TARGET_LIBSTDC++)
+;
