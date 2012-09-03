@@ -91,7 +91,7 @@ LayoutArchive::ClearLayout()
 }
 
 
-bool
+status_t
 LayoutArchive::SaveLayout(BMessage* archive, bool saveComponent) const
 {
 	archive->MakeEmpty();
@@ -186,11 +186,11 @@ LayoutArchive::SaveLayout(BMessage* archive, bool saveComponent) const
 		}
 		archive->AddMessage("leftSide", &leftSide);
 	}
-	return true;
+	return B_OK;
 }
 
 
-bool
+status_t
 LayoutArchive::RestoreLayout(const BMessage* archive, bool restoreComponents)
 {
 	if (restoreComponents)
@@ -210,10 +210,13 @@ LayoutArchive::RestoreLayout(const BMessage* archive, bool restoreComponents)
 
 	int32 neededXTabs;
 	int32 neededYTabs;
-	if (archive->FindInt32("nXTabs", &neededXTabs) != B_OK)
-		return false;
-	if (archive->FindInt32("nYTabs", &neededYTabs) != B_OK)
-		return false;
+	status_t status = B_OK;
+	status = archive->FindInt32("nXTabs", &neededXTabs);
+	if (status != B_OK)
+		return status;
+	status = archive->FindInt32("nYTabs", &neededYTabs);
+	if (status != B_OK)
+		return status;
 	// First store a reference to all needed tabs otherwise they might get lost
 	// while editing the layout
 	std::vector<BReference<XTab> > newXTabs;
@@ -258,7 +261,7 @@ LayoutArchive::RestoreLayout(const BMessage* archive, bool restoreComponents)
 		for (int32 i = 0; i < nAreas; i++) {
 			Area* area = fLayout->AreaAt(i);
 			if (area == NULL)
-				return false;
+				return B_ERROR;
 	
 			_RestoreArea(area, i, archive, xTabs, yTabs);
 		}
@@ -331,7 +334,7 @@ LayoutArchive::RestoreLayout(const BMessage* archive, bool restoreComponents)
 		}
 		fLayout->AddConstraint(constraint);
 	}
-	return true;
+	return B_OK;
 }
 
 

@@ -24,9 +24,9 @@ public:
 			void				ClearLayout();
 
 			//! Ignores the EditView
-			bool				SaveLayout(BMessage* archive,
+			status_t			SaveLayout(BMessage* archive,
 									bool saveComponents = false) const;
-			bool				RestoreLayout(const BMessage* archive,
+			status_t			RestoreLayout(const BMessage* archive,
 									bool restoreComponents = false);
 
 			status_t			SaveToFile(BFile* file,
