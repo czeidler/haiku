@@ -31,7 +31,8 @@ class PreviewWindow : public BWindow {
 public:
 	enum prev_size {
 		kMinSize,
-		kCustomSize
+		kCustomSize,
+		kEnlargedSize
 	};
 
 								PreviewWindow(BALMLayout* layout,
@@ -47,10 +48,12 @@ private:
 
 			void				_SetSize(prev_size size);
 			void				_AdjustSize();
+			void				_AdjustEnlargedSize();
 
 			void				_InitLayout();
 
 			BALMLayout*			fLayout;
+			BALMLayout*			fOwnLayout;
 			prev_size			fPrevSize;
 			PreviewWindowManager*	fManager;
 			BArray<BReference<CustomizableView> >	fItems;

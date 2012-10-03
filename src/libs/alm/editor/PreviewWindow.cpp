@@ -83,6 +83,7 @@ ScaleLayout::Scale(BWindow* window, BALMLayout* layout, float scaleFactor)
 const int32 kMsgNewPrevWindow = '&nPW';
 const int32 kMsgMinSizePreview = '&mSP';
 const int32 kMsgCustomSizePreview = '&cSP';
+const int32 kMsgEnlargedSizePreview = '&oSP';
 
 
 PreviewWindow::PreviewWindow(BALMLayout* parent, prev_size size,
@@ -96,8 +97,8 @@ PreviewWindow::PreviewWindow(BALMLayout* parent, prev_size size,
 
 	fManager->_AddPreviewWindow(this);
 
-	BALMLayout* layout = new BALMLayout();
-	SetLayout(layout);
+	fOwnLayout = new BALMLayout();
+	SetLayout(fOwnLayout);
 
 	BMenuBar* bar = new BMenuBar("MainMenu");
 	bar->SetExplicitAlignment(BAlignment(B_ALIGN_USE_FULL_WIDTH,
@@ -114,10 +115,14 @@ PreviewWindow::PreviewWindow(BALMLayout* parent, prev_size size,
 		new BMessage(kMsgMinSizePreview));
 	BMenuItem* customPreview = new BMenuItem("Custom Size",
 		new BMessage(kMsgCustomSizePreview));
+	BMenuItem* enlargedPreview = new BMenuItem("Enlarged Size",
+		new BMessage(kMsgEnlargedSizePreview));
 	prevMenu->AddItem(minPreview);
 	prevMenu->AddItem(customPreview);
+	prevMenu->AddItem(enlargedPreview);
 
-	layout->AddView(bar, layout->Left(), layout->Top(), layout->Right());
+	fOwnLayout->AddView(bar, fOwnLayout->Left(), fOwnLayout->Top(),
+		fOwnLayout->Right());
 	fContainerView = new BView("ContainerView", B_FRAME_EVENTS
 		| B_FULL_UPDATE_ON_RESIZE);
 	//fContainerView->SetViewColor(B_TRANSPARENT_COLOR);
@@ -126,8 +131,8 @@ PreviewWindow::PreviewWindow(BALMLayout* parent, prev_size size,
 	//fContainerView->SetExplicitAlignment(BAlignment(B_ALIGN_USE_FULL_WIDTH,
 	//	B_ALIGN_USE_FULL_HEIGHT));
 	//fContainerView->SetExplicitPreferredSize(BSize(-1, -1));
-	layout->AddView(fContainerView, layout->Left(), layout->BottomOf(bar),
-		layout->Right(), layout->Bottom());
+	fOwnLayout->AddView(fContainerView, fOwnLayout->Left(),
+		fOwnLayout->BottomOf(bar), fOwnLayout->Right(), fOwnLayout->Bottom());
 
 	PostMessage(kMsgLayoutEdited);
 }
@@ -176,6 +181,11 @@ PreviewWindow::MessageReceived(BMessage* message)
 			_AdjustSize();
 			break;
 
+		case kMsgEnlargedSizePreview:
+			_SetSize(kEnlargedSize);
+			_AdjustSize();
+			break;
+
 		default:
 			BWindow::MessageReceived(message);
 	}
@@ -187,9 +197,11 @@ PreviewWindow::_SetSize(prev_size size)
 {
 	fPrevSize = size;
 	if (fPrevSize == kMinSize)
-		SetTitle("Preview (Minimum Size)");
+		SetTitle("Minimum Size");
 	else if (fPrevSize == kCustomSize)
 		SetTitle("Preview (Custom Size)");
+	else if (fPrevSize == kEnlargedSize)
+		SetTitle("Enlarged Size");
 }
 
 
@@ -203,6 +215,10 @@ PreviewWindow::_AdjustSize()
 
 	if (fPrevSize == kMinSize)
 		maxSize = minSize;
+	else if (fPrevSize == kEnlargedSize) {
+		_AdjustEnlargedSize();
+		return;
+	}
 
 	fContainerView->SetExplicitMinSize(minSize);
 	fContainerView->SetExplicitMaxSize(maxSize);
@@ -220,6 +236,61 @@ PreviewWindow::_AdjustSize()
 
 
 void
+PreviewWindow::_AdjustEnlargedSize()
+{
+	BAutolock _(fLayout->Owner()->Window());
+	BRect frame = fLayout->Frame();
+	_.Unlock();
+
+	int32 xTabs = fOwnLayout->CountXTabs();
+	int32 yTabs = fOwnLayout->CountYTabs();
+
+	float widthDelta = frame.Width() * 0.1;
+	widthDelta *= xTabs - 1;
+	float heightDelta = frame.Height() * 0.1;
+	heightDelta *= yTabs - 1;
+
+	SetSizeLimits(frame.Width() + widthDelta, frame.Width() + widthDelta,
+		frame.Height() + heightDelta,	frame.Height() + heightDelta);
+
+	/* alternative method to increase the item size by 10%, not working though
+	_InitLayout();
+
+	for (int32 i = 0; i < fOwnLayout->CountAreas(); i++) {
+		Area* area = fOwnLayout->AreaAt(i);
+		BLayoutItem* item = area->Item();
+
+		BSize minItemSize = item->MinSize();
+		BSize prefItemSize = item->PreferredSize();
+		BSize maxItemSize = item->MaxSize();
+
+		minItemSize.width += 10;
+		minItemSize.height += 10;
+		if (minItemSize.width > maxItemSize.width)
+			minItemSize.width = maxItemSize.width;
+		if (minItemSize.height > maxItemSize.height)
+			minItemSize.height = maxItemSize.height;
+
+		float currentWidth = area->Frame().Width();
+		float currentHeight = area->Frame().Height();
+
+		prefItemSize.width = currentWidth * 1.1;
+		prefItemSize.height = currentHeight * 1.1;
+		if (prefItemSize.width > maxItemSize.width)
+			prefItemSize.width = maxItemSize.width;
+		if (prefItemSize.height > maxItemSize.height)
+			prefItemSize.height = maxItemSize.height;
+
+		item->SetExplicitMinSize(minItemSize);
+		item->SetExplicitPreferredSize(prefItemSize);
+	}
+	fOwnLayout->InvalidateLayout(true);
+	BSize previewPrefSize = fOwnLayout->PreferredSize();;
+	*/
+}
+
+
+void
 PreviewWindow::_InitLayout()
 {
 	CustomizableRoster* roster = CustomizableRoster::DefaultRoster();
@@ -227,7 +298,7 @@ PreviewWindow::_InitLayout()
 		fItems.ItemAt(i)->RemoveSelf();
 	fItems.MakeEmpty();
 
-	// remove old dummy view
+	// remove old container view
 	if (fContainerView->GetLayout())
 		delete fContainerView->GetLayout()->RemoveItem(int32(0));
 
@@ -236,15 +307,15 @@ PreviewWindow::_InitLayout()
 	BMessage archive;
 	LayoutArchive(fLayout).SaveLayout(&archive);
 
-	BALMLayout* layout = new BALMLayout;
-	fContainerView->SetLayout(layout);
+	fOwnLayout = new BALMLayout;
+	fContainerView->SetLayout(fOwnLayout);
 
 	float left, top, right, bottom;
 	fLayout->GetInsets(&left, &top, &right, &bottom);
-	layout->SetInsets(left, top, right, bottom);
+	fOwnLayout->SetInsets(left, top, right, bottom);
 	float hSpacing, vSpacing;
 	fLayout->GetSpacing(&hSpacing, &vSpacing);
-	layout->SetSpacing(hSpacing, vSpacing);
+	fOwnLayout->SetSpacing(hSpacing, vSpacing);
 
 	// add dummy edit view
 	//BView* dummy = new BView("LayoutEditView", B_WILL_DRAW | B_FRAME_EVENTS
@@ -253,8 +324,8 @@ PreviewWindow::_InitLayout()
 	BSpaceLayoutItem* dummy = new BSpaceLayoutItem(BSize(0, 0),
 		BSize(B_SIZE_UNLIMITED, B_SIZE_UNLIMITED), BSize(0, 0),
 		BAlignment(B_ALIGN_CENTER, B_ALIGN_MIDDLE));
-	layout->AddItem(dummy, layout->Left(), layout->Top(),
-		layout->Left(), layout->Bottom());
+	fOwnLayout->AddItem(dummy, fOwnLayout->Left(), fOwnLayout->Top(),
+		fOwnLayout->Left(), fOwnLayout->Bottom());
 
 	for (int32 i = 0; i < fLayout->CountItems(); i++) {
 		BView* view = fLayout->ItemAt(i)->View();
@@ -272,16 +343,18 @@ PreviewWindow::_InitLayout()
 			return;
 	
 		if (customizable->View().Get() != NULL)
-			layout->AddView(customizable->View());
+			fOwnLayout->AddView(customizable->View());
 		else if (customizable->LayoutItem().Get() != NULL)
-			layout->AddItem(customizable->LayoutItem());
+			fOwnLayout->AddItem(customizable->LayoutItem());
 		else
 			return;
 
 		fItems.AddItem(customizable);
 	}
-	LayoutArchive(layout).RestoreLayout(&archive);
+	LayoutArchive(fOwnLayout).RestoreLayout(&archive);
 
+	fOwnLayout->RemoveItem(dummy);
+	delete dummy;
 	InvalidateLayout();
 }
 
