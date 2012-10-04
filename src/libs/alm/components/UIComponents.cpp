@@ -11,6 +11,13 @@ Button::InstantiateCustomizable(const BMessage* archive)
 
 
 Customizable*
+TextControl::InstantiateCustomizable(const BMessage* archive)
+{
+	return new TextControl();
+}
+
+
+Customizable*
 TextView::InstantiateCustomizable(const BMessage* archive)
 {
 	TextView* view = new TextView();
@@ -148,6 +155,7 @@ static CustomizableInstaller<CheckBox> sCheckBoxInstaller(kCheckButtonBits,
 	BRect(0, 0, kCheckButtonIconWidth - 1, kCheckButtonIconHeight - 1));
 static CustomizableInstaller<ComboBox> sComboBoxInstaller(kComboBoxBits,
 	BRect(0, 0, kComboBoxIconWidth - 1, kComboBoxIconHeight - 1));
+static CustomizableInstaller<TextControl> sTextControlInstaller;
 static CustomizableInstaller<TextView> sTextViewInstaller(kTextViewBits,
 	BRect(0, 0, kTextViewIconWidth - 1, kTextViewIconHeight - 1));
 static CustomizableInstaller<ProgressBar> sProgressBarInstaller(kStatusBarBits,

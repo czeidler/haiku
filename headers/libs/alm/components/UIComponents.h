@@ -18,6 +18,7 @@
 #include <SpaceLayoutItem.h>
 #include <StatusBar.h>
 #include <StringView.h>
+#include <TextControl.h>
 #include <TextView.h>
 
 #include <CustomizableView.h>
@@ -52,6 +53,20 @@ public:
 			Customizable::SetObjectName(name);
 		}
 	}
+};
+
+
+class TextControl : public BTextControl, virtual public CustomizableView {
+public:
+	TextControl()
+		:
+		CustomizableView(this),
+		BTextControl("BTextControl", NULL, "Text Control", NULL)
+	{
+	}
+
+	static Customizable*	InstantiateCustomizable(const BMessage* archive);
+
 };
 
 
