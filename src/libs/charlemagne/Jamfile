@@ -1,0 +1,19 @@
+SubDir HAIKU_TOP src libs charlemagne ;
+
+
+UseLibraryHeaders charlemagne ;
+
+UsePrivateHeaders shared ;
+
+SharedLibrary libcharlemagne.so :
+	CInterface.cpp
+	PArgs.cpp
+	PData.cpp
+	PMethod.cpp
+	PObject.cpp
+	PObjectBroker.cpp
+	PProperty.cpp
+	PValue.cpp
+	:
+	be $(TARGET_LIBSTDC++)
+;
