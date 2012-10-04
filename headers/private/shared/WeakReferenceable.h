@@ -6,9 +6,9 @@
 #define _WEAK_REFERENCEABLE_H
 
 
-#include <Referenceable.h>
-
 #include <new>
+
+#include <Referenceable.h>
 
 
 namespace BPrivate {
@@ -168,7 +168,9 @@ public:
 
 	BReference<Type> GetReference()
 	{
-		Type* object = static_cast<Type*>(fPointer->Get());
+		if (fPointer == NULL)
+			return BReference<Type>(NULL);
+		Type* object = dynamic_cast<Type*>(fPointer->Get());
 		return BReference<Type>(object, true);
 	}
 
@@ -251,7 +253,7 @@ WeakPointer::~WeakPointer()
 inline BWeakReferenceable*
 WeakPointer::Get()
 {
-	int32 count = -11;
+	int32 count = -1;
 
 	do {
 		count = atomic_get(&fUseCount);
