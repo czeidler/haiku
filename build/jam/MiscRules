@@ -417,3 +417,28 @@ rule DefineBuildProfile name : type : path {
 
 	return 1 ;
 }
+
+
+rule Pidgen
+{
+	local source = $(1[1]) ;
+	local header = $(1[2]) ;
+	local pidgenSource = $(2) ;
+
+	MakeLocateArch $(source) $(header) ;
+
+	Depends $(source) $(header) : $(pidgenSource) ;
+	#Pidgen1 $(source:D) $(header:D) : $(pidgenSource) ;
+	LocalClean clean : $(source) $(header) ;
+
+	# make sure someone includes $(header) else it will be
+	# a deadly independent target
+
+	Includes $(source) : $(header) ;
+}
+
+
+actions Pidgen
+{
+	pidgen -O $(1[1]:D) -S $(1[2]:D) $(2)
+}
