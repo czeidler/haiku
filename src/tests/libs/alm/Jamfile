@@ -78,3 +78,11 @@ Application ALMLayoutArchive :
 	:
 	be libalm.so $(TARGET_LIBSTDC++)
 ;
+
+
+Application ALEditor
+	:
+	ALEditor.cpp
+	:
+	be libalm.so libcharlemagne.so $(TARGET_LIBSTDC++)
+;
