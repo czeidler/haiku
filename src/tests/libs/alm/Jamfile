@@ -4,6 +4,11 @@ UseLibraryHeaders linprog alm ;
 UsePrivateHeaders shared ;
 
 
+UseLibraryHeaders charlemagne ;
+SubDirSysHdrs [ FDirName $(HAIKU_TOP) headers libs alm customization ] ;
+SubDirSysHdrs [ FDirName $(HAIKU_TOP) headers libs alm editor ] ;
+
+
 Application ALMHelloWorld :
 	HelloWorld.cpp
 	:
@@ -79,6 +84,9 @@ Application ALMLayoutArchive :
 	be libalm.so $(TARGET_LIBSTDC++)
 ;
 
+
+#TODO: include that somehow automatically
+SubDirSysHdrs [ FDirName $(HAIKU_TOP) generated objects haiku x86 common libs alm ] ;
 
 Application ALEditor
 	:
