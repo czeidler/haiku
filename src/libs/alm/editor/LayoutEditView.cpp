@@ -1355,17 +1355,7 @@ LayoutEditView::MessageReceived(BMessage* message)
 
 		case kRemoveComponentMsg: {
 			Area* area = FindArea(fLastMenuPosition);
-			if (area == NULL)
-				break;
-			BView* view = area->Item()->View();
-			CustomizableView* item = dynamic_cast<CustomizableView*>(view);
-			if (item == NULL)
-				break;
-
-			SetSelectedArea(NULL);
-			PerformAction(new RemoveCustomizableViewAction(fEditor,
-				CurrentLayout(), item));
-
+			TrashArea(area);
 			break;
 		}
 
