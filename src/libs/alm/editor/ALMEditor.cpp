@@ -84,7 +84,6 @@ BALMEditor::StartEdit()
 	BAutolock _(fLock);
 
 	fEditView = new LayoutEditView(this);
-	// allow the layout to shrink
 
 	LayoutArchive layoutArchive(fLayout);
 	layoutArchive.RestoreFromAppFile("last_layout");
