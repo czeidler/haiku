@@ -144,6 +144,8 @@ SYSTEM_ADD_ONS_MEDIA = cortex_audioadapter.media_addon
 	video_window_demo.media_addon
 	firewire_dv.media_addon
 	#legacy.media_addon
+	equalizer.media_addon
+	vst_host.media_addon
 ;
 SYSTEM_ADD_ONS_MEDIA_PLUGINS = $(X86_ONLY)ffmpeg raw_decoder ;
 SYSTEM_ADD_ONS_PRINT =
@@ -904,8 +906,6 @@ AddVariableToScript $(script) : addBuildCompatibilityLibDir
 	: $(HOST_ADD_BUILD_COMPATIBILITY_LIB_DIR) ;
 AddVariableToScript $(script) : dontClearImage : $(HAIKU_DONT_CLEAR_IMAGE) ;
 AddVariableToScript $(script) : updateOnly : [ IsUpdateHaikuImageOnly ] ;
-AddVariableToScript $(script) : stripOptionalPackageDebugSymbols
-	: $(HAIKU_STRIP_DEBUG_FROM_OPTIONAL_PACKAGES) ;
 AddTargetVariableToScript $(script) : <build>addattr ;
 AddTargetVariableToScript $(script) : <build>bfs_shell : bfsShell ;
 AddTargetVariableToScript $(script) : <build>fs_shell_command : fsShellCommand ;

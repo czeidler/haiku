@@ -3046,9 +3046,11 @@ cache_abort_sub_transaction(void* _cache, int32 id)
 			// The parent transaction didn't change the block, but the sub
 			// transaction did - we need to revert to the original data.
 			// The block is no longer part of the transaction
-			ASSERT(block->original_data != NULL);
-			memcpy(block->current_data, block->original_data,
-				cache->block_size);
+			if (block->original_data != NULL) {
+				// The block might not have original data if was empty
+				memcpy(block->current_data, block->original_data,
+					cache->block_size);
+			}
 
 			if (last != NULL)
 				last->transaction_next = next;
@@ -3057,6 +3059,8 @@ cache_abort_sub_transaction(void* _cache, int32 id)
 
 			block->transaction_next = NULL;
 			block->transaction = NULL;
+			transaction->num_blocks--;
+
 			if (block->previous_transaction == NULL) {
 				cache->Free(block->original_data);
 				block->original_data = NULL;

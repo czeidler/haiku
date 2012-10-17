@@ -10,6 +10,7 @@
 #include <arch/cpu.h>
 #include <arch_kernel.h>
 #include <arch_system_info.h>
+#include <boot/stage2.h>
 
 #include <string.h>
 
@@ -35,6 +36,8 @@ spin(bigtime_t microseconds)
 extern "C" void
 cpu_init()
 {
+	gKernelArgs.num_cpus = 1;
+		// this will eventually be corrected later on
+
 #warning IMPLEMENT cpu_init
 }
-
