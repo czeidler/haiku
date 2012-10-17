@@ -131,6 +131,8 @@ LayoutEditView::LayoutEditView(BALMEditor* editor)
 
 LayoutEditView::~LayoutEditView()
 {
+	fEditor->StopEdit();
+
 	delete fInformant;
 	delete fMessageFilter;
 }

@@ -91,8 +91,6 @@ BALMEditor::StartEdit()
 	fLayout->AddView(fEditView, fLayout->Left(), fLayout->Top(),
 		fLayout->Right(), fLayout->Bottom());
 
-	fEditViewMessenger = BMessenger(fEditView);
-
 	fEditWindow = new EditWindow(this, fEditView);
 	fEditWindow->Show();
 	fEditWindowMessenger = BMessenger(NULL, fEditWindow);
@@ -113,7 +111,7 @@ void
 BALMEditor::StopEdit()
 {
 	BAutolock _(fLock);
-	fEditViewMessenger.SendMessage(LayoutEditView::kQuitMsg);
+	BMessenger(fEditView).SendMessage(LayoutEditView::kQuitMsg);
 
 	fEditWindowMessenger.SendMessage(B_QUIT_REQUESTED);
 	fLayerWindowMessenger.SendMessage(B_QUIT_REQUESTED);

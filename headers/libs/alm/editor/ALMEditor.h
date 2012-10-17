@@ -81,8 +81,6 @@ private:
 			EditWindow*			fEditWindow;
 			BMessenger			fEditWindowMessenger;
 
-			BMessenger			fEditViewMessenger;
-
 			BWindow*			fLayerWindow;
 			BMessenger			fLayerWindowMessenger;
 
