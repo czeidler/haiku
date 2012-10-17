@@ -65,13 +65,13 @@ public:
 				if (view == NULL)
 					break;
 
-				while (view->Parent() != NULL)
-					view = view->Parent();
-
 				// convert the mouse position to the layout system
 				BPoint where;
 				message->FindPoint("be:view_where", &where);
-				where += view->Frame().LeftTop();
+				BPoint editViewLeftTopScreen = fTarget->ConvertToScreen(
+					fTarget->Frame().LeftTop());
+				BPoint whereScreen = view->ConvertToScreen(where);
+				where = whereScreen - editViewLeftTopScreen;
  				message->ReplacePoint("be:view_where", where);
  
 				*target = fTarget;
