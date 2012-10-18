@@ -305,7 +305,7 @@ PreviewWindow::_InitLayout()
 	BAutolock _(fLayout->Owner()->Window());
 	
 	BMessage archive;
-	LayoutArchive(fLayout).SaveLayout(&archive);
+	LayoutArchive(fLayout).SaveLayout(&archive, false);
 
 	fOwnLayout = new BALMLayout;
 	fContainerView->SetLayout(fOwnLayout);
@@ -351,7 +351,7 @@ PreviewWindow::_InitLayout()
 
 		fItems.AddItem(customizable);
 	}
-	LayoutArchive(fOwnLayout).RestoreLayout(&archive);
+	LayoutArchive(fOwnLayout).RestoreLayout(&archive, false);
 
 	fOwnLayout->RemoveItem(dummy);
 	delete dummy;

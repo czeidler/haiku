@@ -899,14 +899,7 @@ EditWindow::MessageReceived(BMessage* message)
 		{
 			BWindow* parent = fEditView->Window();
 			if (parent != NULL && parent->Lock()) {
-				fEditView->RemoveSelf();
-
-				LayoutArchive archiver(fALMEngine);
-				archiver.ClearLayout();
-
-				fALMEngine->AddView(fEditView, fALMEngine->Left(),
-					fALMEngine->Top(), fALMEngine->Right(),
-					fALMEngine->Bottom());
+				fEditor->ClearLayout();
 
 				UpdateEditWindow();
 				parent->Unlock();
@@ -921,24 +914,11 @@ EditWindow::MessageReceived(BMessage* message)
 
 			BFile file(&entry, B_READ_ONLY);
 
-			BWindow* parent = fEditView->Window();
-			if (parent != NULL && parent->Lock()) {
-				fEditView->RemoveSelf();
-
-				LayoutArchive archiver(fALMEngine);
-				archiver.RestoreFromAttribute(&file, "layout");
-
-				fALMEngine->AddView(fEditView, fALMEngine->Left(),
-					fALMEngine->Top(), fALMEngine->Right(),
-					fALMEngine->Bottom());
-				Area* area = fALMEngine->AreaFor(fEditView);
-				area->SetLeftInset(0);
-				area->SetTopInset(0);
-				area->SetRightInset(0);
-				area->SetBottomInset(0);
+			if (fEditView->LockLooper()) {
+				fEditor->RestoreFromAttribute(&file, "layout");
 
 				UpdateEditWindow();
-				parent->Unlock();
+				fEditView->UnlockLooper();
 			}
 			break;
 		}

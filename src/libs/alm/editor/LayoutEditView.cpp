@@ -1618,7 +1618,7 @@ LayoutEditView::_UpdateCurrentLayout()
 	if (entry == NULL)
 		debugger("we have no history!");
 
-	LayoutArchive(fALMEngine).SaveLayout(&entry->layout);
+	LayoutArchive(fALMEngine).SaveLayout(&entry->layout, false);
 }
 
 

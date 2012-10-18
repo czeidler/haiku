@@ -317,7 +317,7 @@ public:
 	virtual bool				Perform() = 0;
 	virtual bool Undo()
 	{
-		LayoutArchive(fALMLayout).RestoreLayout(fPrevLayout);
+		LayoutArchive(fALMLayout).RestoreLayout(fPrevLayout, false);
 		return true;
 	}
 

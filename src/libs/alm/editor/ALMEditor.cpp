@@ -85,21 +85,18 @@ BALMEditor::StartEdit()
 
 	fEditView = new LayoutEditView(this);
 
-	LayoutArchive layoutArchive(fLayout);
-	layoutArchive.RestoreFromAppFile("last_layout");
-
 	fLayout->AddView(fEditView, fLayout->Left(), fLayout->Top(),
 		fLayout->Right(), fLayout->Bottom());
-
-	fEditWindow = new EditWindow(this, fEditView);
-	fEditWindow->Show();
-	fEditWindowMessenger = BMessenger(NULL, fEditWindow);
-
 	Area* area = fLayout->AreaFor(fEditView);
 	area->SetLeftInset(0);
 	area->SetTopInset(0);
 	area->SetRightInset(0);
 	area->SetBottomInset(0);
+
+	fEditWindow = new EditWindow(this, fEditView);
+	fEditWindow->Show();
+	fEditWindowMessenger = BMessenger(NULL, fEditWindow);
+
 
 //	fLayerWindow = new LayerWindow(this, fEditView);
 //	fLayerWindowMessenger = BMessenger(NULL, fLayerWindow);
@@ -116,7 +113,100 @@ BALMEditor::StopEdit()
 	fEditWindowMessenger.SendMessage(B_QUIT_REQUESTED);
 	fLayerWindowMessenger.SendMessage(B_QUIT_REQUESTED);
 }
-	
+
+
+/*! removes the LayoutEditView and add it later. */
+class LayoutEditViewDisabler {
+public:
+	LayoutEditViewDisabler(BALMLayout* layout, BALM::LayoutEditView* editView)
+		:
+		fLayout(layout),
+		fEditView(editView)
+	{
+		fEditView->RemoveSelf();
+	}
+
+	~LayoutEditViewDisabler()
+	{
+		fLayout->AddView(fEditView, fLayout->Left(), fLayout->Top(),
+		fLayout->Right(), fLayout->Bottom());
+		Area* area = fLayout->AreaFor(fEditView);
+		area->SetLeftInset(0);
+		area->SetTopInset(0);
+		area->SetRightInset(0);
+		area->SetBottomInset(0);
+	}
+
+private:
+			BALMLayout*			fLayout;
+			BALM::LayoutEditView*	fEditView;
+};
+
+
+void
+BALMEditor::ClearLayout()
+{
+	LayoutEditViewDisabler _(fLayout, fEditView);
+	LayoutArchive archiver(fLayout);
+	return archiver.ClearLayout();	
+}
+
+
+status_t
+BALMEditor::SaveToFile(BFile* file, const BMessage* message)
+{
+	LayoutEditViewDisabler _(fLayout, fEditView);
+	LayoutArchive archiver(fLayout);
+	return archiver.SaveToFile(file, message);	
+}
+
+
+status_t
+BALMEditor::RestoreFromFile(BFile* file, bool restoreComponents)
+{
+	LayoutEditViewDisabler _(fLayout, fEditView);
+	LayoutArchive archiver(fLayout);
+	return archiver.RestoreFromFile(file, restoreComponents);	
+}
+
+
+status_t
+BALMEditor::SaveToAppFile(const char* attribute, const BMessage* message)
+{
+	LayoutEditViewDisabler _(fLayout, fEditView);
+	LayoutArchive archiver(fLayout);
+	return archiver.SaveToAppFile(attribute, message);	
+}
+
+
+status_t
+BALMEditor::RestoreFromAppFile(const char* attribute, bool restoreComponents)
+{
+	LayoutEditViewDisabler _(fLayout, fEditView);
+	LayoutArchive archiver(fLayout);
+	return archiver.RestoreFromAppFile(attribute, restoreComponents);	
+}
+
+
+status_t
+BALMEditor::SaveToAttribute(BNode* node, const char* attribute,
+	const BMessage* message)
+{
+	LayoutEditViewDisabler _(fLayout, fEditView);
+	LayoutArchive archiver(fLayout);
+	return archiver.SaveToAttribute(node, attribute, message);	
+}
+
+
+status_t
+BALMEditor::RestoreFromAttribute(BNode* node, const char* attribute,
+	bool restoreComponents)
+{
+	LayoutEditViewDisabler _(fLayout, fEditView);
+	LayoutArchive archiver(fLayout);
+	return archiver.RestoreFromAttribute(node, attribute, restoreComponents);
+}
+
 
 BALMLayout*
 BALMEditor::Layout()

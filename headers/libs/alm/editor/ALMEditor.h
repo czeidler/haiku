@@ -17,6 +17,9 @@
 const int32 kMsgLayoutEdited = '&LEd';
 
 
+class BFile;
+class BNode;
+
 class IViewContainer;
 
 
@@ -42,6 +45,24 @@ public:
 
 			void				StartEdit();
 			void				StopEdit();
+
+			void				ClearLayout();
+			status_t			SaveToFile(BFile* file,
+									const BMessage* message);
+			status_t			RestoreFromFile(BFile* file,
+									bool restoreComponents = true);
+
+			status_t			SaveToAppFile(const char* attribute,
+									const BMessage* message);
+			status_t			RestoreFromAppFile(const char* attribute,
+									bool restoreComponents = true);
+
+			status_t			SaveToAttribute(BNode* node,
+									const char* attribute,
+									const BMessage* message);
+			status_t			RestoreFromAttribute(BNode* node,
+									const char* attribute,
+									bool restoreComponents = true);
 
 			BALMLayout*			Layout();
 			void				UpdateEditWindow();

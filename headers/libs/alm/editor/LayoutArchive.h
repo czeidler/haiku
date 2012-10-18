@@ -25,9 +25,9 @@ public:
 
 			//! Ignores the EditView
 			status_t			SaveLayout(BMessage* archive,
-									bool saveComponents = false) const;
+									bool saveComponents) const;
 			status_t			RestoreLayout(const BMessage* archive,
-									bool restoreComponents = false);
+									bool restoreComponents);
 
 			status_t			SaveToFile(BFile* file,
 									const BMessage* message);
