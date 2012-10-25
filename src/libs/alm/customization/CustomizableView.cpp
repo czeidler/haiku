@@ -13,6 +13,7 @@ CustomizableView::CustomizableView(BView* parent, bool own)
 	fLayoutItem(NULL),
 	fOwnObject(own)
 {
+	SetObjectName(fView->Name());
 }
 
 
@@ -22,6 +23,8 @@ CustomizableView::CustomizableView(BLayoutItem* item, bool own)
 	fLayoutItem(item),
 	fOwnObject(own)
 {
+	if (item->View() != NULL)
+		SetObjectName(item->View()->Name());
 }
 
 CustomizableView::~CustomizableView()
