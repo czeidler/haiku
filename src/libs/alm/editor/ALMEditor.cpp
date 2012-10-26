@@ -64,6 +64,8 @@ BALMEditor::BALMEditor(BALMLayout* layout)
 	fLayout(layout),
 	fEditView(NULL),
 	fLayerWindow(NULL),
+	fEnableLayerWindow(false),
+	fCreationMode(false),
 	fShowXTabs(false),
 	fShowYTabs(false),
 	fFreePlacement(false)
@@ -97,10 +99,11 @@ BALMEditor::StartEdit()
 	fEditWindow->Show();
 	fEditWindowMessenger = BMessenger(NULL, fEditWindow);
 
-
-//	fLayerWindow = new LayerWindow(this, fEditView);
-//	fLayerWindowMessenger = BMessenger(NULL, fLayerWindow);
-//	fLayerWindow->Show();
+ 	if (fEnableLayerWindow) {
+		fLayerWindow = new LayerWindow(this, fEditView);
+		fLayerWindowMessenger = BMessenger(NULL, fLayerWindow);
+		fLayerWindow->Show();
+ 	}
 }
 
 
@@ -273,6 +276,27 @@ bool
 BALMEditor::ShowYTabs()
 {
 	return fShowYTabs;
+}
+
+
+void
+BALMEditor::SetEnableLayerWindow(bool enabled)
+{
+	fEnableLayerWindow = enabled;
+}
+
+
+void
+BALMEditor::SetEnableCreationMode(bool enabled)
+{
+	fCreationMode = enabled;
+}
+
+
+bool
+BALMEditor::IsCreationMode()
+{
+	return fCreationMode;
 }
 
 

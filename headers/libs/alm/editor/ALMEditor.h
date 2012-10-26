@@ -71,6 +71,9 @@ public:
 			void				SetShowYTabs(bool show);
 			bool				ShowXTabs();
 			bool				ShowYTabs();
+			void				SetEnableLayerWindow(bool enabled);
+			void				SetEnableCreationMode(bool enabled);
+			bool				IsCreationMode();
 
 			void				SetFreePlacement(bool freePlacement);
 			bool				FreePlacement();
@@ -104,6 +107,8 @@ private:
 
 			BWindow*			fLayerWindow;
 			BMessenger			fLayerWindowMessenger;
+			bool				fEnableLayerWindow;
+			bool				fCreationMode;
 
 			BLocker				fLock;
 
