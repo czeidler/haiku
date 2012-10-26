@@ -774,6 +774,9 @@ EditWindow::_InitializeComponent()
 	fEditWindowTabContent->AddTab(new TrashView(fEditor), trashTab);
 	trashTab->SetLabel("Trash");
 
+	if (!fEditor->IsCreationMode())
+		fEditWindowTabContent->Select(1);
+
 	// Factory View
 	fFactoryDragListView = new FactoryDragListView(
 		CustomizableRoster::DefaultRoster());
@@ -801,13 +804,22 @@ EditWindow::_InitializeComponent()
 	float spacing = be_control_look->DefaultItemSpacing() / 2;
 	BALMLayout* layout = new BALMLayout(spacing, spacing);
 	layout->SetInsets(spacing, spacing);
-	BALMLayoutBuilder(background, layout)
-		.Add(factoryLabel, layout->Left(), layout->Top())
-		.AddBelow(factoryScrollView, NULL, layout->Left(), layout->Right())
-		.AddBelow(fEditWindowTabContent)
-		.AddBelow(fShowXTabBox, layout->Bottom(), NULL, layout->AddXTab())
-		.AddToRight(fShowYTabBox)
-		.AddToRight(fFreePlacementBox, layout->Right());
+	if (fEditor->IsCreationMode()) {
+		BALMLayoutBuilder(background, layout)
+			.Add(factoryLabel, layout->Left(), layout->Top())
+			.AddBelow(factoryScrollView, NULL, layout->Left(), layout->Right())
+			.AddBelow(fEditWindowTabContent)
+			.AddBelow(fShowXTabBox, layout->Bottom(), NULL, layout->AddXTab())
+			.AddToRight(fShowYTabBox)
+			.AddToRight(fFreePlacementBox, layout->Right());
+	} else {
+		BALMLayoutBuilder(background, layout)
+			.Add(fEditWindowTabContent, layout->Left(), layout->Top(),
+				layout->Right())
+			.AddBelow(fShowXTabBox, layout->Bottom(), NULL, layout->AddXTab())
+			.AddToRight(fShowYTabBox)
+			.AddToRight(fFreePlacementBox, layout->Right());
+	}
 }
 
 
