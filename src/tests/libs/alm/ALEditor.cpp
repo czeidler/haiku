@@ -34,6 +34,7 @@ public:
 		BALMLayoutBuilder builder(this, fLayout);
 
 		fEditor = new BALMEditor(fLayout);
+		fEditor->SetEnableCreationMode(true);
 
 		PostMessage(kMsgEdit);
 	}
