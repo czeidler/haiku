@@ -212,6 +212,44 @@ CustomizableNodeView::~CustomizableNodeView()
 }
 
 
+void				
+CustomizableNodeView::StoreLayout(BMessage* message) const
+{
+	message->MakeEmpty();
+	for (int32 i = 0; i < CountLayers(); i++) {
+		CustomizableLayerItem* item
+			= dynamic_cast<CustomizableLayerItem*>(LayerAt(i));
+		if (item == NULL)
+			continue;
+		BReference<Customizable> customizable = item->GetCustomizable();
+		if (customizable == NULL)
+			continue;
+		message->AddPointer("customizable", customizable.Get());
+		message->AddPoint("position", item->Position());
+	}
+}
+
+
+void
+CustomizableNodeView::RestoreLayout(const BMessage* message)
+{
+	for (int32 i = 0; i < CountLayers(); i++) {
+		Customizable* customizable;
+		if (message->FindPointer("customizable", i, (void**)&customizable)
+			!= B_OK)
+			continue;
+		BPoint position;
+		if (message->FindPoint("position", i, &position) != B_OK)
+			continue;
+
+		CustomizableLayerItem* item = FindNode(customizable);
+		if (item == NULL)
+			continue;
+		item->SetPosition(position);
+	}
+}
+
+
 void
 CustomizableNodeView::MessageReceived(BMessage* message)
 {

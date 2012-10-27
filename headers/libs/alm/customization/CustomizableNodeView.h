@@ -87,6 +87,9 @@ public:
 								CustomizableNodeView(CustomizableRoster* roster);
 	virtual						~CustomizableNodeView();
 
+			void				StoreLayout(BMessage* message) const;
+			void				RestoreLayout(const BMessage* message);
+
 	virtual void				MessageReceived(BMessage* message);
 	virtual	void				AttachedToWindow();
 

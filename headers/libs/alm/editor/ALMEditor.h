@@ -67,6 +67,8 @@ public:
 			BALMLayout*			Layout();
 			void				UpdateEditWindow();
 
+			void				SetLayerLayout(const BMessage& archive);
+
 			void				SetShowXTabs(bool show);
 			void				SetShowYTabs(bool show);
 			bool				ShowXTabs();
@@ -106,6 +108,7 @@ private:
 			BMessenger			fEditWindowMessenger;
 
 			BWindow*			fLayerWindow;
+			BMessage			fLayerLayout;
 			BMessenger			fLayerWindowMessenger;
 			bool				fEnableLayerWindow;
 			bool				fCreationMode;

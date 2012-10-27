@@ -32,23 +32,32 @@ public:
 		BALMLayout* layout = new BALMLayout(10.);
 		SetLayout(layout);
 		
-		CustomizableNodeView* nodeView = new CustomizableNodeView(
+		fNodeView = new CustomizableNodeView(
 			CustomizableRoster::DefaultRoster());
-		layout->AddView(nodeView, layout->Left(), layout->Top(), layout->Right(),
-			layout->Bottom());
+		layout->AddView(fNodeView, layout->Left(), layout->Top(),
+			layout->Right(), layout->Bottom());
 		
-		editView->StartWatching(nodeView, kCustomizableSelected);
-		nodeView->StartWatching(editView, kCustomizableSelected);
+		editView->StartWatching(fNodeView, kCustomizableSelected);
+		fNodeView->StartWatching(editView, kCustomizableSelected);
 	}
 
 	bool QuitRequested()
 	{
+		BMessage layout;
+		fNodeView->StoreLayout(&layout);
+		fEditor->SetLayerLayout(layout);
 		fEditor->StopEdit();
 		return true;
 	}
 
+	CustomizableNodeView* GetLayerView()
+	{
+		return fNodeView;
+	}
+
 private:
 			BALMEditor*			fEditor;
+			CustomizableNodeView* fNodeView;
 };
 
 
@@ -100,7 +109,9 @@ BALMEditor::StartEdit()
 	fEditWindowMessenger = BMessenger(NULL, fEditWindow);
 
  	if (fEnableLayerWindow) {
-		fLayerWindow = new LayerWindow(this, fEditView);
+		LayerWindow* layerWindow = new LayerWindow(this, fEditView);
+		fLayerWindow = layerWindow;
+		layerWindow->GetLayerView()->RestoreLayout(&fLayerLayout);
 		fLayerWindowMessenger = BMessenger(NULL, fLayerWindow);
 		fLayerWindow->Show();
  	}
@@ -224,6 +235,14 @@ BALMEditor::UpdateEditWindow()
 	if (fEditWindow == NULL)
 		return;
 	fEditWindow->UpdateEditWindow();
+}
+
+
+void
+BALMEditor::SetLayerLayout(const BMessage& archive)
+{
+	BAutolock _(fLock);
+	fLayerLayout = archive;
 }
 
 
