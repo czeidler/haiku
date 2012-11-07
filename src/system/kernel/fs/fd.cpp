@@ -125,6 +125,7 @@ alloc_fd(void)
 	descriptor->open_count = 0;
 	descriptor->open_mode = 0;
 	descriptor->pos = 0;
+	descriptor->entry_ref = NULL;
 
 	return descriptor;
 }

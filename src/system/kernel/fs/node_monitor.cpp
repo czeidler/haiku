@@ -26,6 +26,7 @@
 #include <util/KMessage.h>
 #include <util/list.h>
 
+#include "fd_entry_mapping.h"
 #include "node_monitor_private.h"
 
 
@@ -689,6 +690,8 @@ NodeMonitorService::NotifyEntryMoved(dev_t device, ino_t fromDirectory,
 	dev_t nodeDevice = device;
 	vfs_resolve_vnode_to_covering_vnode(device, node, &nodeDevice, &node);
 
+	move_fd_entry(device, node, fromDirectory, fromName, toDirectory, toName);
+
 	RecursiveLocker locker(fRecursiveLock);
 
 	// get the lists of all interested listeners
@@ -760,6 +763,17 @@ NodeMonitorService::NotifyStatChanged(dev_t device, ino_t node,
 	message.AddInt64("node", node);
 	message.AddInt32("fields", statFields);		// Haiku only
 
+	read_lock_fd_entry();
+	entry_node_link* link = lookup_entry_node_link(device, node);
+	if (link != NULL) {
+		FDEntryRefList::Iterator it(&link->entries);
+		for (fd_entry_ref* ref = it.Next(); ref != NULL; ref = it.Next()) {
+			message.AddInt64("directory", ref->directory);
+			message.AddString("name", ref->filename);
+		}
+	}
+	read_unlock_fd_entry();
+
 	return _SendNotificationMessage(message, interestedListeners,
 		interestedListenerCount);
 }
@@ -806,6 +820,17 @@ NodeMonitorService::NotifyAttributeChanged(dev_t device, ino_t node,
 	message.AddInt64("node", node);
 	message.AddString("attr", attribute);
 	message.AddInt32("cause", cause);		// Haiku only
+
+	read_lock_fd_entry();
+	entry_node_link* link = lookup_entry_node_link(device, node);
+	if (link != NULL) {
+		FDEntryRefList::Iterator it(&link->entries);
+		for (fd_entry_ref* ref = it.Next(); ref != NULL; ref = it.Next()) {
+			message.AddInt64("directory", ref->directory);
+			message.AddString("name", ref->filename);
+		}
+	}
+	read_unlock_fd_entry();
 
 	return _SendNotificationMessage(message, interestedListeners,
 		interestedListenerCount);

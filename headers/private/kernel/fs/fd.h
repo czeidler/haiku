@@ -15,6 +15,7 @@
 extern "C" {
 #endif
 
+struct fd_entry_ref;
 struct file_descriptor;
 struct io_context;
 struct net_socket;
@@ -54,6 +55,7 @@ struct file_descriptor {
 	void	*cookie;
 	int32	open_mode;
 	off_t	pos;
+	fd_entry_ref*	entry_ref;
 };
 
 

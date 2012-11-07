@@ -10,6 +10,7 @@ UseHeaders [ FDirName $(SUBDIR) $(DOTDOT) device_manager ] ;
 KernelMergeObject kernel_fs.o :
 	EntryCache.cpp
 	fd.cpp
+	fd_entry_mapping.cpp
 	fifo.cpp
 	KPath.cpp
 	node_monitor.cpp
