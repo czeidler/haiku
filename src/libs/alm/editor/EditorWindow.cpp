@@ -772,7 +772,10 @@ EditWindow::_InitializeComponent()
 	// Trash tab
 	BTab* trashTab = new BTab();
 	fEditWindowTabContent->AddTab(new TrashView(fEditor), trashTab);
-	trashTab->SetLabel("Trash");
+	if (fEditor->IsCreationMode())
+		trashTab->SetLabel("Trash");
+	else
+		trashTab->SetLabel("Components");
 
 	if (!fEditor->IsCreationMode())
 		fEditWindowTabContent->Select(1);
