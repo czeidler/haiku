@@ -31,9 +31,8 @@
 #include "ColorSet.h"
 
 
-class ColorWell;
 class APRWindow;
-
+class ColorPreview;
 
 class APRView : public BView {
 public:
@@ -53,7 +52,6 @@ public:
 
 private:
 			void				_SetCurrentColor(rgb_color color);
-			void				_UpdateControls();
 			void				_UpdateAllColors();
 
 private:
@@ -65,11 +63,11 @@ private:
 
 			BScrollView*		fScrollView;
 
-			ColorWell*			fColorWell;
+			ColorPreview*		fColorPreview;
 
 			ColorSet			fCurrentSet;
 			ColorSet			fPrevSet;
 			ColorSet			fDefaultSet;
 };
 
-#endif
+#endif	// APR_VIEW_H_

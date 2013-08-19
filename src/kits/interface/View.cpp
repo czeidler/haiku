@@ -4587,6 +4587,16 @@ BView::SetExplicitPreferredSize(BSize size)
 
 
 void
+BView::SetExplicitSize(BSize size)
+{
+	fLayoutData->fMinSize = size;
+	fLayoutData->fMaxSize = size;
+	fLayoutData->fPreferredSize = size;
+	InvalidateLayout();
+}
+
+
+void
 BView::SetExplicitAlignment(BAlignment alignment)
 {
 	fLayoutData->fAlignment = alignment;
@@ -5711,11 +5721,11 @@ BView::ScrollWithMouseWheelDelta(BScrollBar* scrollBar, float delta)
 	float smallStep, largeStep;
 	scrollBar->GetSteps(&smallStep, &largeStep);
 
-	// pressing the option/command/control key scrolls faster
-	if (modifiers()
-			& (B_OPTION_KEY | B_COMMAND_KEY | B_CONTROL_KEY)) {
+	// pressing the shift key scrolls faster (following the pseudo-standard set
+	// by other desktop environments).
+	if ((modifiers() & B_SHIFT_KEY) != 0)
 		delta *= largeStep;
-	} else
+	else
 		delta *= smallStep * 3;
 
 	scrollBar->SetValue(scrollBar->Value() + delta);
@@ -5882,8 +5892,8 @@ BView::_PrintToStream()
 		"\tNextSibling: %s\n"
 		"\tPrevSibling: %s\n"
 		"\tOwner(Window): %s\n"
-		"\tToken: %ld\n"
-		"\tFlags: %ld\n"
+		"\tToken: %" B_PRId32 "\n"
+		"\tFlags: %" B_PRId32 "\n"
 		"\tView origin: (%f,%f)\n"
 		"\tView Bounds rectangle: (%f,%f,%f,%f)\n"
 		"\tShow level: %d\n"
@@ -5893,8 +5903,8 @@ BView::_PrintToStream()
 		"\tHorizontal Scrollbar %s\n"
 		"\tIs Printing?: %s\n"
 		"\tShelf?: %s\n"
-		"\tEventMask: %ld\n"
-		"\tEventOptions: %ld\n",
+		"\tEventMask: %" B_PRId32 "\n"
+		"\tEventOptions: %" B_PRId32 "\n",
 	Name(),
 	fParent ? fParent->Name() : "NULL",
 	fFirstChild ? fFirstChild->Name() : "NULL",
@@ -5922,7 +5932,7 @@ BView::_PrintToStream()
 		"\t\tHighColor: [%d,%d,%d,%d]\n"
 		"\t\tLowColor: [%d,%d,%d,%d]\n"
 		"\t\tViewColor: [%d,%d,%d,%d]\n"
-		"\t\tPattern: %llx\n"
+		"\t\tPattern: %" B_PRIx64 "\n"
 		"\t\tDrawingMode: %d\n"
 		"\t\tLineJoinMode: %d\n"
 		"\t\tLineCapMode: %d\n"

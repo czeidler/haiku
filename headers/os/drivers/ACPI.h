@@ -133,6 +133,7 @@ typedef struct acpi_data {
 
 enum {
 	ACPI_ALLOCATE_BUFFER = -1,
+	ACPI_ALLOCATE_LOCAL_BUFFER = -2,
 };
 
 
@@ -235,8 +236,8 @@ struct acpi_module_info {
 
 	/* Control method execution and data acquisition */
 
-	status_t	(*evaluate_object)(const char* object,
-					acpi_object_type *returnValue, size_t bufferLength);
+	status_t	(*evaluate_object)(acpi_handle handle, const char* object,
+					acpi_objects *args, acpi_object_type *returnValue, size_t bufferLength);
 	status_t	(*evaluate_method)(acpi_handle handle, const char *method,
 					acpi_objects *args, acpi_data *returnValue);
 
@@ -255,12 +256,16 @@ struct acpi_module_info {
 
 	status_t	(*prepare_sleep_state)(uint8 state, void (*wakeFunc)(void),
 					size_t size);
-	status_t	(*enter_sleep_state)(uint8 state, uint8 flags);
+	status_t	(*enter_sleep_state)(uint8 state);
 	status_t	(*reboot)(void);
 
 	/* Table Access */
 	status_t	(*get_table)(const char *signature, uint32 instance,
 					void **tableHeader);
+
+	/* Register Access */
+	status_t	(*read_bit_register)(uint32 regid, uint32 *val);
+	status_t	(*write_bit_register)(uint32 regid, uint32 val);
 };
 
 

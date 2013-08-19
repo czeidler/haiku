@@ -28,6 +28,7 @@
 
 #include "BrowserApp.h"
 
+#include <AboutWindow.h>
 #include <Alert.h>
 #include <Autolock.h>
 #include <Catalog.h>
@@ -92,19 +93,33 @@ BrowserApp::~BrowserApp()
 void
 BrowserApp::AboutRequested()
 {
-	BString aboutText("WebPositive\n\nby Ryan Leavengood, Andrea Anzani, "
-		"Maxime Simon, Michael Lotz, Rene Gollent, Stephan Aßmus and "
-		"Alexandre Deckner");
-	aboutText << "\n\nWebPositive 1.1";
-	aboutText << "\n\nHaikuWebKit " << WebKitInfo::HaikuWebKitVersion();
+	BAboutWindow* window = new BAboutWindow(kApplicationName,
+		kApplicationSignature);
+	
+	// create the about window
+
+	const char* authors[] = {
+		"Andrea Anzani",
+		"Stephan Aßmus",
+		"Alexandre Deckner",
+		"Rene Gollent",
+		"Ryan Leavengood",
+		"Michael Lotz",
+		"Maxime Simon",
+		NULL
+	};
+
+	BString aboutText("");
+	aboutText << "HaikuWebKit " << WebKitInfo::HaikuWebKitVersion();
 	aboutText << " (" << WebKitInfo::HaikuWebKitRevision() << ")";
 	aboutText << "\nWebKit " << WebKitInfo::WebKitVersion();
 	aboutText << " (" << WebKitInfo::WebKitRevision() << ")";
 
-	BAlert* alert = new BAlert("About WebPositive", aboutText.String(),
-		"Sweet!");
-	alert->SetFlags(alert->Flags() | B_CLOSE_ON_ESCAPE);
-	alert->Go(NULL);
+	window->AddCopyright(2007, "Haiku, Inc.");
+	window->AddAuthors(authors);
+	window->AddExtraInfo(aboutText.String());
+
+	window->Show();
 }
 
 

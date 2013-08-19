@@ -1,4 +1,4 @@
-1	swedish	x-vnd.Haiku-Expander	3391041670
+1	swedish	x-vnd.Haiku-Expander	2603318510
 Expand	ExpanderMenu		Expandera
 Close window when done expanding	ExpanderPreferences		Stäng fönstret när expandering är klar
 Set destination…	ExpanderMenu		Ange mål…
@@ -17,12 +17,12 @@ Automatically expand files	ExpanderPreferences		Expandera filer automatiskt
 Creating listing for '%s'	ExpanderWindow		Skapar innehållslista för '%s'
 Continue	ExpanderWindow		Fortsätt
 Destination folder	ExpanderPreferences		Målmapp
-The destination folder does not exist.	ExpanderWindow		Målmappen existerar inte.
 Other	ExpanderPreferences		Andra
 Cancel	ExpanderPreferences		Avbryt
 Expansion	ExpanderPreferences		Expansion
 Are you sure you want to stop expanding this\narchive? The expanded items may not be complete.	ExpanderWindow		Är du säker på att du vill sluta expandera det här\narkivet? De expanderade objekten kan vara inkompletta.
 Select	DirectoryFilePanel		Välj
+Destination folder doesn't exist. Would you like to create it?	ExpanderWindow		Målmappen finns inte. Vill du skapa den?
 Same directory as source (archive) file	ExpanderPreferences		Samma mapp som arkivfilen
 Expanding '%s'	ExpanderWindow		Expanderar '%s'
 Settings	ExpanderMenu		Inställningar
@@ -32,6 +32,10 @@ Select	ExpanderPreferences		Välj
 Show contents	ExpanderWindow		Visa innehåll
 Automatically show contents listing	ExpanderPreferences		Automatiskt visa list innehåll
 OK	ExpanderPreferences		OK
+Leave destination folder path empty	ExpanderPreferences		Lämna destinations folder tom
+Failed to create the destination folder.	ExpanderWindow		Kunde inte skapa målmappen.
+Create	ExpanderWindow		Skapa
+The folder was either moved, renamed or not\nsupported.	ExpanderWindow		Foldern har antingen flyttats, omdöpt eller\nsupporteras inte.
 The file doesn't exist	ExpanderWindow		Filen finns inte
 Stop	ExpanderMenu		Stopp
 File	ExpanderMenu		Fil
@@ -39,6 +43,7 @@ Expander	System name		Expandera
 Expand	ExpanderWindow		Expandera
 Close	ExpanderMenu		Stäng
 The destination is not a folder.	ExpanderWindow		Målet är inte en mapp.
+Open destination folder after extraction	ExpanderPreferences		Öppna destinations foldern efter extraktionen
 Set source…	ExpanderMenu		Sätt källa…
 Select '%s'	DirectoryFilePanel		Välj '%s'
 Show contents	ExpanderMenu		Visa innehåll

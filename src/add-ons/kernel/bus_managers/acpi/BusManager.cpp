@@ -554,8 +554,8 @@ ns_handle_to_pathname(acpi_handle targetHandle, acpi_data *buffer)
 
 
 status_t
-evaluate_object(const char* object, acpi_object_type* returnValue,
-	size_t bufferLength)
+evaluate_object(acpi_handle handle, const char* object, acpi_objects *args,
+	acpi_object_type* returnValue, size_t bufferLength)
 {
 	ACPI_BUFFER buffer;
 	ACPI_STATUS status;
@@ -563,8 +563,8 @@ evaluate_object(const char* object, acpi_object_type* returnValue,
 	buffer.Pointer = returnValue;
 	buffer.Length = bufferLength;
 
-	status = AcpiEvaluateObject(NULL, (ACPI_STRING)object, NULL,
-		returnValue != NULL ? &buffer : NULL);
+	status = AcpiEvaluateObject(handle, (ACPI_STRING)object,
+		(ACPI_OBJECT_LIST*)args, returnValue != NULL ? &buffer : NULL);
 	if (status == AE_BUFFER_OVERFLOW)
 		dprintf("evaluate_object: the passed buffer is too small!\n");
 
@@ -664,14 +664,14 @@ prepare_sleep_state(uint8 state, void (*wakeFunc)(void), size_t size)
 
 
 status_t
-enter_sleep_state(uint8 state, uint8 flags)
+enter_sleep_state(uint8 state)
 {
 	ACPI_STATUS status;
 
-	TRACE("enter_sleep_state %d with flags %d\n", state, flags);
+	TRACE("enter_sleep_state %d\n", state);
 
 	cpu_status cpu = disable_interrupts();
-	status = AcpiEnterSleepState(state, flags);
+	status = AcpiEnterSleepState(state);
 	restore_interrupts(cpu);
 	panic("AcpiEnterSleepState should not return.");
 	if (status != AE_OK)
@@ -712,6 +712,20 @@ get_table(const char* signature, uint32 instance, void** tableHeader)
 {
 	return AcpiGetTable((char*)signature, instance,
 		(ACPI_TABLE_HEADER**)tableHeader) == AE_OK ? B_OK : B_ERROR;
+}
+
+
+status_t
+read_bit_register(uint32 regid, uint32 *val)
+{
+	return AcpiReadBitRegister(regid, (UINT32 *)val);
+}
+
+
+status_t
+write_bit_register(uint32 regid, uint32 val)
+{
+	return AcpiWriteBitRegister(regid, val);
 }
 
 
@@ -759,5 +773,7 @@ struct acpi_module_info gACPIModule = {
 	prepare_sleep_state,
 	enter_sleep_state,
 	reboot,
-	get_table
+	get_table,
+	read_bit_register,
+	write_bit_register
 };

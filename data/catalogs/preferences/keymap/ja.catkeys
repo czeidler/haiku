@@ -5,7 +5,7 @@ Tilde trigger	Keymap window		チルダのトリガー
 Grave trigger	Keymap window		グレイヴアクセントのトリガー
 Role	Modifier keys window	As in the role of a modifier key	役割
 Select dead keys	Keymap window		デッドキーの選択
-Cancel	Modifier keys window		キャンセル
+Cancel	Modifier keys window		中止
 Quit	Keymap window		終了
 Switch shortcut keys to Haiku mode	Keymap window		ショートカットキースイッチを Haiku モードにする
 Circumflex trigger	Keymap window		サーカムフレックスのトリガー
@@ -27,7 +27,7 @@ Layout	Keymap window		レイアウト
 Switch shortcut keys to Windows/Linux mode	Keymap window		ショートカットキースイッチを Windows/Linux モードにする
 Revert	Keymap window		元に戻す
 Command:	Modifier keys window	Command key role name	Command:
-Save as…	Keymap window		名前をつけて保存…
+Save as…	Keymap window		名前を付けて保存…
 Win/Cmd key	Modifier keys window	Label of the \"Windows\" key (PC)/Command key (Mac)	Win/Cmd キー
 File	Keymap window		ファイル
 (Current)	Keymap window		(使用中キーマップ)

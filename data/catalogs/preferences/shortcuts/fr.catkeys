@@ -1,4 +1,4 @@
-1	french	x-vnd.Haiku-Shortcuts	621368175
+1	french	x-vnd.Haiku-Shortcuts	341885426
 Error, NULL state description?\n	ShortcutsSpec		Erreur : description d'état NULL ?\n
 MoveMouse	ShortcutsSpec		BougerSouris
 OK	ShortcutsWindow		OK
@@ -15,16 +15,17 @@ Alt	ShortcutsSpec	Name for modifier on keyboard	Alt
 *InsertString \"Your Text Here\"	ShortcutsWindow		*InsérerTexte « votre texte ici »
 *MouseUp	ShortcutsWindow		*SourisEnHaut
 (Choose application with file requester)	ShortcutsWindow		(Choisissez une application avec une requête de fichier)
-Window	ShortcutsSpec	Name for modifier on keyboard	Fenêtre
 *LaunchHandler text/html	ShortcutsWindow		*GestionnaireDeLancement text/html
 Shortcuts was couldn't open your KeySet file!	ShortcutsWindow		Raccourcis n'a pas pu ouvrir le fichier de jeu de touches !
 *Multi \"*MoveMouseTo 100% 0\" \"*MouseButton 1\"	ShortcutsWindow		*Multi « *BougerSourisEn 100% 0 » « *BoutonSouris 1 »
 SendMessage	ShortcutsSpec		EnvoiMessage
 MoveMouseTo	ShortcutsSpec		BougerSourisEn
+Option	ShortcutsSpec	Name for modifier on keyboard	Option
 Save	ShortcutsWindow		Enregistrer
 *MouseButton 1	ShortcutsWindow		*BoutonSouris 1
 *MoveMouse +20 +0	ShortcutsWindow		*BougeSouris +20 +0
 MouseDown	ShortcutsSpec		SourisEnBas
+Save changes before closing?	ShortcutsWindow		Voulez-vous enregistrer les modifications avant de fermer ?
 Remove selected shortcut	ShortcutsWindow		Supprimer le raccourci sélectionné
 MouseButton	ShortcutsSpec		BoutonSouris
 Add new shortcut	ShortcutsWindow		Ajouter un nouveau raccourci
@@ -43,7 +44,6 @@ Shift	ShortcutsSpec	Name for modifier on keyboard	Majuscule
 *MoveMouseTo 50% 50%	ShortcutsWindow		*BougerLaSourisEn 50% 50%
 Save KeySet as…	ShortcutsWindow		Enregistrer le jeu de touches sous…
 Open	ShortcutsWindow		Ouvrir
-Really quit without saving your changes?	ShortcutsWindow		Voulez-vous vraiment sortir sans enregistrer vos modifications ?
 Shortcuts was unable to parse your KeySet file!	ShortcutsWindow		Raccourcis n'a pas pu analyser votre fichier de jeu de touches !
 Select	ShortcutsWindow		Sélectionner
 Shortcuts was unable to save your KeySet file!	ShortcutsWindow		Raccourcis n'a pas pu enregistrer votre fichier de jeu de touches !

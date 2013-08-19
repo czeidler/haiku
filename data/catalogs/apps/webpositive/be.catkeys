@@ -1,4 +1,4 @@
-1	belarusian	x-vnd.Haiku-WebPositive	1513721873
+1	belarusian	x-vnd.Haiku-WebPositive	3577331897
 Show home button	Settings Window		Паказваць кнопку "Дадому"
 Username:	Authentication Panel		Карыстальнік:
 Copy URL to clipboard	Download Window		Скапіяваць спасылку
@@ -16,6 +16,7 @@ Start page:	Settings Window		Пачатковая старонка:
 History	WebPositive Window		Гісторыя
 Error opening downloads folder	Download Window		Немагчыма адчыніць папку запампованых файлаў
 Paste	WebPositive Window		Уставіць
+Proxy username:	Settings Window		Імя карыстальніка проксі:
 Settings	Settings Window		Наладкі
 %seconds seconds left	Download Window		Засталося %seconds секунд
 Confirmation	WebPositive Window		Пацверджанне
@@ -41,6 +42,7 @@ Quit	WebPositive Window		Выйсці
 Full screen	WebPositive Window		Поўнаэкранны рэжым
 Open download error	Download Window		Немагчыма адкрыць спампаваны файл
 Standard font:	Settings Window		Звычайны шрыфт:
+Find previous occurrence of search terms	WebPositive Window	find bar previous button tooltip	Знайсці папярэдні выпадак таго што шукаеце
 Restart	Download Window		Перазапусціць
 Proxy server	Settings Window		Проксі-сервер
 Open containing folder	Download Window		Адкрыць паку з гэтым файлам
@@ -58,6 +60,7 @@ Cut	WebPositive Window		Выразаць
 Bookmark this page	WebPositive Window		Дадаць гэтую старонку ў закладкі
 There was an error trying to show the Bookmarks folder.\n\nError: %error	WebPositive Window	Don't translate variable %error	Памылка падчас апрацоўкі папкі закладак.\n\nПамылка: %error
 Open downloads folder	Download Window		Адкрыць папку спамповак
+Proxy password:	Settings Window		Пароль проксі:
 Number of days to keep links in History menu:	Settings Window		Выдаляць спасылкі з гісторыі пасля [дзён]:
 Hide	Download Window		Схаваць
 Reset size	WebPositive Window		Вярнуць памер
@@ -67,6 +70,7 @@ There was an error retrieving the bookmark folder.\n\nError: %error	WebPositive 
 Over 1 day left	Download Window		Засталося болей 1 дня
 Downloads	WebPositive Window		Спампоўкі
 Requesting %url	WebPositive Window		Запыт да %url
+Find next occurrence of search terms	WebPositive Window	find bar next button tooltip	Знайсці наступны выпадак таго, што шукаеце
 Apply	Settings Window		Ужыць
 Bookmark info	WebPositive Window		Інфа пра закладку
 Size:	Font Selection view		Памер:
@@ -74,13 +78,13 @@ Show tabs if only one page is open	Settings Window		Паказваць укла�
 About	WebPositive Window		Пра Праграму
 Finish: 	Download Window	Finishing time	Скончыць: 
 Fonts	Settings Window		Шрыфты
-Close	WebPositive Window		Зачыніць
 OK	Download Window		ОК
 Page source error	WebPositive Window		Памылка зыходнага коду старонкі
 Open blank page	Settings Window		Адчыніць пустую старонку
 New tabs:	Settings Window		Новыя ўкаладкі:
 Cancel	WebPositive Window		Скасаваць
 Open all	WebPositive Window		Адчыніць усе
+Proxy server requires authentication	Settings Window		Проксі сервер патрабуе ідэнтыфікацыі
 Clear	URL Bar		Ачысьціць
 Cut	URL Bar		Выразаць
 Clear	WebPositive Window		Ачысьціць
@@ -93,7 +97,7 @@ Proxy server port:	Settings Window		Порт проксі-сэрвера:
 Bookmarks	WebPositive Window		Закладкі
 %minutes minutes	Download Window		%minutes хвілін
 Paste	URL Bar		Уставіць
-/s)	Download Window	...as in 'per second'	/с
+/s)	Download Window	...as in 'per second'	/с)
 Hide password text	Authentication Panel		Схаваць тэкст паролю
 The quick brown fox jumps over the lazy dog.	Font Selection view	Don't translate this literally ! Use a phrase showing all chars from A to Z.	Я жорстка заб’ю проста ў сэрца гэты расквечаны профіль, што ходзіць ля маёй хаты.
 Over 1 minute left	Download Window		Засталося болей за 1 хвіліну
@@ -114,7 +118,7 @@ There are still downloads in progress, do you really want to quit WebPositive no
 Auto-hide interface in full screen mode	Settings Window		Хаваць элементы інтэрфейсу ў поўнаэкранным рэжыме
 %url failed	WebPositive Window	Loading URL failed. Don't translate variable %url.	%url не ўдалося апрацаваць
 New tab	WebPositive Window		Новая ўкладка
-Downloads in progress	WebPositive		 Ідзе спампоўванне файлаў
+Downloads in progress	WebPositive		Ідзе спампоўванне файлаў
 Style:	Font Selection view		Стыль:
 General	Settings Window		Агульныя
 View	WebPositive Window		Выгляд

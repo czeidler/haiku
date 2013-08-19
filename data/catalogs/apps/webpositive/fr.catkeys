@@ -1,4 +1,4 @@
-1	french	x-vnd.Haiku-WebPositive	732657731
+1	french	x-vnd.Haiku-WebPositive	3577331897
 Show home button	Settings Window		Afficher le bouton de la page d'accueil
 Username:	Authentication Panel		Utilisateur :
 Copy URL to clipboard	Download Window		Copier l'URL dans le presse-papiers
@@ -16,6 +16,7 @@ Start page:	Settings Window		Page de départ :
 History	WebPositive Window		Historique
 Error opening downloads folder	Download Window		Impossible d'ouvrir le dossier de téléchargement
 Paste	WebPositive Window		Coller
+Proxy username:	Settings Window		Nom d'utilisateur du serveur mandataire :
 Settings	Settings Window		Réglages
 %seconds seconds left	Download Window		%seconds secondes restantes
 Confirmation	WebPositive Window		Confirmation
@@ -39,7 +40,9 @@ Auto-hide mouse pointer	Settings Window		Cacher le pointeur de souris automatiqu
 Over 1 hour left	Download Window		Plus d'1 heure restante
 Quit	WebPositive Window		Quitter
 Full screen	WebPositive Window		Plein écran
+Open download error	Download Window		Erreur à l'ouverture du téléchargement
 Standard font:	Settings Window		Police standard :
+Find previous occurrence of search terms	WebPositive Window	find bar previous button tooltip	Rechercher la précédente occurrence de la chaîne
 Restart	Download Window		Recommencer
 Proxy server	Settings Window		Serveur mandataire
 Open containing folder	Download Window		Ouvrir le dossier contenant le fichier
@@ -55,7 +58,9 @@ Revert	Settings Window		Restaurer
 Fixed font:	Settings Window		Police à chasse fixe :
 Cut	WebPositive Window		Couper
 Bookmark this page	WebPositive Window		Poser un signet sur cette page
+There was an error trying to show the Bookmarks folder.\n\nError: %error	WebPositive Window	Don't translate variable %error	Une erreur est survenue essayant d'afficher le dossier des signets.\n\nErreur : %error
 Open downloads folder	Download Window		Ouvrir le dossier des téléchargements
+Proxy password:	Settings Window		Mot de passe du serveur mandataire :
 Number of days to keep links in History menu:	Settings Window		Nombre de jours de conservation de l'historique :
 Hide	Download Window		Cacher
 Reset size	WebPositive Window		Réinitialiser la taille
@@ -65,6 +70,7 @@ There was an error retrieving the bookmark folder.\n\nError: %error	WebPositive 
 Over 1 day left	Download Window		Plus d'un jour restant
 Downloads	WebPositive Window		Téléchargements
 Requesting %url	WebPositive Window		Requête de %url
+Find next occurrence of search terms	WebPositive Window	find bar next button tooltip	Rechercher la prochaine occurrence de la chaîne
 Apply	Settings Window		Appliquer
 Bookmark info	WebPositive Window		Informations sur le signet
 Size:	Font Selection view		Taille :
@@ -72,13 +78,13 @@ Show tabs if only one page is open	Settings Window		Afficher les onglets même s
 About	WebPositive Window		À propos
 Finish: 	Download Window	Finishing time	Fin : 
 Fonts	Settings Window		Polices
-Close	WebPositive Window		Fermer
 OK	Download Window		OK
 Page source error	WebPositive Window		Erreur dans la page source
 Open blank page	Settings Window		Ouvrir une page blanche
 New tabs:	Settings Window		Nouvel onglet :
 Cancel	WebPositive Window		Annuler
 Open all	WebPositive Window		Tout ouvrir
+Proxy server requires authentication	Settings Window		Le serveur mandataire requiert une authentification
 Clear	URL Bar		Vider
 Cut	URL Bar		Couper
 Clear	WebPositive Window		Vider
@@ -93,6 +99,7 @@ Bookmarks	WebPositive Window		Signets
 Paste	URL Bar		Coller
 /s)	Download Window	...as in 'per second'	/s)
 Hide password text	Authentication Panel		Camoufler le mot de passe
+The quick brown fox jumps over the lazy dog.	Font Selection view	Don't translate this literally ! Use a phrase showing all chars from A to Z.	Voix ambiguë d'un cœur qui au zéphyr préfère les jattes de kiwis.
 Over 1 minute left	Download Window		Plus d'une minute restante
 Open start page	Settings Window		Ouvrir la page de départ
 Continue downloads	WebPositive		Continuer les téléchargements
@@ -121,7 +128,9 @@ Bookmark error	WebPositive Window		Erreur de signet
 Do you really want to clear the browsing history?	WebPositive Window		Voulez-vous vraiment effacer l'historique de navigation ?
 Copy	WebPositive Window		Copier
 Open bookmarks confirmation	WebPositive Window		Confirmation de l'ouverture des signets
+Remove missing	Download Window		Retirer les absents
 Clone current page	Settings Window		Cloner la page actuelle
+Do you want to open %addedCount bookmarks all at once?	WebPositive Window	Don't translate variable %addedCount.	Voulez vous ouvrir les %addedCount signets à la fois ?
 OK	Authentication Panel		OK
 Copy	URL Bar		Copier
 OK	WebPositive Window		OK

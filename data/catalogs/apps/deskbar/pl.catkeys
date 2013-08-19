@@ -1,20 +1,21 @@
-1	polish	x-vnd.Be-TSKB	3726855474
+1	polish	x-vnd.Be-TSKB	2335730970
 Power off	DeskbarMenu		Wyłącz komputer
-Show day of week	PreferencesWindow		Pokaż dzień tygodnia
-Edit menu…	PreferencesWindow		Edytuj zawartość menu…
-Applications	PreferencesWindow		Lista aplikacji
+Sort applications by name	PreferencesWindow		Sortuj programy po nazwie
+Suspend	DeskbarMenu		Wstrzymaj
+Hide clock	TimeView		Ukryj zegar
+Applications	PreferencesWindow		Aplikacje
 Time preferences…	TimeView		Ustawienia czasu...
 About Haiku	DeskbarMenu		O Haiku
+Edit in Tracker…	PreferencesWindow		Edytuj w Trakerze…
 Recent documents:	PreferencesWindow		Ostatnio przeglądane dokumenty:
 Recent applications	DeskbarMenu		Ostatnio uruchomione aplikacje
-Sort running applications	PreferencesWindow		Sortuj uruchomione aplikacje alfabetycznie
-Show time	Tray		Pokaż czas
 Applications	B_USER_DESKBAR_DIRECTORY/Applications		Aplikacje
 Find…	DeskbarMenu		Wyszukaj…
+Show clock	Tray		Pokaż zegar
 Window	PreferencesWindow		Położenie
+Defaults	PreferencesWindow		Ustawienia domyślne
 Menu	PreferencesWindow		Menu
 Recent documents	DeskbarMenu		Ostatnio otwarte dokumenty
-Show seconds	PreferencesWindow		Pokaż sekundy
 Auto-hide	PreferencesWindow		Autoukrywanie
 Always on top	PreferencesWindow		Zawsze na wierzchu
 <Deskbar folder is empty>	DeskbarMenu		Folder Paska Pulpitu jest pusty
@@ -24,13 +25,13 @@ Deskbar	System name		Pasek Pulpitu
 Restart system	DeskbarMenu		Uruchom ponownie
 Large	PreferencesWindow		Duże
 Auto-raise	PreferencesWindow		Automatyczne rozszerzanie
-Hide time	TimeView		Ukryj czas
 Recent folders:	PreferencesWindow		Ostatnio przeglądane foldery:
 Show application expander	PreferencesWindow		Aplikacje jako lista rozwijalna
 Restart Tracker	DeskbarMenu		Uruchom ponownie Trackera
 Close all	WindowMenu		Zamknij wszystkie okna
 Deskbar preferences	PreferencesWindow		Ustawienia Panelu Pulpitu
 Mount	DeskbarMenu		Zamontuj
+Revert	PreferencesWindow		Przywróć
 Small	PreferencesWindow		Małe
 Recent applications:	PreferencesWindow		Ostatnio używane aplikacje:
 Shutdown…	DeskbarMenu		Wyłącz…
@@ -43,7 +44,6 @@ Deskbar preferences…	DeskbarMenu		Preferencje Deskbara…
 Expand new applications	PreferencesWindow		Uruchamiaj aplikacje rozwinięte
 Show replicants	DeskbarMenu		Pokaż replikanty
 Hide application names	PreferencesWindow		Ukryj nazwy aplikacji
-Clock	PreferencesWindow		Zegar
 Demos	B_USER_DESKBAR_DIRECTORY/Demos		Dema
 Icon size	PreferencesWindow		Rozmiar ikon
 Desktop applets	B_USER_DESKBAR_DIRECTORY/Desktop applets		Aplety pulpitu

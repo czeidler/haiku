@@ -688,7 +688,7 @@ _RkRealizeDD(struct DD	*dd)
 	int ret = -1;
 	int tmpres;
 	int			fdes;
-	long		tloc;
+	time_t		tloc;
 	
 	char *whattime, *header, *dicsdir, *backup;
 	whattime = (char *)malloc(RK_LINE_BMAX);
@@ -1377,7 +1377,7 @@ else if ((mode & (RK_ENABLE_WRITE | RK_DISABLE_WRITE)) == RK_DISABLE_WRITE) {
 }
 	
 	if (newflags != dd->dd_flags) {
-		dicsdir = (char *)malloc(strlen(dd->dd_path + strlen("/dics.dir") + 1));
+		dicsdir = (char *)malloc(strlen(dd->dd_path) + strlen("/dics.dir") + 1);
 		if (dicsdir) {
 			int filemode;
 			

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2010, Axel Dörfler, axeld@pinc-software.de.
+ * Copyright 2001-2013, Axel Dörfler, axeld@pinc-software.de.
  * This file may be used under the terms of the MIT License.
  */
 
@@ -499,10 +499,10 @@ Journal::_ReplayRunArray(int32* _start)
 			// TODO: eventually check other well known offsets, like the
 			// root and index dirs
 			if (offset == 0) {
-				// This log entry writes over the super block - check if
+				// This log entry writes over the superblock - check if
 				// it's valid!
 				if (Volume::CheckSuperBlock(data) != B_OK) {
-					FATAL(("Log contains invalid super block!\n"));
+					FATAL(("Log contains invalid superblock!\n"));
 					RETURN_ERROR(B_BAD_DATA);
 				}
 			}
@@ -663,7 +663,7 @@ Journal::_TransactionWritten(int32 transactionID, int32 event, void* _logEntry)
 
 	delete logEntry;
 
-	// update the super block, and change the disk's state, if necessary
+	// update the superblock, and change the disk's state, if necessary
 
 	if (update) {
 		if (superBlock.log_start == superBlock.log_end)
@@ -671,7 +671,7 @@ Journal::_TransactionWritten(int32 transactionID, int32 event, void* _logEntry)
 
 		status_t status = journal->fVolume->WriteSuperBlock();
 		if (status != B_OK) {
-			FATAL(("_TransactionWritten: could not write back super block: %s\n",
+			FATAL(("_TransactionWritten: could not write back superblock: %s\n",
 				strerror(status)));
 		}
 
@@ -853,7 +853,7 @@ Journal::_WriteTransactionToLog()
 
 	free(vecs);
 
-	LogEntry* logEntry = new LogEntry(this, fVolume->LogEnd(),
+	LogEntry* logEntry = new(std::nothrow) LogEntry(this, fVolume->LogEnd(),
 		runArrays.LogEntryLength());
 	if (logEntry == NULL) {
 		FATAL(("no memory to allocate log entries!"));
@@ -864,7 +864,7 @@ Journal::_WriteTransactionToLog()
 	logEntry->SetTransactionID(fTransactionID);
 #endif
 
-	// Update the log end pointer in the super block
+	// Update the log end pointer in the superblock
 
 	fVolume->SuperBlock().flags = SUPER_BLOCK_DISK_DIRTY;
 	fVolume->SuperBlock().log_end = HOST_ENDIAN_TO_BFS_INT64(logPosition);
@@ -1093,15 +1093,15 @@ void
 Journal::Dump()
 {
 	kprintf("Journal %p\n", this);
-	kprintf("  log start:            %ld\n", fVolume->LogStart());
-	kprintf("  log end:              %ld\n", fVolume->LogEnd());
+	kprintf("  log start:            %" B_PRId32 "\n", fVolume->LogStart());
+	kprintf("  log end:              %" B_PRId32 "\n", fVolume->LogEnd());
 	kprintf("  owner:                %p\n", fOwner);
-	kprintf("  log size:             %lu\n", fLogSize);
-	kprintf("  max transaction size: %lu\n", fMaxTransactionSize);
-	kprintf("  used:                 %lu\n", fUsed);
-	kprintf("  unwritten:            %ld\n", fUnwrittenTransactions);
-	kprintf("  timestamp:            %lld\n", fTimestamp);
-	kprintf("  transaction ID:       %ld\n", fTransactionID);
+	kprintf("  log size:             %" B_PRIu32 "\n", fLogSize);
+	kprintf("  max transaction size: %" B_PRIu32 "\n", fMaxTransactionSize);
+	kprintf("  used:                 %" B_PRIu32 "\n", fUsed);
+	kprintf("  unwritten:            %" B_PRId32 "\n", fUnwrittenTransactions);
+	kprintf("  timestamp:            %" B_PRId64 "\n", fTimestamp);
+	kprintf("  transaction ID:       %" B_PRId32 "\n", fTransactionID);
 	kprintf("  has subtransaction:   %d\n", fHasSubtransaction);
 	kprintf("  separate sub-trans.:  %d\n", fSeparateSubTransactions);
 	kprintf("entries:\n");
@@ -1112,8 +1112,8 @@ Journal::Dump()
 	while (iterator.HasNext()) {
 		LogEntry* entry = iterator.Next();
 
-		kprintf("  %p %6ld %6lu %6lu\n", entry, entry->TransactionID(),
-			entry->Start(), entry->Length());
+		kprintf("  %p %6" B_PRId32 " %6" B_PRIu32 " %6" B_PRIu32 "\n", entry,
+			entry->TransactionID(), entry->Start(), entry->Length());
 	}
 }
 

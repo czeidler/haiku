@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2010, Axel Dörfler, axeld@pinc-software.de.
+ * Copyright 2003-2013, Axel Dörfler, axeld@pinc-software.de.
  * This file may be used under the terms of the MIT License.
  */
 
@@ -11,8 +11,6 @@
 #include "Directory.h"
 #include "File.h"
 #include "Link.h"
-
-#include <util/kernel_cpp.h>
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -255,11 +253,11 @@ Stream::FindBlockRun(off_t pos, block_run& run, off_t& offset)
 						break;
 
 					runBlockEnd
-						+= indirect[current].Length() << cached.BlockShift();
+						+= (uint32)indirect[current].Length() << cached.BlockShift();
 					if (runBlockEnd > pos) {
 						run = indirect[current];
 						offset = runBlockEnd
-							- (run.Length() << cached.BlockShift());
+							- ((uint32)run.Length() << cached.BlockShift());
 						//printf("reading from indirect block: %ld,%d\n",fRun.allocation_group,fRun.start);
 						//printf("### indirect-run[%ld] = (%ld,%d,%d), offset = %Ld\n",fCurrent,fRun.allocation_group,fRun.start,fRun.length,fRunFileOffset);
 						return fVolume.ValidateBlockRun(run);
@@ -278,10 +276,10 @@ Stream::FindBlockRun(off_t pos, block_run& run, off_t& offset)
 			if (data.direct[current].IsZero())
 				break;
 
-			runBlockEnd += data.direct[current].Length() << fVolume.BlockShift();
+			runBlockEnd += (uint32)data.direct[current].Length() << fVolume.BlockShift();
 			if (runBlockEnd > pos) {
 				run = data.direct[current];
-				offset = runBlockEnd - (run.Length() << fVolume.BlockShift());
+				offset = runBlockEnd - ((uint32)run.Length() << fVolume.BlockShift());
 				//printf("### run[%ld] = (%ld,%d,%d), offset = %Ld\n",fCurrent,fRun.allocation_group,fRun.start,fRun.length,fRunFileOffset);
 				return fVolume.ValidateBlockRun(run);
 			}

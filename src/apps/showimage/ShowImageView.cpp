@@ -244,13 +244,16 @@ ShowImageView::Pulse()
 	}
 
 	if (fHideCursor && !fHasSelection && !fShowingPopUpMenu && fIsActiveWin) {
-		if (fHideCursorCountDown <= 0) {
+		if (fHideCursorCountDown == 0) {
+			// Go negative so this isn't triggered again
+			fHideCursorCountDown--;
+
 			BPoint mousePos;
 			uint32 buttons;
 			GetMouse(&mousePos, &buttons, false);
 			if (Bounds().Contains(mousePos))
 				be_app->ObscureCursor();
-		} else
+		} else if (fHideCursorCountDown > 0)
 			fHideCursorCountDown--;
 	}
 
@@ -347,12 +350,13 @@ ShowImageView::SetImage(const BMessage* message)
 		|| message->FindRef("ref", &ref) != B_OK || bitmap == NULL)
 		return B_ERROR;
 
-	status_t status = SetImage(&ref, bitmap);
+	BitmapOwner* bitmapOwner;
+	message->FindPointer("bitmapOwner", (void**)&bitmapOwner);
+
+	status_t status = SetImage(&ref, bitmap, bitmapOwner);
 	if (status == B_OK) {
 		fFormatDescription = message->FindString("type");
 		fMimeType = message->FindString("mime");
-
-		message->FindPointer("bitmapOwner", (void**)&fBitmapOwner);
 	}
 
 	return status;
@@ -360,15 +364,16 @@ ShowImageView::SetImage(const BMessage* message)
 
 
 status_t
-ShowImageView::SetImage(const entry_ref* ref, BBitmap* bitmap)
+ShowImageView::SetImage(const entry_ref* ref, BBitmap* bitmap,
+		BitmapOwner* bitmapOwner)
 {
 	// Delete the old one, and clear everything
-	fUndo.Clear();
 	_SetHasSelection(false);
 	fCreatingSelection = false;
 	_DeleteBitmap();
 
 	fBitmap = bitmap;
+	fBitmapOwner = bitmapOwner;
 	if (ref == NULL)
 		fCurrentRef.device = -1;
 	else
@@ -528,7 +533,6 @@ void
 ShowImageView::AttachedToWindow()
 {
 	FitToBounds();
-	fUndo.SetWindow(Window());
 	FixupScrollBars();
 }
 
@@ -1474,47 +1478,6 @@ ShowImageView::SetSelectionMode(bool selectionMode)
 
 
 void
-ShowImageView::Undo()
-{
-	int32 undoType = fUndo.GetType();
-	if (undoType != UNDO_UNDO && undoType != UNDO_REDO)
-		return;
-
-	// backup current selection
-	BRect undoneSelRect;
-	BBitmap* undoneSelection;
-	undoneSelRect = fSelectionBox.Bounds();
-	undoneSelection = _CopySelection();
-
-	if (undoType == UNDO_UNDO) {
-		BBitmap* undoRestore;
-		undoRestore = fUndo.GetRestoreBitmap();
-		if (undoRestore)
-			_MergeWithBitmap(undoRestore, fUndo.GetRect());
-	}
-
-	// restore previous image/selection
-	BBitmap* undoSelection;
-	undoSelection = fUndo.GetSelectionBitmap();
-		// NOTE: ShowImageView is responsible for deleting this bitmap
-		// (Which it will, as it would with a fSelectionBitmap that it
-		// allocated itself)
-	if (!undoSelection)
-		_SetHasSelection(false);
-	else {
-		fCopyFromRect = BRect();
-		fSelectionBox.SetBounds(this, fUndo.GetRect());
-		_SetHasSelection(true);
-		fSelectionBitmap = undoSelection;
-	}
-
-	fUndo.Undo(undoneSelRect, NULL, undoneSelection);
-
-	Invalidate();
-}
-
-
-void
 ShowImageView::SelectAll()
 {
 	fCopyFromRect.Set(0, 0, fBitmap->Bounds().Width(),
@@ -1711,6 +1674,9 @@ ShowImageView::_DoImageOperation(ImageProcessor::operation op, bool quiet)
 	_DeleteBitmap();
 	fBitmap = bm;
 
+	if (fBitmap->ColorSpace() == B_RGBA32)
+		fDisplayBitmap = compose_checker_background(fBitmap);
+
 	if (!quiet) {
 		// remove selection
 		_SetHasSelection(false);
@@ -1723,7 +1689,6 @@ ShowImageView::_DoImageOperation(ImageProcessor::operation op, bool quiet)
 void
 ShowImageView::_UserDoImageOperation(ImageProcessor::operation op, bool quiet)
 {
-	fUndo.Clear();
 	_DoImageOperation(op, quiet);
 }
 
@@ -1764,7 +1729,6 @@ ShowImageView::ResizeImage(int w, int h)
 
 	// remove selection
 	_SetHasSelection(false);
-	fUndo.Clear();
 	_DeleteBitmap();
 	fBitmap = scaled;
 

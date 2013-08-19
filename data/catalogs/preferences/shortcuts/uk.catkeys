@@ -1,4 +1,4 @@
-1	ukrainian	x-vnd.Haiku-Shortcuts	621368175
+1	ukrainian	x-vnd.Haiku-Shortcuts	1477375596
 Error, NULL state description?\n	ShortcutsSpec		Помилка, NULL опису стану?\n
 MoveMouse	ShortcutsSpec		Переміщення мишки
 OK	ShortcutsWindow		Гаразд
@@ -15,7 +15,6 @@ Alt	ShortcutsSpec	Name for modifier on keyboard	Alt
 *InsertString \"Your Text Here\"	ShortcutsWindow		*Вставити Рядок \"Ваш текст тут\"
 *MouseUp	ShortcutsWindow		*Мишку вгору
 (Choose application with file requester)	ShortcutsWindow		(Виберіть програму з файлами запису)
-Window	ShortcutsSpec	Name for modifier on keyboard	Win Key
 *LaunchHandler text/html	ShortcutsWindow		*Запустити обробник текст/html
 Shortcuts was couldn't open your KeySet file!	ShortcutsWindow		Не вдалося відкрити список гарячих клавіш!
 *Multi \"*MoveMouseTo 100% 0\" \"*MouseButton 1\"	ShortcutsWindow		*Багато \"*Перемістити мишку до 100% 0\" \"*Кнопка мишки1\"
@@ -43,7 +42,6 @@ Shift	ShortcutsSpec	Name for modifier on keyboard	Shift
 *MoveMouseTo 50% 50%	ShortcutsWindow		*Переміщення мишки в 50% 50%
 Save KeySet as…	ShortcutsWindow		Зберегти список як…
 Open	ShortcutsWindow		Відкрити
-Really quit without saving your changes?	ShortcutsWindow		Насправді вийди без збереження ваших змін?
 Shortcuts was unable to parse your KeySet file!	ShortcutsWindow		Ярлику невдалось розібрати ваш файл Ключів!
 Select	ShortcutsWindow		Вибрати
 Shortcuts was unable to save your KeySet file!	ShortcutsWindow		Не вдалося зберегти ваш файл список горячих клавіш!

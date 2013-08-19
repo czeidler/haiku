@@ -1,4 +1,4 @@
-1	slovak	x-vnd.Be-MAIL	849531913
+1	slovak	x-vnd.Be-MAIL	3366038826
 View	Mail		Zobraziť
 %d - Date	Mail		%d - Dátum
 Attach attributes:	Mail		Pripojiť atribúty:
@@ -10,6 +10,7 @@ Edit	Mail		Upraviť
 Print	Mail		Tlačiť
 <none>	Mail		<žiadne>
 New mail message	Mail		Nová poštová správa
+Untitled	Mail		Bez názvu
 Automatic	Mail		Automaticky
 Automatically mark mail as read:	Mail		Automaticky označiť poštu ako prečítanú:
 helpful message	Mail		užitočná správa
@@ -25,8 +26,8 @@ Beginner	Mail		Začiatočník
 Don't save	Mail		Neukladať
 Expert	Mail		Expert
 Reply account:	Mail		Účet na odpoveď:
-Discard	Mail		Zahodiť
 Message	Mail		Správa
+Settings…	Mail		Nastavenia…
 Reply to sender	Mail		Odpovedať odosielateľovi
 There is no installed handler for URL links.	Mail		Neexistuje žiadna nainštalovaná obsluha odkazov URL.
 Signature	Mail		Podpis
@@ -81,6 +82,7 @@ Only files can be added as attachments.	Mail		Ako prílohy možno pridať iba s�
 Previous message	Mail		Predošlá správa
 Attachments:	Mail		Prílohy:
 Title:	Mail		Názov:
+<no account found>	Mail		<žiaden účet nebol nájdený>
 Find…	Mail		Nájsť…
 Accounts…	Mail		Účty…
 Mail preferences	Mail		Predvoľby pošty
@@ -117,7 +119,6 @@ Remove enclosure	Mail		Odstrániť prílohu
 Account:	Mail		Účet:
 Decoding:	Mail		Dekódovanie:
 Sorry, could not find an application that supports the 'Person' data type.	Mail		Ľutujeme, nebola nájdená aplikácia podporujúca dátový typ „Osoba“.
-Do you wish to send this message before closing?	Mail		Želáte si pred zatvorením odoslať túto správu?
 Delete	Mail		Zmazať
 Leave as '%s'	Mail		Ponechať ako „%s“
 Copy	Mail		Kopírovať
@@ -133,7 +134,6 @@ Font:	Mail		Písmo:
 (Address unavailable)	Mail		(Adresa nedostupná)
 Save address	Mail		Uložiť adresu
 Queries	Mail		Požiadavky
-Do you wish to save this message as a draft before closing?	Mail		Chcete túto správu pred ukončením uložiť medzi rozpísané?
 Save	Mail		Uložiť
 Random	Mail		Náhodný
 Close and 	Mail		Zatvoriť a 

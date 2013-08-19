@@ -1,7 +1,7 @@
-1	russian	x-vnd.Haiku-Expander	2398100010
+1	russian	x-vnd.Haiku-Expander	2603318510
 Expand	ExpanderMenu		Распаковать
 Close window when done expanding	ExpanderPreferences		Закрывать окно после распаковки
-Set destination…	ExpanderMenu		Путь для извлечения…
+Set destination…	ExpanderMenu		Путь назначения для извлечения…
 Use:	ExpanderPreferences		Использовать:
 File expanded	ExpanderWindow		Файл распакован
 The destination is read only.	ExpanderWindow		Путь назначения доступен только для чтения.
@@ -17,12 +17,12 @@ Automatically expand files	ExpanderPreferences		Автоматически ра�
 Creating listing for '%s'	ExpanderWindow		Создается список файлов для '%s'
 Continue	ExpanderWindow		Продолжить
 Destination folder	ExpanderPreferences		Путь для извлечения
-The destination folder does not exist.	ExpanderWindow		Папка назначения не существует.
 Other	ExpanderPreferences		Другое
 Cancel	ExpanderPreferences		Отмена
 Expansion	ExpanderPreferences		Извлечение
 Are you sure you want to stop expanding this\narchive? The expanded items may not be complete.	ExpanderWindow		Вы уверены, что хотите остановить распаковку этого\nархива? Некоторые файлы могли быть извлечены не полностью.
 Select	DirectoryFilePanel		Выбрать
+Destination folder doesn't exist. Would you like to create it?	ExpanderWindow		Папка назначения не существует. Создать её?
 Same directory as source (archive) file	ExpanderPreferences		Использовать ту же папку где находится архив
 Expanding '%s'	ExpanderWindow		Распаковывается '%s'
 Settings	ExpanderMenu		Настройки
@@ -32,7 +32,9 @@ Select	ExpanderPreferences		Выбрать
 Show contents	ExpanderWindow		Показать содержимое
 Automatically show contents listing	ExpanderPreferences		Автоматически отображать содержимое архива
 OK	ExpanderPreferences		ОК
-Leave destination folder path empty	ExpanderPreferences		Оставить путь распаковки пустым
+Leave destination folder path empty	ExpanderPreferences		Оставить путь назначения пустым
+Failed to create the destination folder.	ExpanderWindow		Не удалось создать папку назначения.
+Create	ExpanderWindow		Создать
 The folder was either moved, renamed or not\nsupported.	ExpanderWindow		Папка была перемещена, переименована либо не\nподдерживается.
 The file doesn't exist	ExpanderWindow		Файл не существует
 Stop	ExpanderMenu		Остановить

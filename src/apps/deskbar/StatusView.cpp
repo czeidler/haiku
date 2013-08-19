@@ -95,10 +95,11 @@ float sMinimumWindowWidth = kGutter + kMinimumTrayWidth + kDragRegionWidth;
 static void
 DumpItem(DeskbarItemInfo* item)
 {
-	printf("is addon: %i, id: %li\n", item->isAddOn, item->id);
-	printf("entry_ref:  %ld, %Ld, %s\n", item->entryRef.device,
-		item->entryRef.directory, item->entryRef.name);
-	printf("node_ref:  %ld, %Ld\n", item->nodeRef.device, item->nodeRef.node);
+	printf("is addon: %i, id: %" B_PRId32 "\n", item->isAddOn, item->id);
+	printf("entry_ref:  %" B_PRIdDEV ", %" B_PRIdINO ", %s\n",
+		item->entryRef.device, item->entryRef.directory, item->entryRef.name);
+	printf("node_ref:  %" B_PRIdDEV ", %" B_PRIdINO "\n", item->nodeRef.device,
+		item->nodeRef.node);
 }
 
 
@@ -146,14 +147,8 @@ TReplicantTray::TReplicantTray(TBarView* parent, bool vertical)
 		fMinimumTrayWidth = sMinimumWindowWidth - kGutter - kDragRegionWidth;
 	}
 
-	BFormattingConventions conventions;
-	BLocale::Default()->GetFormattingConventions(&conventions);
-	bool use24HourClock = conventions.Use24HourClock();
-	desk_settings* settings = ((TBarApp*)be_app)->Settings();
-
 	// Create the time view
-	fTime = new TTimeView(fMinimumTrayWidth, kMaxReplicantHeight - 1.0,
-		use24HourClock, settings->showSeconds, settings->showDayOfWeek);
+	fTime = new TTimeView(fMinimumTrayWidth, kMaxReplicantHeight - 1.0);
 }
 
 
@@ -179,8 +174,16 @@ TReplicantTray::AttachedToWindow()
 
 	Window()->SetPulseRate(1000000);
 
+	clock_settings* clock = ((TBarApp*)be_app)->ClockSettings();
+	fTime->SetShowSeconds(clock->showSeconds);
+	fTime->SetShowDayOfWeek(clock->showDayOfWeek);
+	fTime->SetShowTimeZone(clock->showTimeZone);
+
 	AddChild(fTime);
 	fTime->MoveTo(Bounds().right - fTime->Bounds().Width() - 1, 2);
+
+	if (!((TBarApp*)be_app)->Settings()->showClock)
+		fTime->Hide();
 
 #ifdef DB_ADDONS
 	// load addons and rehydrate archives
@@ -278,10 +281,7 @@ TReplicantTray::MessageReceived(BMessage* message)
 			if (fTime == NULL)
 				return;
 
-			// Locale may have updated 12/24 hour clock
-			BFormattingConventions conventions;
-			BLocale::Default()->GetFormattingConventions(&conventions);
-			fTime->SetUse24HourClock(conventions.Use24HourClock());
+			fTime->Update();
 
 			// time string reformat -> realign
 			RealignReplicants();
@@ -315,6 +315,36 @@ TReplicantTray::MessageReceived(BMessage* message)
 			RealignReplicants();
 			AdjustPlacement();
 			break;
+
+		case kShowTimeZone:
+			if (fTime == NULL)
+				return;
+
+			fTime->SetShowTimeZone(!fTime->ShowTimeZone());
+
+			// time string reformat -> realign
+			RealignReplicants();
+			AdjustPlacement();
+			break;
+
+		case kGetClockSettings:
+		{
+			if (fTime == NULL)
+				return;
+
+			bool showClock = !fTime->IsHidden();
+			bool showSeconds = fTime->ShowSeconds();
+			bool showDayOfWeek = fTime->ShowDayOfWeek();
+			bool showTimeZone = fTime->ShowTimeZone();
+
+			BMessage* reply = new BMessage(kGetClockSettings);
+			reply->AddBool("showClock", showClock);
+			reply->AddBool("showSeconds", showSeconds);
+			reply->AddBool("showDayOfWeek", showDayOfWeek);
+			reply->AddBool("showTimeZone", showTimeZone);
+			message->SendReply(reply);
+			break;
+		}
 
 #ifdef DB_ADDONS
 		case B_NODE_MONITOR:
@@ -374,12 +404,12 @@ TReplicantTray::ShowReplicantMenu(BPoint point)
 	BPopUpMenu* menu = new BPopUpMenu("", false, false);
 	menu->SetFont(be_plain_font);
 
-	// If clock is visible show the extended menu, otherwise show "Show time"
+	// If clock is visible show the extended menu, otherwise show "Show clock"
 
 	if (!fTime->IsHidden())
 		fTime->ShowTimeOptions(ConvertToScreen(point));
 	else {
-		BMenuItem* item = new BMenuItem(B_TRANSLATE("Show time"),
+		BMenuItem* item = new BMenuItem(B_TRANSLATE("Show clock"),
 			new BMessage(kShowHideTime));
 		menu->AddItem(item);
 		menu->SetTargetForItems(this);
@@ -403,13 +433,27 @@ TReplicantTray::ShowHideTime()
 	if (fTime == NULL)
 		return;
 
-	if (fTime->IsHidden())
+	// Check from the point of view of fTime because we need to ignore
+	// whether or not the parent window is hidden.
+	if (fTime->IsHidden(fTime))
 		fTime->Show();
 	else
 		fTime->Hide();
 
 	RealignReplicants();
 	AdjustPlacement();
+
+	// Check from the point of view of fTime ignoring parent's state.
+	bool showClock = !fTime->IsHidden(fTime);
+
+	// Update showClock setting that gets saved to disk on quit
+	((TBarApp*)be_app)->Settings()->showClock = showClock;
+
+	// Send a message to Time preferences telling it to update
+	BMessenger messenger("application/x-vnd.Haiku-Time");
+	BMessage* message = new BMessage(kShowHideTime);
+	message->AddBool("showClock", showClock);
+	messenger.SendMessage(message);
 }
 
 
@@ -456,7 +500,7 @@ TReplicantTray::DeleteAddOnSupport()
 {
 	_SaveSettings();
 
-	for (int32 i = fItemList->CountItems(); i-- > 0 ;) {
+	for (int32 i = fItemList->CountItems() - 1; i >= 0; i--) {
 		DeskbarItemInfo* item = (DeskbarItemInfo*)fItemList->RemoveItem(i);
 		if (item) {
 			if (item->isAddOn)
@@ -475,7 +519,7 @@ TReplicantTray::DeleteAddOnSupport()
 DeskbarItemInfo*
 TReplicantTray::DeskbarItemFor(node_ref& nodeRef)
 {
-	for (int32 i = fItemList->CountItems(); i-- > 0 ;) {
+	for (int32 i = fItemList->CountItems() - 1; i >= 0; i--) {
 		DeskbarItemInfo* item = (DeskbarItemInfo*)fItemList->ItemAt(i);
 		if (item == NULL)
 			continue;
@@ -491,7 +535,7 @@ TReplicantTray::DeskbarItemFor(node_ref& nodeRef)
 DeskbarItemInfo*
 TReplicantTray::DeskbarItemFor(int32 id)
 {
-	for (int32 i = fItemList->CountItems(); i-- > 0 ;) {
+	for (int32 i = fItemList->CountItems() - 1; i >= 0; i--) {
 		DeskbarItemInfo* item = (DeskbarItemInfo*)fItemList->ItemAt(i);
 		if (item == NULL)
 			continue;
@@ -675,7 +719,7 @@ void
 TReplicantTray::UnloadAddOn(node_ref* nodeRef, dev_t* device,
 	bool which, bool removeAll)
 {
-	for (int32 i = fItemList->CountItems(); i-- > 0 ;) {
+	for (int32 i = fItemList->CountItems() - 1; i >= 0; i--) {
 		DeskbarItemInfo* item = (DeskbarItemInfo*)fItemList->ItemAt(i);
 		if (!item)
 			continue;
@@ -739,7 +783,7 @@ TReplicantTray::MoveItem(entry_ref* ref, ino_t toDirectory)
 	//
 	// don't need to change node info as it does not change
 
-	for (int32 i = fItemList->CountItems(); i-- > 0 ;) {
+	for (int32 i = fItemList->CountItems() - 1; i >= 0; i--) {
 		DeskbarItemInfo* item = (DeskbarItemInfo*)fItemList->ItemAt(i);
 		if (!item)
 			continue;
@@ -1234,9 +1278,10 @@ TReplicantTray::SaveTimeSettings()
 	if (fTime == NULL)
 		return;
 
-	desk_settings* settings = ((TBarApp*)be_app)->Settings();
+	clock_settings* settings = ((TBarApp*)be_app)->ClockSettings();
 	settings->showSeconds = fTime->ShowSeconds();
 	settings->showDayOfWeek = fTime->ShowDayOfWeek();
+	settings->showTimeZone = fTime->ShowTimeZone();
 }
 
 
@@ -1428,7 +1473,7 @@ TDragRegion::DragRegion() const
 void
 TDragRegion::MouseDown(BPoint thePoint)
 {
-	ulong buttons;
+	uint32 buttons;
 	BPoint where;
 	BRect dragRegion(DragRegion());
 

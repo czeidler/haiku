@@ -1,14 +1,12 @@
-1	finnish	x-vnd.Haiku-ProcessController	2887520383
+1	finnish	x-vnd.Haiku-ProcessController	2886374724
 Memory usage	ProcessController		Muistikäyttö
-Do you really want to kill the team \"%s\"?	ProcessController		Haluatko todella tappaa ryhmän ”%s”?
 Idle priority	ProcessController		Joutokäyntiprioriteetti
 Restart Deskbar	ProcessController		Käynnistä Työpöytäpalkki uudelleen
 Custom priority	ProcessController		Räätälöity prioriteetti
-Debug thread	ProcessController		Vikajäljitä säiettä
 This team is already gone…	ProcessController		Tämä ryhmä on jo poistunut...
 Error saving file	ProcessController		Virhe tallennettaessa tiedostoa
 Real-time priority	ProcessController		Ajantasaprioriteetti
-Your setting file could not be saved!\n(%s)	ProcessController		Asetustiedostoasi ei voitu tallentaa!\n(%s)
+Your setting file could not be saved!\n(%s)	ProcessController		Asetustiedostosi tallentaminen epäonnistui!\n(%s)
 This thread is already gone…	ProcessController		Tämä säie on jo poistunut...
 Cancel	ProcessController		Peru
 Display priority	ProcessController		Näyttöprioriteetti
@@ -18,7 +16,7 @@ Processor %d	ProcessController		Prosessori %d
 ProcessController is already installed in Deskbar.	ProcessController		Prosessiohjain on jo asennettu Työpöytäpalkkiin.
 This is the last active processor...\nYou can't turn it off!	ProcessController		Tämä on viimeinen toimiva prosessori...\nEt voi kääntää sitä pois päältä!
 Info	ProcessController		Tiedot
-Quit application	ProcessController		Poistu sovelluksesta
+Quit application	ProcessController		Lopeta sovellus
 Low priority	ProcessController		Alhainen prioriteetti
 What do you want to do with the thread \"%s\"?	ProcessController		Mitä haluat tehdä säikeelle ”%s”?
 Gone teams…	ProcessController		Poistuneet ryhmät...
@@ -28,11 +26,11 @@ Live in the Deskbar	ProcessController		Suora lähetys Työpöytäpalkista
 Kill this thread!	ProcessController		Tapa tämä säie!
 Debug this thread!	ProcessController		Vikajäljitä tätä säiettä!
 Normal priority	ProcessController		Normaaliprioriteetti
-New Terminal	ProcessController		Uusi pääteikkuna
+New Terminal	ProcessController		Uusi Pääteikkuna
 Urgent priority	ProcessController		Kiireellinen prioriteetti
 About ProcessController…	ProcessController		Ohjelmasta Prosessiohjain...
 Ok!	ProcessController		Valmis!
-Quit an application	ProcessController		Poistu sovelluksesta
+Quit an application	ProcessController		Lopeta ohjelma
 Install in Deskbar	ProcessController		Asenna Työpöytäpalkissa
 Threads and CPU usage	ProcessController		Säikeet ja prosessorikäyttö
 Urgent display priority	ProcessController		Kiireellinen näyttöprioriteetti
@@ -42,7 +40,6 @@ Usage: %s [-deskbar]\n	ProcessController		Käyttö: %s [-deskbar]\n
 ProcessController	System name		Prosessiohjain
 Real-time display priority	ProcessController		Ajantasanäyttöprioriteetti
 Please confirm	ProcessController		Vahvista
-Yes, kill this team!	ProcessController		Kyllä, tapa tämä ryhmä!
 System resources & caches…	ProcessController		Järjestelmäresurssit ja välimuistit…
 That's no Fun!	ProcessController		Se ei ole hauskaa!
 You can run ProcessController in a window or install it in the Deskbar.	ProcessController		Voit suorittaa Prosessiohjaimen ikkunassa tai asentaa sen Työpöytäpalkkiin.

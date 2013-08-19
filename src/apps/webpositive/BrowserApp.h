@@ -33,6 +33,7 @@
 #include <Catalog.h>
 #include <Rect.h>
 
+
 class BNetworkCookieJar;
 class DownloadWindow;
 class BrowserWindow;

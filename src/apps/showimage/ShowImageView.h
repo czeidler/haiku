@@ -24,7 +24,6 @@
 
 #include "Filter.h"
 #include "SelectionBox.h"
-#include "ShowImageUndo.h"
 
 
 class BitmapOwner;
@@ -52,7 +51,8 @@ public:
 			void				SetTrackerMessenger(
 									const BMessenger& trackerMessenger);
 			status_t			SetImage(const BMessage* message);
-			status_t			SetImage(const entry_ref* ref, BBitmap* bitmap);
+			status_t			SetImage(const entry_ref* ref, BBitmap* bitmap,
+									BitmapOwner* bitmapOwner);
 			const entry_ref*	Image() const { return &fCurrentRef; }
 			BBitmap*			Bitmap();
 
@@ -81,7 +81,6 @@ public:
 			void				SetSelectionMode(bool selectionMode);
 			bool				IsSelectionModeEnabled() const
 									{ return fSelectionMode; }
-			void				Undo();
 			void				SelectAll();
 			void				ClearSelection();
 
@@ -181,7 +180,6 @@ private:
 			void				_ShowToolBarIfEnabled(bool show);
 
 private:
-			ShowImageUndo		fUndo;
 			entry_ref			fCurrentRef;
 
 			BitmapOwner*		fBitmapOwner;

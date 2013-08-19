@@ -943,8 +943,8 @@ dump_page(int argc, char **argv)
 					&& physicalAddress / B_PAGE_SIZE
 						== page->physical_page_number) {
 					VMArea* area = addressSpace->LookupArea(address);
-					kprintf("  aspace %ld, area %ld: %#" B_PRIxADDR
-						" (%c%c%s%s)\n", addressSpace->ID(),
+					kprintf("  aspace %" B_PRId32 ", area %" B_PRId32 ": %#"
+						B_PRIxADDR " (%c%c%s%s)\n", addressSpace->ID(),
 						area != NULL ? area->id : -1, address,
 						(flags & B_KERNEL_READ_AREA) != 0 ? 'r' : '-',
 						(flags & B_KERNEL_WRITE_AREA) != 0 ? 'w' : '-',
@@ -1117,7 +1117,7 @@ dump_page_stats(int argc, char **argv)
 	kprintf("unreserved free pages: %" B_PRId32 "\n", sUnreservedFreePages);
 	kprintf("unsatisfied page reservations: %" B_PRId32 "\n",
 		sUnsatisfiedPageReservations);
-	kprintf("mapped pages: %lu\n", gMappedPagesCount);
+	kprintf("mapped pages: %" B_PRId32 "\n", gMappedPagesCount);
 	kprintf("longest free pages run: %" B_PRIuPHYSADDR " pages (at %"
 		B_PRIuPHYSADDR ")\n", longestFreeRun.Length(),
 		sPages[longestFreeRun.start].physical_page_number);
@@ -2449,8 +2449,8 @@ page_writer(void* /*unused*/)
 		writtenPages += numPages;
 		if (writtenPages >= 1024) {
 			bigtime_t now = system_time();
-			TRACE(("page writer: wrote 1024 pages (total: %llu ms, "
-				"collect: %llu ms, write: %llu ms)\n",
+			TRACE(("page writer: wrote 1024 pages (total: %" B_PRIu64 " ms, "
+				"collect: %" B_PRIu64 " ms, write: %" B_PRIu64 " ms)\n",
 				(now - lastWrittenTime) / 1000,
 				pageCollectionTime / 1000, pageWritingTime / 1000));
 			lastWrittenTime = now;
@@ -2808,9 +2808,10 @@ full_scan_inactive_pages(page_stats& pageStats, int32 despairLevel)
 	queueLocker.Unlock();
 
 	time = system_time() - time;
-	TRACE_DAEMON("  -> inactive scan (%7lld us): scanned: %7lu, "
-		"moved: %lu -> cached, %lu -> modified, %lu -> active\n", time,
-		pagesScanned, pagesToCached, pagesToModified, pagesToActive);
+	TRACE_DAEMON("  -> inactive scan (%7" B_PRId64 " us): scanned: %7" B_PRIu32
+		", moved: %" B_PRIu32 " -> cached, %" B_PRIu32 " -> modified, %"
+		B_PRIu32 " -> active\n", time, pagesScanned, pagesToCached,
+		pagesToModified, pagesToActive);
 
 	// wake up the page writer, if we tossed it some pages
 	if (pagesToModified > 0)
@@ -2904,9 +2905,9 @@ full_scan_active_pages(page_stats& pageStats, int32 despairLevel)
 	}
 
 	time = system_time() - time;
-	TRACE_DAEMON("  ->   active scan (%7lld us): scanned: %7lu, "
-		"moved: %lu -> inactive, encountered %lu accessed ones\n", time,
-		pagesScanned, pagesToInactive, pagesAccessed);
+	TRACE_DAEMON("  ->   active scan (%7" B_PRId64 " us): scanned: %7" B_PRIu32
+		", moved: %" B_PRIu32 " -> inactive, encountered %" B_PRIu32 " accessed"
+		" ones\n", time, pagesScanned, pagesToInactive, pagesAccessed);
 }
 
 
@@ -2934,9 +2935,10 @@ page_daemon_idle_scan(page_stats& pageStats)
 static void
 page_daemon_full_scan(page_stats& pageStats, int32 despairLevel)
 {
-	TRACE_DAEMON("page daemon: full run: free: %lu, cached: %lu, "
-		"to free: %lu\n", pageStats.totalFreePages, pageStats.cachedPages,
-		pageStats.unsatisfiedReservations + sFreeOrCachedPagesTarget
+	TRACE_DAEMON("page daemon: full run: free: %" B_PRIu32 ", cached: %"
+		B_PRIu32 ", to free: %" B_PRIu32 "\n", pageStats.totalFreePages,
+		pageStats.cachedPages, pageStats.unsatisfiedReservations
+			+ sFreeOrCachedPagesTarget
 			- (pageStats.totalFreePages + pageStats.cachedPages));
 
 	// Walk the inactive list and transfer pages to the cached and modified
@@ -3831,8 +3833,8 @@ vm_page_allocate_page_run(uint32 flags, page_num_t length,
 	ASSERT(((alignmentMask + 1) & alignmentMask) == 0);
 		// alignment must be a power of 2
 
-	// compute the boundary shift
-	uint32 boundaryShift = 0;
+	// compute the boundary mask
+	uint32 boundaryMask = 0;
 	if (restrictions->boundary != 0) {
 		page_num_t boundary = restrictions->boundary / B_PAGE_SIZE;
 		// boundary must be a power of two and not less than alignment and
@@ -3841,8 +3843,7 @@ vm_page_allocate_page_run(uint32 flags, page_num_t length,
 		ASSERT(boundary >= alignmentMask + 1);
 		ASSERT(boundary >= length);
 
-		while ((boundary >>= 1) > 0)
-			boundaryShift++;
+		boundaryMask = -boundary;
 	}
 
 	vm_page_reservation reservation;
@@ -3858,20 +3859,17 @@ vm_page_allocate_page_run(uint32 flags, page_num_t length,
 	int useCached = freePages > 0 && (page_num_t)freePages > 2 * length ? 0 : 1;
 
 	for (;;) {
-		if (alignmentMask != 0 || boundaryShift != 0) {
+		if (alignmentMask != 0 || boundaryMask != 0) {
 			page_num_t offsetStart = start + sPhysicalPageOffset;
 
 			// enforce alignment
-			if ((offsetStart & alignmentMask) != 0) {
-				offsetStart = ((offsetStart + alignmentMask) & ~alignmentMask)
-					- sPhysicalPageOffset;
-			}
+			if ((offsetStart & alignmentMask) != 0)
+				offsetStart = (offsetStart + alignmentMask) & ~alignmentMask;
 
 			// enforce boundary
-			if (offsetStart << boundaryShift
-					!= (offsetStart + length - 1) << boundaryShift) {
-				offsetStart = (offsetStart + length - 1) << boundaryShift
-					>> boundaryShift;
+			if (boundaryMask != 0 && ((offsetStart ^ (offsetStart 
+				+ length - 1)) & boundaryMask) != 0) {
+				offsetStart = (offsetStart + length - 1) & boundaryMask;
 			}
 
 			start = offsetStart - sPhysicalPageOffset;
@@ -3887,7 +3885,10 @@ vm_page_allocate_page_run(uint32 flags, page_num_t length,
 			}
 
 			dprintf("vm_page_allocate_page_run(): Failed to allocate run of "
-				"length %" B_PRIuPHYSADDR " in second iteration!", length);
+				"length %" B_PRIuPHYSADDR " (%" B_PRIuPHYSADDR " %"
+				B_PRIuPHYSADDR ") in second iteration (align: %" B_PRIuPHYSADDR
+				" boundary: %" B_PRIuPHYSADDR ") !", length, requestedStart,
+				end, restrictions->alignment, restrictions->boundary);
 
 			freeClearQueueLocker.Unlock();
 			vm_page_unreserve_pages(&reservation);

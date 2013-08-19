@@ -569,7 +569,7 @@ Keymap::SaveAsSource(const char* name)
 	_SaveSourceText(file, &textRuns);
 
 	if (textRuns != NULL) {
-		ssize_t dataSize;
+		int32 dataSize;
 		void* data = BTextView::FlattenRunArray(textRuns, &dataSize);
 		if (data != NULL) {
 			BNode node(name);
@@ -687,7 +687,7 @@ Keymap::SaveAsCppHeader(const char* fileName, const char* mapName)
 
 	fputs("};\n\n", file);
 
-	fputs("const char kSystemKeyChars[] = {\n", file);
+	fputs("const uchar kSystemKeyChars[] = {\n", file);
 
 	for (uint32 i = 0; i < fCharsSize; i++) {
 		if (i % 10 == 0) {

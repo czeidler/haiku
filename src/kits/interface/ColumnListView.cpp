@@ -62,6 +62,7 @@ All rights reserved.
 #include <Region.h>
 #include <ScrollBar.h>
 #include <String.h>
+#include <SupportDefs.h>
 #include <Window.h>
 
 #include <ObjectListPrivate.h>
@@ -519,6 +520,13 @@ bool
 BRow::IsExpanded() const
 {
 	return fIsExpanded;
+}
+
+
+bool
+BRow::IsSelected() const
+{
+	return fPrevSelected != NULL;
 }
 
 
@@ -1254,6 +1262,60 @@ void
 BColumnListView::UpdateRow(BRow* row)
 {
 	fOutlineView->UpdateRow(row);
+}
+
+
+bool
+BColumnListView::SwapRows(int32 index1, int32 index2, BRow* parentRow1,
+	BRow* parentRow2)
+{
+	BRow* row1 = NULL;
+	BRow* row2 = NULL;
+
+	BRowContainer* container1 = NULL;
+	BRowContainer* container2 = NULL;
+
+	if (parentRow1 == NULL)
+		container1 = fOutlineView->RowList();
+	else
+		container1 = parentRow1->fChildList;
+
+	if (container1 == NULL)
+		return false;
+
+	if (parentRow2 == NULL)
+		container2 = fOutlineView->RowList();
+	else
+		container2 = parentRow1->fChildList;
+
+	if (container2 == NULL)
+		return false;
+
+	row1 = container1->ItemAt(index1);
+
+	if (row1 == NULL)
+		return false;
+
+	row2 = container2->ItemAt(index2);
+
+	if (row2 == NULL)
+		return false;
+
+	container1->ReplaceItem(index2, row1);
+	container2->ReplaceItem(index1, row2);
+
+	BRect rect1;
+	BRect rect2;
+	BRect rect;
+
+	fOutlineView->FindRect(row1, &rect1);
+	fOutlineView->FindRect(row2, &rect2);
+
+	rect = rect1 | rect2;
+
+	fOutlineView->Invalidate(rect);
+
+	return true;
 }
 
 
@@ -3258,7 +3320,7 @@ OutlineView::Draw(BRect invalidBounds)
 		tintedLine = !tintedLine;
 		float rowHeight = row->Height();
 
-		if (line > invalidBounds.top - rowHeight) {
+		if (line >= invalidBounds.top - rowHeight) {
 			bool isFirstColumn = true;
 			float fieldLeftEdge = MAX(kLeftMargin, fMasterView->LatchWidth());
 
@@ -4194,7 +4256,7 @@ OutlineView::AddRow(BRow* row, int32 Index, BRow* parentRow)
 
 	row->fParent = parentRow;
 
-	if (fMasterView->SortingEnabled()) {
+	if (fMasterView->SortingEnabled() && !fSortColumns->IsEmpty()) {
 		// Ignore index here.
 		if (parentRow) {
 			if (parentRow->fChildList == NULL)
@@ -4783,16 +4845,20 @@ float
 OutlineView::GetColumnPreferredWidth(BColumn* column)
 {
 	float preferred = 0.0;
-	for (RecursiveOutlineIterator iterator(&fRows); iterator.CurrentRow();
-		iterator.GoToNext()) {
-		BRow* row = iterator.CurrentRow();
+	for (RecursiveOutlineIterator iterator(&fRows); BRow* row =
+		iterator.CurrentRow(); iterator.GoToNext()) {
 		BField* field = row->GetField(column->fFieldID);
 		if (field) {
-			float width = column->GetPreferredWidth(field, this);
-			if (preferred < width)
-				preferred = width;
+			float width = column->GetPreferredWidth(field, this)
+				+ iterator.CurrentLevel() * kOutlineLevelIndent;
+			preferred = max_c(preferred, width);
 		}
 	}
+
+	BString name;
+	column->GetColumnName(&name);
+	preferred = max_c(preferred, StringWidth(name));
+
 	// Constrain to preferred width. This makes the method do a little
 	// more than asked, but it's for convenience.
 	if (preferred < column->MinWidth())

@@ -1,4 +1,4 @@
-1	french	x-vnd.Haiku-libtracker	2606149823
+1	french	x-vnd.Haiku-libtracker	1762695842
 common	B_COMMON_DIRECTORY		commun
 OK	WidgetAttributeText		OK
 Icon view	VolumeWindow		Vue en icônes
@@ -74,6 +74,7 @@ Arrange by	ContainerWindow		Trier par
 Mount server error	AutoMounterSettings		Erreur du serveur de montage
 Search	FindPanel		Chercher
 Preparing to empty Trash…	StatusWindow		Préparation au vidage de la Corbeille…
+You cannot put the selected item(s) into the trash.	FSUtils		Vous ne pouvez pas déplacer l(es) élément(s) sélectionné(s) vers la corbeille.
 Disks	Model		Disques
 Create link	ContainerWindow		Créer un lien
 develop	B_COMMON_DEVELOP_DIRECTORY		développement
@@ -142,6 +143,7 @@ Add-ons	ContainerWindow		Extensions
 Edit templates…	TemplatesMenu		Éditer les modèles…
 Finish: %time - Over %finishtime left	StatusWindow		Fin : %time - il reste plus de %finishtime
 An item named \"%name\" already exists in this folder. Would you like to replace it with the symbolic link you are creating?	FSUtils		Un élément nommé « %name » existe déjà dans ce dossier. Voulez vous le remplacer par le lien symbolique que vous créez ?
+Fewer options	FindPanel		Moins d'options
 Sorry, there is not enough free space on the destination volume to copy the selection.	FSUtils		Désolé, il n'y a pas assez d'espace libre dans le volume cible pour copier la sélection.
 Could not open \"%document\" with application \"%app\" (%error). 	FSUtils		Impossible d'ouvrir « %document » avec l'application « %app » (%error). 
 Sorry, saving more than one item is not allowed.	FilePanelPriv		Désolé, il n'est pas permis de sauvegarder plus d'un élément.
@@ -164,7 +166,6 @@ no supporting apps	OpenWithWindow		aucune application apte
 That name is already taken. Please type another one.	InfoWindow		Ce nom est déjà utilisé. Veuillez en saisir un autre.
 Sorry, you can't create links in the Trash.	PoseView		Désolé, vous ne pouvez pas créer des liens dans la Corbeille.
 An item named \"%name\" already exists in this folder, and may contain\nitems with the same names. Would you like to replace them with those contained in the folder you are %verb?	FSUtils		Un élément nommé « %name » existe déjà dans ce dossier, et peut contenir\ndes éléments de même noms. Voulez vous les remplacer par ceux contenu dans le dossier que vous êtes en train de %verb ?
-Tracker preferences…	ContainerWindow		Préférences du Tracker…
 Link \"%name\" to:	InfoWindow	File dialog title for new sym link	Lier « %name » à :
 Mount settings…	VolumeWindow		Réglages du montage…
 Select…	VolumeWindow		Sélectionner…
@@ -212,7 +213,6 @@ Resize to fit	VolumeWindow		Ajuster
 Could not find application \"%appname\"	OpenWithWindow		Impossible de trouver l'application « %appname »
 The selected item cannot be moved to the Trash. Would you like to delete it instead? (This operation cannot be reverted.)	PoseView		L'élément sélectionné ne peut pas être envoyé à la Corbeille. Voulez vous le supprimer ? (Cette opération est irrémédiable.)
 Invert	SelectionWindow		Inverser
-Save Query as template…	FindPanel		Enregistrer le modèle de la requête…
 rename	InfoWindow	As in 'if you rename this folder...' (en) 'Wird dieser Ordner umbenannt...' (de)	renommez
 Find	FindPanel		Rechercher
 Move	FSUtils	Button label, 'Move' (en), 'Verschieben' (de)	Déplacer
@@ -237,6 +237,7 @@ Temporary	FindPanel		Temporaire
 Version	OpenWithWindow		Version
 Default application	InfoWindow		Application par défaut
 Preparing to copy items…	StatusWindow		Copie des éléments en préparation…
+Save query as template…	FindPanel		Enregistrer le modèle de la requête…
 Show folder location in title tab	SettingsView		Afficher l'emplacement du dossier dans la barre de titre
 Proceed	FSUtils		Procéder
 Some items already exist in this folder with the same names as the items you are %verb.\n \nWould you like to replace them with the ones you are %verb or be prompted for each one?	FSUtils		Plusieurs éléments de ce dossier portent les mêmes noms que des éléments que vous êtes en train de %verb.\n\nVoulez-vous les remplacer par ceux que vous êtes en train de %verb ou voulez-vous qu'une confirmation vous soit demandée pour chacun d'eux ?
@@ -257,7 +258,6 @@ TiB	WidgetAttributeText		Tio
 The file \"%name\" already exists in the specified folder. Do you want to replace it?	FilePanelPriv		Le fichier « %name » existe déjà dans le dossier indiqué. Voulez-vous le remplacer ?
 Cancel	ContainerWindow		Annuler
 Only the boot disk	AutoMounterSettings		Seulement le disque de démarrage
-Trash	TrackerSettingsWindow		Corbeille
 If you %ifYouDoAction the config folder, %osName may not behave properly!\n\nAre you sure you want to do this?	FSUtils		Si vous %ifYouDoAction le dossier de configuration, %osName pourrait ne pas se comporter correctement !\n\nÊtes vous sûr de vouloir effectuer cette opération ?
 Unmount	ContainerWindow		Démonter
 Copy layout	ContainerWindow		Copier la disposition
@@ -336,6 +336,7 @@ The specified name is already used as the name of a folder. Please choose anothe
 Clean up	ContainerWindow		Nettoyer
 after	FindPanel		après
 Select…	QueryContainerWindow		Sélectionner…
+More options	FindPanel		Plus d'options
 link	FSUtils	filename link	lien
 At %func \nfind_directory() failed. \nReason: %error	TrackerInitialState		Dans %func\nfind_directory() a échoué.\nMotif : %error
 The specified name is illegal. Please choose another name.	FilePanelPriv		Le nom indiqué n'est pas valide. Veuillez choisir un autre nom.
@@ -379,6 +380,7 @@ Modified	FindPanel		Modifié
 Error moving \"%name\" to Trash. (%error)	FSUtils		Erreur en envoyant « %name » à la Corbeille. (%error)
 You can't replace a folder with one of its sub-folders.	FSUtils		Vous ne pouvez pas remplacer un dossier par l'un de ses sous-dossiers.
 <No recent items>	FavoritesMenu		<Pas d'éléments récents>
+Preferences…	ContainerWindow		Préférences…
 Move	PoseView		Déplacer
 Open and make preferred	OpenWithWindow		Ouvrir et en faire la préférence
 Are you sure you want to delete the selected item(s)? This operation cannot be reverted.	FSUtils		Êtes vous sûr de vouloir supprimer l(es) élément(s) sélectionné(s) ? Cette opération est irrémédiable.
@@ -392,7 +394,6 @@ Icon view	DeskWindow		Vue en icônes
 Select all	QueryContainerWindow		Sélectionner tout
 Files cannot be moved or deleted from a read-only volume.	PoseView		Les fichiers d'un volume en lecture-seule ne peuvent être ni déplacés, ni supprimés.
 There was a problem trying to replace \"%name\". The item might be open or busy.	FSUtils		Un problème est survenu en essayant de remplacer « %name ». L'élément est peut-être ouvert ou occupé.
-You cannot put the Trash, home or Desktop directory into the trash.	FSUtils		Vous ne pouvez pas mettre la Corbeille, le Bureau ou votre répertoires personnel à la corbeille.
 Owner	FilePermissionsView		Propriétaire
 There was a problem trying to save in the folder you specified. Please try another one.	FilePanelPriv		Un problème est survenu lors de l'enregistrement dans le dossier que vous avez indiqué. Veuillez en essayer un autre.
 Restore	ContainerWindow		Restaurer
@@ -411,7 +412,6 @@ Paste layout	ContainerWindow		Coller la disposition
 Select	InfoWindow		Sélectionner
 Could not update permissions of file \"%name\". %error	FSUtils		Impossible de modifier les permissions du fichier « %name ». %error
 Select…	FilePanelPriv		Sélectionner…
-Don't move files to Trash	SettingsView		Ne pas envoyer les fichiers vers la corbeille
 There was an error resolving the link.	Tracker		Une erreur est survenue lors de la résolution du lien.
 %BytesPerSecond/s	StatusWindow		%BytesPerSecond/s
 You can't move or copy the trash.	FSUtils		Vous ne pouvez ni déplacer, ni copier la Corbeille.
@@ -442,16 +442,17 @@ Automatic disk mounting	AutoMounterSettings		Montage automatique des disques
 Original name	ContainerWindow		Nom d'origine
 Find	FSUtils		Rechercher
 Error copying file \"%name\":\n\t%error\n\nWould you like to continue?	FSUtils		Erreur à la copie du fichier « %name » :\n\t%error\n\nVoulez-vous continuer ?
-Ask before delete	SettingsView		Demander avant de supprimer
 Single window navigation	SettingsView		Naviguer dans une fenêtre unique
 parent folder	NavMenu		dossier parent
 contains	FindPanel		contient
 Relation	OpenWithWindow		Relation
 Open	FilePanelPriv		Ouvrir
 Mount	DeskWindow		Monter
+Recent queries	FindPanel		Requêtes récentes
 Mount	ContainerWindow		Monter
 %capacity (%used used -- %free free)	InfoWindow		%capacity (%used utilisés -- %free libres)
 Cancel	FSClipBoard		Annuler
+Restart Deskbar	DeskWindow		Redémarrer la Deskbar
 Cut more	ContainerWindow		Couper plus
 Deleting: 	StatusWindow		Suppression : 
 Empty Trash	InfoWindow		Vider la corbeille

@@ -1,18 +1,20 @@
-1	belarusian	x-vnd.Haiku-StyledEdit	1508367857
+1	belarusian	x-vnd.Haiku-StyledEdit	3208803155
 StyledEdit	System name		Стыльны Рэдактар
+This file is marked read-only. Save changes to the document \"%s\"? 	SaveAlert		Гэты файл пазначаны толькі для чытання. Захаваць змены ў дакумент \"%s\"? 
 Paste	Menus		Уставіць
 OK	LoadAlert		Так
 File	Menus		Файл
 ???	LoadAlert		???
+Modified	StatusView		Мадыфікаваны
 Lines:	Statistics		Радкоў:
 Italic	Menus		Нахілены
 Left	Menus		Левы
-Revert to the last version of \"%s\"? 	RevertToSavedAlert		Вярнуцца да апошняй версіі \"%s\"? 
 Search backwards	FindandReplaceWindow		Шукаць ў адваротным накірунку
+Unlock file	StatusView		Разблакаваць
 Size	Menus		Памер
 Save	QuitAlert		Захаваць
-Page setup…	Menus		Наладкі старонкі...
-Print…	Menus		Друкаваць...
+Page setup…	Menus		Наладкі старонкі…
+Print…	Menus		Друкаваць…
 Can't undo	Menus		Немагчыма адмяніць
 Save	Menus		Захаваць
 Replace with:	FindandReplaceWindow		Змяніць на:
@@ -20,22 +22,27 @@ Cancel	SaveAlert		Адмена
 Cannot revert, file not found: \"%s\".	RevertToSavedAlert		Немагчыма вярнуцца, файл \"%s\" ня знойдзены.
 Case-sensitive	FindandReplaceWindow		З улікам рэгістру
 Green	Menus		Зялёны
-Revert to saved…	Menus		Вярнуцца да захаванага…
+Reload	NodeMonitorAlerts		Перазагрузіць
 Yellow	Menus		Жоўты
 Replace in all windows	FindandReplaceWindow		Замяняць ва ўсіх вокнах
 Wrap lines	Menus		Пераносіць радкі
 Quit	Menus		Выйсці
+File \"%file%\" was removed by another application, recover it?	NodeMonitorAlerts		Файл \"%file%\" быў выдалены іншай праграмай, аднавіць яго?
 Document statistics	Statistics		Статыстыка дакументу
 Cancel	RevertToSavedAlert		Скасаваць
+Autodetect	Menus		Аўтаматычна
 Document	Menus		Дакумент
 Save changes to the document \"%s\"? 	QuitAlert		Захаваць адрэдагаваны дакумент \"%s\"? 
 Edit	Menus		Рэдагаваць
+Revert	RevertToSavedAlert		Вярнуць
 Font	Menus		Шрыфт
 Replace all	FindandReplaceWindow		Замяняць усё
-Statistics…	Menus		Статыстыка...
+Statistics…	Menus		Статыстыка…
 Default	Open_and_SaveAsPanel		Прадвызначаны
 Replace next	Menus		Замяніць наступны
+\"%s\" has unsaved changes.\nRevert it to the last saved version? 	RevertToSavedAlert		\"%s\" мае незахаваныя змены.\nВярнуць яго да раней захаванага стану? 
 Cancel	FindandReplaceWindow		Адмена
+Text encoding	Menus		Кадоўка
 Close	Menus		Закрыць
 Save	SaveAlert		Захаваць
 Words:	Statistics		Словаў:
@@ -45,10 +52,13 @@ Don't save	QuitAlert		Не захоўваць
 Align	Menus		Раўнаванне
 Color	Menus		Колер
 Red	Menus		Чырвоны
+OK	QuitAlert		Так
 Open…	Menus		Адкрыць…
 Center	Menus		Цэнтар
 Blue	Menus		Сіні
+Unable to unlock file\n\t%s	QuitAlert		Немагчыма разблакаваць файл\n\t%s
 Cyan	Menus		Блакітны
+line %d, column %d	StatusView		радок %d, пазіцыя %d
 OK	Statistics		ОК
 Magenta	Menus		Пурпурны
 New	Menus		Новы
@@ -59,22 +69,26 @@ Find:	FindandReplaceWindow		Пошук:
 Error saving \"%s\":\n%s	SaveAlert		Немагчыма захаваць \"%s\":\n%s
 Copy	Menus		Капіяваць
 Cut	Menus		Выразаць
+File \"%file%\" was modified by another application, reload it?	NodeMonitorAlerts		Файл \"%file%\" быў мадыфікаваны іншай праграмай, перачытаць?
 Replace	FindandReplaceWindow		Замяніць
 Find again	Menus		Шукаць далей
 Cancel	QuitAlert		Скасаваць
 Find…	Menus		Пошук…
 Select all	Menus		Абраць усё
 Don't save	SaveAlert		Не захоўваць
+Recover	NodeMonitorAlerts		Аднавіць
 Error loading \"%s\":\n\t%s	LoadAlert		Немагчыма загрузіць \"%s\":\n\t%s
+Ignore	NodeMonitorAlerts		Ігнараваць
+Read-only	StatusView		Толькі-чытанне
 Undo typing	QuitAlert		Адмяніць увод
-This file is marked Read-Only. Save changes to the document \"%s\"? 	SaveAlert		Гэты файл пазначаны толькі для чытання. Захаваць змены ў дакумент \"%s\"? 
 Black	Menus		Чорны
-Untitled 	StyledEditWindow		Без назвы
+Untitled 	StyledEditWindow		Без назвы 
 OK	SaveAlert		ОК
 Find	FindandReplaceWindow		Шукаць
 Encoding	Open_and_SaveAsPanel		Кадоўка
 Characters:	Statistics		Знакаў:
-Save as…	Menus		Захаваць як...
+Save as…	Menus		Захаваць як…
 Redo typing	QuitAlert		Паўтарыць увод
+Reload…	Menus		Перачытаць…
 Replace…	Menus		Замяняць…
 Right	Menus		Права

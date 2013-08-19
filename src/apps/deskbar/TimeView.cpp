@@ -38,6 +38,7 @@ All rights reserved.
 
 #include <string.h>
 
+#include <Application.h>
 #include <Catalog.h>
 #include <Debug.h>
 #include <Locale.h>
@@ -55,20 +56,11 @@ static const char*  const kMinString = "99:99 AM";
 static const float kHMargin = 2.0;
 
 
-enum {
-	kShowTime,
-	kChangeTime,
-	kHide,
-	kShowCalendar
-};
-
-
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "TimeView"
 
 
-TTimeView::TTimeView(float maxWidth, float height, bool use24HourClock,
-	bool showSeconds, bool showDayOfWeek)
+TTimeView::TTimeView(float maxWidth, float height)
 	:
 	BView(BRect(-100, -100, -90, -90), "_deskbar_tv_",
 		B_FOLLOW_RIGHT | B_FOLLOW_TOP,
@@ -77,9 +69,10 @@ TTimeView::TTimeView(float maxWidth, float height, bool use24HourClock,
 	fMaxWidth(maxWidth),
 	fHeight(height),
 	fOrientation(true),
-	fUse24HourClock(use24HourClock),
-	fShowSeconds(showSeconds),
-	fShowDayOfWeek(showDayOfWeek)
+	fShowLevel(0),
+	fShowSeconds(false),
+	fShowDayOfWeek(false),
+	fShowTimeZone(false)
 {
 	fCurrentTime = fLastTime = time(NULL);
 	fSeconds = fMinute = fHour = 0;
@@ -88,8 +81,6 @@ TTimeView::TTimeView(float maxWidth, float height, bool use24HourClock,
 	fLastTimeStr[0] = 0;
 	fLastDateStr[0] = 0;
 	fNeedToUpdate = true;
-	UpdateTimeFormat();
-
 	fLocale = *BLocale::Default();
 }
 
@@ -126,7 +117,11 @@ status_t
 TTimeView::Archive(BMessage* data, bool deep) const
 {
 	BView::Archive(data, deep);
-	data->AddBool("seconds", fShowSeconds);
+	data->AddBool("orientation", fOrientation);
+	data->AddInt16("showLevel", fShowLevel);
+	data->AddBool("showSeconds", fShowSeconds);
+	data->AddBool("showDayOfWeek", fShowDayOfWeek);
+	data->AddBool("showTimeZone", fShowTimeZone);
 	data->AddInt32("deskbar:private_align", B_ALIGN_RIGHT);
 
 	return B_OK;
@@ -195,13 +190,21 @@ TTimeView::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
 		case kChangeTime:
+		{
 			// launch the time prefs app
 			be_roster->Launch("application/x-vnd.Haiku-Time");
+			// tell Time preflet to switch to the clock tab
+			BMessenger messenger("application/x-vnd.Haiku-Time");
+			BMessage* switchToClock = new BMessage('SlCk');
+			messenger.SendMessage(switchToClock);
 			break;
+		}
 
 		case kShowHideTime:
-			Window()->PostMessage(message, Parent());
+		{
+			be_app->MessageReceived(message);
 			break;
+		}
 
 		case kShowCalendar:
 		{
@@ -253,12 +256,7 @@ TTimeView::Pulse()
 	GetCurrentDate();
 	if (strcmp(fCurrentTimeStr, fLastTimeStr) != 0) {
 		// Update bounds when the size of the strings has changed
-		// For dates, Update() could be called two times in a row,
-		// but that should only happen very rarely
-		if ((fLastTimeStr[1] != fCurrentTimeStr[1]
-			&& (fLastTimeStr[1] == ':' || fCurrentTimeStr[1] == ':'))
-			|| !fLastTimeStr[0])
-			Update();
+		Update();
 
 		strlcpy(fLastTimeStr, fCurrentTimeStr, sizeof(fLastTimeStr));
 		fNeedToUpdate = true;
@@ -309,21 +307,6 @@ TTimeView::SetOrientation(bool orientation)
 
 
 bool
-TTimeView::Use24HourClock() const
-{
-	return fUse24HourClock;
-}
-
-
-void
-TTimeView::SetUse24HourClock(bool use24HourClock)
-{
-	fUse24HourClock = use24HourClock;
-	Update();
-}
-
-
-bool
 TTimeView::ShowSeconds() const
 {
 	return fShowSeconds;
@@ -349,6 +332,21 @@ void
 TTimeView::SetShowDayOfWeek(bool show)
 {
 	fShowDayOfWeek = show;
+	Update();
+}
+
+
+bool
+TTimeView::ShowTimeZone() const
+{
+	return fShowTimeZone;
+}
+
+
+void
+TTimeView::SetShowTimeZone(bool show)
+{
+	fShowTimeZone = show;
 	Update();
 }
 
@@ -385,16 +383,46 @@ TTimeView::ShowCalendar(BPoint where)
 void
 TTimeView::GetCurrentTime()
 {
-	fLocale.FormatTime(fCurrentTimeStr, 64, fCurrentTime, fTimeFormat);
+	ssize_t offset_dow = 0;
+	ssize_t offset_time = 0;
+
+	// ToDo: Check to see if we should write day of week after time for locale
+
+	if (fShowDayOfWeek) {
+		BString timeFormat("eee ");
+		offset_dow = fLocale.FormatTime(fCurrentTimeStr,
+			sizeof(fCurrentTimeStr), fCurrentTime, timeFormat);
+
+		if (offset_dow < 0) {
+			// error occured, attempt to overwrite with current time
+			// (this should not ever happen)
+			fLocale.FormatTime(fCurrentTimeStr, sizeof(fCurrentTimeStr),
+				fCurrentTime,
+				fShowSeconds ? B_MEDIUM_TIME_FORMAT : B_SHORT_TIME_FORMAT);
+			return;
+		}
+	}
+
+	offset_time = fLocale.FormatTime(fCurrentTimeStr + offset_dow,
+		sizeof(fCurrentTimeStr) - offset_dow, fCurrentTime,
+		fShowSeconds ? B_MEDIUM_TIME_FORMAT : B_SHORT_TIME_FORMAT);
+
+	if (fShowTimeZone) {
+		BString timeFormat(" V");
+		ssize_t offset = offset_dow + offset_time;
+		fLocale.FormatTime(fCurrentTimeStr + offset,
+			sizeof(fCurrentTimeStr) - offset, fCurrentTime, timeFormat);
+	}
 }
 
 
 void
 TTimeView::GetCurrentDate()
 {
-	char tmp[64];
+	char tmp[sizeof(fCurrentDateStr)];
 
-	fLocale.FormatDate(tmp, 64, fCurrentTime, B_FULL_DATE_FORMAT);
+	fLocale.FormatDate(tmp, sizeof(fCurrentDateStr), fCurrentTime,
+		B_FULL_DATE_FORMAT);
 
 	// remove leading 0 from date when month is less than 10 (MM/DD/YY)
 	// or remove leading 0 from date when day is less than 10 (DD/MM/YY)
@@ -440,7 +468,7 @@ TTimeView::ShowTimeOptions(BPoint point)
 		new BMessage(kChangeTime));
 	menu->AddItem(item);
 
-	item = new BMenuItem(B_TRANSLATE("Hide time"),
+	item = new BMenuItem(B_TRANSLATE("Hide clock"),
 		new BMessage(kShowHideTime));
 	menu->AddItem(item);
 
@@ -460,7 +488,6 @@ void
 TTimeView::Update()
 {
 	fLocale = *BLocale::Default();
-	UpdateTimeFormat();
 
 	GetCurrentTime();
 	GetCurrentDate();
@@ -471,27 +498,4 @@ TTimeView::Update()
 
 	if (fParent != NULL)
 		fParent->Invalidate();
-}
-
-
-void
-TTimeView::UpdateTimeFormat()
-{
-	BString timeFormat;
-
-	if (fShowDayOfWeek)
-		timeFormat.Append("eee ");
-
-	if (fUse24HourClock)
-		timeFormat.Append("H:mm");
-	else
-		timeFormat.Append("h:mm");
-
-	if (fShowSeconds)
-		timeFormat.Append(":ss");
-
-	if (!fUse24HourClock)
-		timeFormat.Append(" a");
-
-	fTimeFormat = timeFormat;
 }

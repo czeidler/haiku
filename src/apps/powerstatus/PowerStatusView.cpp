@@ -16,7 +16,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <Alert.h>
+#include <AboutWindow.h>
 #include <Application.h>
 #include <Catalog.h>
 #include <ControlLook.h>
@@ -321,10 +321,11 @@ PowerStatusView::_SetLabel(char* buffer, size_t bufferLength)
 		close = ")";
 	}
 
-	if (!fShowTime && fPercent >= 0)
-		snprintf(buffer, bufferLength, "%s%ld%%%s", open, fPercent, close);
-	else if (fShowTime && fTimeLeft >= 0) {
-		snprintf(buffer, bufferLength, "%s%ld:%02ld%s",
+	if (!fShowTime && fPercent >= 0) {
+		snprintf(buffer, bufferLength, "%s%" B_PRId32 "%%%s", open, fPercent,
+			close);
+	} else if (fShowTime && fTimeLeft >= 0) {
+		snprintf(buffer, bufferLength, "%s%" B_PRId32 ":%02" B_PRId32 "%s",
 			open, fTimeLeft / 3600, (fTimeLeft / 60) % 60, close);
 	}
 }
@@ -372,11 +373,12 @@ PowerStatusView::Update(bool force)
 				close = ")";
 			}
 			if (fHasBattery) {
-				size_t length = snprintf(text, sizeof(text), "%s%ld%%%s",
-					open, fPercent, close);
+				size_t length = snprintf(text, sizeof(text), "%s%" B_PRId32
+					"%%%s", open, fPercent, close);
 				if (fTimeLeft) {
 					length += snprintf(text + length, sizeof(text) - length,
-						"\n%ld:%02ld", fTimeLeft / 3600, (fTimeLeft / 60) % 60);
+						"\n%" B_PRId32 ":%02" B_PRId32, fTimeLeft / 3600,
+						(fTimeLeft / 60) % 60);
 				}
 
 				const char* state = NULL;
@@ -503,9 +505,8 @@ PowerStatusReplicant::PowerStatusReplicant(BMessage* archive)
 
 PowerStatusReplicant::~PowerStatusReplicant()
 {
-	if (fMessengerExist) {
+	if (fMessengerExist)
 		delete fExtWindowMessenger;
-	}
 
 	fDriverInterface->StopWatching(this);
 	fDriverInterface->Disconnect();
@@ -621,22 +622,20 @@ PowerStatusReplicant::MouseDown(BPoint point)
 void
 PowerStatusReplicant::_AboutRequested()
 {
-	BAlert* alert = new BAlert(B_TRANSLATE("About"),
-		B_TRANSLATE("PowerStatus\n"
-			"written by Axel Dörfler, Clemens Zeidler\n"
-			"Copyright 2006, Haiku, Inc.\n"), B_TRANSLATE("OK"));
-	BTextView *view = alert->TextView();
-	BFont font;
+	BAboutWindow* window = new BAboutWindow(
+		B_TRANSLATE_SYSTEM_NAME("PowerStatus"), kSignature);
 
-	view->SetStylable(true);
+	const char* authors[] = {
+		"Axel Dörfler",
+		"Alexander von Gluck",
+		"Clemens Zeidler",
+		NULL
+	};
 
-	view->GetFont(&font);
-	font.SetSize(18);
-	font.SetFace(B_BOLD_FACE);
-	view->SetFontAndColor(0, strlen(B_TRANSLATE("PowerStatus")), &font);
+	window->AddCopyright(2006, "Haiku, Inc.");
+	window->AddAuthors(authors);
 
-	alert->SetFlags(alert->Flags() | B_CLOSE_ON_ESCAPE);
-	alert->Go();
+	window->Show();
 }
 
 

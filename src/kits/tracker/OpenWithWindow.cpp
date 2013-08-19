@@ -903,7 +903,7 @@ OpenWithPoseView::HandleMessageDropped(BMessage* DEBUG_ONLY(message))
 #if DEBUG
 	// in debug mode allow tweaking the colors
 	const rgb_color* color;
-	int32 size;
+	ssize_t size;
 	// handle roColour-style color drops
 	if (message->FindData("RGBColor", 'RGBC', (const void**)&color, &size) == B_OK) {
 		SetViewColor(*color);
@@ -955,7 +955,10 @@ OpenWithRefFilter::Filter(const entry_ref* ref, BNode* node, stat_beos* st,
 	const char* filetype)
 {
 	Model *model = new Model(ref, true, true);
-	return fIterator->CanOpenWithFilter(model, fEntryList, fPreferredRef);
+	bool canOpen = fIterator->CanOpenWithFilter(model, fEntryList,
+		fPreferredRef);
+	delete model;
+	return canOpen;
 }
 
 

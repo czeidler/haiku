@@ -1,9 +1,11 @@
-1	polish	x-vnd.Haiku-MediaConverter	296071315
+1	polish	x-vnd.Haiku-MediaConverter	2722282283
 Video using parameters form settings	MediaConverter		Wideo używa parametrów z ustawień
 Video encoding:	MediaConverter		Kodowanie wideo:
+Error read audio frame %lld	MediaConverter		Błąd odczytu ramki audio %lld
 No audio	Audio codecs list		Brak dźwięku
 Error	MediaConverter		Błąd
 Error loading a file	MediaConverter		Błąd ładowania pliku
+Error read video frame %lld	MediaConverter		Błąd odczytu ramki video %lld
 File Error	MediaConverter-FileInfo		Błąd pliku
 Open…	Menu		Otwórz…
 Start [ms]: 	MediaConverter		Początek [ms]:
@@ -15,7 +17,6 @@ MediaConverter	System name		MediaConverter
 No video	Video codecs list		Brak wideo
 Duration:	MediaConverter-FileInfo		Długość:
 OK	MediaConverter		OK
-Error writing audio frame %Ld	MediaConverter		Błąd  zapisu ramki dźwięku %Ld
 Error converting '%filename'	MediaConverter		Błąd konwersji '%filename'
 Low	MediaConverter		Niska
 Conversion completed	MediaConverter		Konwersja ukończona
@@ -23,6 +24,8 @@ Audio:	MediaConverter-FileInfo		Dźwięk:
 OK	MediaConverter-FileInfo		OK
  seconds	MediaFileInfo		sekundy
 Source files	MediaConverter		Pliki źródłowe
+Error writing video frame %lld	MediaConverter		Błąd zapisu ramki video %lld
+Error writing audio frame %lld	MediaConverter		Błąd zapisu ramki audio %lld
 Cancelling	MediaConverter		Anulowanie
 %d byte 	MediaFileInfo		%d bajt
 Error loading files	MediaConverter		Błąd wczytywania plików
@@ -30,7 +33,6 @@ Cancel	MediaConverter		Anuluj
 None available	Video codecs		Brak
 Conversion cancelled	MediaConverter		Konwersja anulowana
 No file selected	MediaConverter-FileInfo		Nie wybrano pliku
-Error writing video frame %Ld	MediaConverter		Błąd zapisywania ramki wideo %Ld
 Select this folder	MediaConverter		Wybierz ten katalog
 Continue	MediaConverter		Kontynuuj
 Encoder parameters	MediaConverter-EncoderWindow		Parametry kodeka
@@ -48,7 +50,6 @@ Preview	MediaConverter		Podgląd
 File format:	MediaConverter		Format pliku:
 None available	Audio codecs		Brak
 MediaConverter+:SaveDirectory	MediaConverter		MediaConverter+:SaveDirectory
-Error read audio frame %Ld	MediaConverter		Błąd odczytu ramki dźwięku %Ld
 %.1f kHz %ld channel / %lld frames	MediaFileInfo		%.1f kHz %ld kanał/ %lld ramek
 Error launching: %strError%	MediaConverter		Błąd uruchamiania: %strError%
 High	MediaConverter		Wysoka
@@ -63,6 +64,5 @@ Video quality: %3d%%	MediaConverter		Jakość wideo: %3d%%
 Output folder	MediaConverter		Katalog wynikowy
 Audio quality: %3d%%	MediaConverter		Jakość dźwięku: %3d%%
 An error has occurred reading the file info.\n\nError : 	MediaConverter-FileInfo		Wystąpił błąd podczas odczytu informacji o pliku.\n\nBłąd : 
-Error read video frame %Ld	MediaConverter		Błąd odczytu ramki  wideo %Ld
 %amountOfFiles files were not recognized as supported media files:	MediaConverter		%amountOfFiles plików nie zostało rozpoznanych jako wspierane pliki multimedialne:
 %.1f kHz mono / %lld frames	MediaFileInfo		%.1f kHz mono / %lld ramek

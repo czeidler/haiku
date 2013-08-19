@@ -1,11 +1,17 @@
 /*
+ * Copyright 2013, Haiku, Inc. All rights reserved.
  * Copyright 2008, Ingo Weinhold, ingo_weinhold@gmx.de.
  * Distributed under the terms of the MIT License.
+ *
+ * Authors:
+ *		Ingo Weinhold, ingo_weinhold@gmx.de
+ *		Siarzhuk Zharski, zharik@gmx.li
  */
 #ifndef BASIC_TERMINAL_BUFFER_H
 #define BASIC_TERMINAL_BUFFER_H
 
 #include <limits.h>
+#include <stack>
 
 #include "HistoryBuffer.h"
 #include "TermPos.h"
@@ -86,6 +92,8 @@ public:
 			int					GetChar(int32 row, int32 column,
 									UTF8Char& character,
 									uint32& attributes) const;
+			void				GetCellAttributes(int32 row, int32 column,
+									uint32& attributes, uint32& count) const;
 			int32				GetString(int32 row, int32 firstColumn,
 									int32 lastColumn, char* buffer,
 									uint32& attributes) const;
@@ -99,25 +107,36 @@ public:
 			int32				LineLength(int32 index) const;
 			int32				GetLineColor(int32 index) const;
 
+			bool				PreviousLinePos(TermPos& pos) const;
+			bool				NextLinePos(TermPos& pos, bool normalize) const;
+									// normalize specifies that the returned
+									// position must be a valid position, i.e.
+									// actually point to a character (as opposed
+									// to just pointing to the position after a
+									// character).
+
 			bool				Find(const char* pattern, const TermPos& start,
 									bool forward, bool caseSensitive,
 									bool matchWord, TermPos& matchStart,
 									TermPos& matchEnd) const;
 
-			// insert chars/lines
-	inline	void				InsertChar(UTF8Char c, uint32 attributes);
-			void				InsertChar(UTF8Char c, uint32 width,
-									uint32 attributes);
-	inline	void				InsertChar(const char* c, int32 length,
-									uint32 attributes);
-	inline	void				InsertChar(const char* c, int32 length,
-									uint32 width, uint32 attributes);
-			void				FillScreen(UTF8Char c, uint32 width, uint32 attr);
+	inline	uint32				GetAttributes();
+	inline	void				SetAttributes(uint32 attributes);
 
-			void				InsertCR(uint32 attrs);
+			// snapshots and data capture for debugging
+			void				MakeLinesSnapshots(time_t timeStamp,
+									const char* fileName);
+			void				StartStopDebugCapture();
+			void				CaptureChar(char ch);
+
+			// insert chars/lines
+			void				InsertChar(UTF8Char c);
+			void				FillScreen(UTF8Char c, uint32 attr);
+
+			void				InsertCR();
 			void				InsertLF();
 			void				InsertRI();
-			void				InsertTab(uint32 attr);
+			void				InsertTab();
 			void				SetInsertMode(int flag);
 			void				InsertSpace(int32 num);
 			void				InsertLines(int32 numLines);
@@ -194,6 +213,11 @@ protected:
 			bool				_PreviousChar(TermPos& pos, UTF8Char& c) const;
 			bool				_NextChar(TermPos& pos, UTF8Char& c) const;
 
+			bool				_PreviousLinePos(TerminalLine* lineBuffer,
+									TerminalLine*& line, TermPos& pos) const;
+			bool				_NormalizeLinePos(TerminalLine* lineBuffer,
+									TerminalLine*& line, TermPos& pos) const;
+
 protected:
 			// screen width/height
 			int32				fWidth;
@@ -208,9 +232,11 @@ protected:
 			int32				fScreenOffset;	// index of screen line 0
 			HistoryBuffer*		fHistory;
 
+			uint32				fAttributes;
+
 			// cursor position (origin: (0, 0))
 			TermPos				fCursor;
-			TermPos				fSavedCursor;
+			std::stack<TermPos>	fSavedCursors;
 			bool				fSoftWrappedCursor;
 
 			bool				fOverwriteMode;	// false for insert
@@ -220,6 +246,7 @@ protected:
 			bool*				fTabStops;
 
 			int					fEncoding;
+			int					fCaptureFile;
 
 			// listener/dirty region management
 			TerminalBufferDirtyInfo fDirtyInfo;
@@ -240,24 +267,17 @@ BasicTerminalBuffer::HistoryCapacity() const
 }
 
 
-void
-BasicTerminalBuffer::InsertChar(UTF8Char c, uint32 attributes)
+uint32
+BasicTerminalBuffer::GetAttributes()
 {
-	return InsertChar(c, 1, attributes);
+	return fAttributes;
 }
 
 
 void
-BasicTerminalBuffer::InsertChar(const char* c, int32 length, uint32 attributes)
+BasicTerminalBuffer::SetAttributes(uint32 attributes)
 {
-	return InsertChar(UTF8Char(c, length), 1, attributes);
-}
-
-
-void
-BasicTerminalBuffer::InsertChar(const char* c, int32 length, uint32 width, uint32 attributes)
-{
-	return InsertChar(UTF8Char(c, length), width, attributes);
+	fAttributes = attributes;
 }
 
 
@@ -267,17 +287,20 @@ BasicTerminalBuffer::EraseChars(int32 numChars)
 	EraseCharsFrom(fCursor.x, numChars);
 }
 
+
 void
 BasicTerminalBuffer::DeleteColumns()
 {
 	DeleteColumnsFrom(fCursor.x);
 }
 
+
 void
 BasicTerminalBuffer::SetCursor(int32 x, int32 y)
 {
 	_SetCursor(x, y, false);
 }
+
 
 void
 BasicTerminalBuffer::SetCursorX(int32 x)

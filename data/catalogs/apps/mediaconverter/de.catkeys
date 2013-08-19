@@ -1,9 +1,11 @@
-1	german	x-vnd.Haiku-MediaConverter	296071315
+1	german	x-vnd.Haiku-MediaConverter	2722282283
 Video using parameters form settings	MediaConverter		Video benutzt die Parameter aus den Einstellungen
 Video encoding:	MediaConverter		Videokodierung:
+Error read audio frame %lld	MediaConverter		Fehler beim Einlesen von Audio-Frame %lld
 No audio	Audio codecs list		Keine Tonspur
 Error	MediaConverter		Fehler
 Error loading a file	MediaConverter		Fehler beim Laden einer Datei
+Error read video frame %lld	MediaConverter		Fehler beim Einlesen von Video-Frame %lld
 File Error	MediaConverter-FileInfo		Dateifehler
 Open…	Menu		Öffnen…
 Start [ms]: 	MediaConverter		Anfang [ms]:
@@ -15,7 +17,6 @@ MediaConverter	System name		Media-Konverter
 No video	Video codecs list		Keine Videospur
 Duration:	MediaConverter-FileInfo		Dauer:
 OK	MediaConverter		OK
-Error writing audio frame %Ld	MediaConverter		Fehler beim Schreiben von Audio-Frame %Ld
 Error converting '%filename'	MediaConverter		Fehler beim Konvertieren von '%filename'
 Low	MediaConverter		Niedrig
 Conversion completed	MediaConverter		Konvertierung abgeschlossen
@@ -23,6 +24,8 @@ Audio:	MediaConverter-FileInfo		Audio:
 OK	MediaConverter-FileInfo		OK
  seconds	MediaFileInfo		 Sekunden
 Source files	MediaConverter		Quelldateien
+Error writing video frame %lld	MediaConverter		Fehler beim Schreiben von Video-Frame %lld
+Error writing audio frame %lld	MediaConverter		Fehler beim Schreiben von Audio-Frame %lld
 Cancelling	MediaConverter		Abbruch
 %d byte 	MediaFileInfo		%d Byte
 Error loading files	MediaConverter		Fehler beim Laden der Dateien
@@ -30,7 +33,6 @@ Cancel	MediaConverter		Abbrechen
 None available	Video codecs		Keine verfügbar
 Conversion cancelled	MediaConverter		Konvertierung abgebrochen
 No file selected	MediaConverter-FileInfo		Keine Datei ausgewählt
-Error writing video frame %Ld	MediaConverter		Fehler beim Schreiben von Video-Frame %Ld
 Select this folder	MediaConverter		Diesen Ordner wählen
 Continue	MediaConverter		Fortsetzen
 Encoder parameters	MediaConverter-EncoderWindow		Encoder-Parameter
@@ -48,7 +50,6 @@ Preview	MediaConverter		Vorschau
 File format:	MediaConverter		Dateiformat:
 None available	Audio codecs		Keine verfügbar
 MediaConverter+:SaveDirectory	MediaConverter		Media-Konverter+:SaveDirectory
-Error read audio frame %Ld	MediaConverter		Fehler beim Einlesen von Audio-Frame %Ld
 %.1f kHz %ld channel / %lld frames	MediaFileInfo		%.1f kHz %ld Kanal / %lld Frames
 Error launching: %strError%	MediaConverter		Fehler beim Start: %strError%
 High	MediaConverter		Hoch
@@ -63,6 +64,5 @@ Video quality: %3d%%	MediaConverter		Videoqualität: %3d%%
 Output folder	MediaConverter		Ausgabeordner
 Audio quality: %3d%%	MediaConverter		Tonqualität: %3d%%
 An error has occurred reading the file info.\n\nError : 	MediaConverter-FileInfo		Es ist ein Fehler beim Lesen der Dateiinformationen aufgetreten.\n\nFehler:
-Error read video frame %Ld	MediaConverter		Fehler beim Einlesen von Video-Frame %Ld
 %amountOfFiles files were not recognized as supported media files:	MediaConverter		%amountOfFiles Dateien scheinen keine unterstützten Mediadateien zu sein:
 %.1f kHz mono / %lld frames	MediaFileInfo		%.1f kHz Mono / %lld Frames

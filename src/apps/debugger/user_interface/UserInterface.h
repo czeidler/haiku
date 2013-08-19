@@ -14,6 +14,8 @@
 #include "Types.h"
 
 
+class entry_ref;
+
 class CpuState;
 class FunctionInstance;
 class Image;
@@ -27,6 +29,7 @@ class UserInterfaceListener;
 class ValueNode;
 class ValueNodeContainer;
 class Variable;
+class Watchpoint;
 
 
 enum user_notification_type {
@@ -87,7 +90,8 @@ public:
 									ValueNodeContainer* container,
 									ValueNode* valueNode) = 0;
 	virtual	void				ThreadActionRequested(thread_id threadID,
-									uint32 action) = 0;
+									uint32 action,
+									target_addr_t address = 0) = 0;
 
 	virtual	void				SetBreakpointRequested(target_addr_t address,
 									bool enabled) = 0;
@@ -100,9 +104,22 @@ public:
 									UserBreakpoint* breakpoint) = 0;
 									// TODO: Consolidate those!
 
+	virtual	void				SetWatchpointRequested(target_addr_t address,
+									uint32 type, int32 length,
+									bool enabled) = 0;
+	virtual	void				SetWatchpointEnabledRequested(
+									Watchpoint* watchpoint,
+									bool enabled) = 0;
+	virtual	void				ClearWatchpointRequested(
+									target_addr_t address) = 0;
+	virtual	void				ClearWatchpointRequested(
+									Watchpoint* watchpoint) = 0;
+
 	virtual void				InspectRequested(
 									target_addr_t address,
 									TeamMemoryBlock::Listener* listener) = 0;
+
+	virtual void				DebugReportRequested(entry_ref* path) = 0;
 
 	virtual	bool				UserInterfaceQuitRequested(
 									QuitOption quitOption

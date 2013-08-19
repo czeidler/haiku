@@ -6,11 +6,10 @@ SetSubDirSupportedPlatformsBeOSCompatible ;
 
 AddSubDirSupportedPlatforms libbe_test ;
 
-UsePrivateHeaders app interface shared storage support usb ;
+UsePrivateHeaders app interface shared storage support tracker usb ;
 UsePrivateSystemHeaders ;
 SubDirHdrs $(HAIKU_TOP) src add-ons kernel file_cache ;
 UseLibraryHeaders ncurses ;
-UseLibraryHeaders termcap ;
 
 local haiku-utils_rsrc = [ FGristFiles haiku-utils.rsrc ] ;
 
@@ -69,11 +68,10 @@ StdBinCommands
 	: : $(haiku-utils_rsrc) ;
 }
 
-# standard commands that need libtermcap.a
+# standard commands that need libncurses.a
 StdBinCommands
 	top.c
-	tput.c
-	: libtermcap.a : $(haiku-utils_rsrc) ;
+	: libncurses.a : $(haiku-utils_rsrc) ;
 
 # standard commands that need libbe.so
 StdBinCommands
@@ -249,11 +247,11 @@ SubInclude HAIKU_TOP src bin findutils ;
 SubInclude HAIKU_TOP src bin fwcontrol ;
 SubInclude HAIKU_TOP src bin gawk ;
 SubInclude HAIKU_TOP src bin gdb ;
-SubInclude HAIKU_TOP src bin grep ;
 SubInclude HAIKU_TOP src bin hid_decode ;
 SubInclude HAIKU_TOP src bin iasl ;
 SubInclude HAIKU_TOP src bin ideinfo ;
 SubInclude HAIKU_TOP src bin keymap ;
+SubInclude HAIKU_TOP src bin keystore ;
 SubInclude HAIKU_TOP src bin less ;
 SubInclude HAIKU_TOP src bin listdev ;
 SubInclude HAIKU_TOP src bin locale ;
@@ -275,7 +273,6 @@ SubInclude HAIKU_TOP src bin rmd160 ;
 SubInclude HAIKU_TOP src bin screen_blanker ;
 SubInclude HAIKU_TOP src bin screenmode ;
 SubInclude HAIKU_TOP src bin sharutils ;
-SubInclude HAIKU_TOP src bin unrar ;
 SubInclude HAIKU_TOP src bin writembr ;
 SubInclude HAIKU_TOP src bin zic ;
 

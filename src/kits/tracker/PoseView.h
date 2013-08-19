@@ -284,7 +284,7 @@ class BPoseView : public BView {
 		void OpenInfoWindows();
 		void SetDefaultPrinter();
 
-		void IdentifySelection();
+		void IdentifySelection(bool force = false);
 		void UnmountSelectedVolumes();
 		virtual void OpenParent();
 
@@ -1021,7 +1021,7 @@ BPoseView::AddToExtent(const BRect&rect)
 inline void
 BPoseView::ClearExtent()
 {
-	fExtent.Set(LONG_MAX, LONG_MAX, LONG_MIN, LONG_MIN);
+	fExtent.Set(INT32_MAX, INT32_MAX, INT32_MIN, INT32_MIN);
 }
 
 

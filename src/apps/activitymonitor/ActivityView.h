@@ -16,13 +16,13 @@
 #include "CircularBuffer.h"
 #include "DataSource.h"
 
+
 class BBitmap;
 class BMessageRunner;
 class Scale;
 class SystemInfoHandler;
 class ViewHistory;
 struct data_item;
-
 
 class DataHistory {
 public:

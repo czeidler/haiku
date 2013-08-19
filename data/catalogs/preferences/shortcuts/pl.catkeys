@@ -1,4 +1,4 @@
-1	polish	x-vnd.Haiku-Shortcuts	621368175
+1	polish	x-vnd.Haiku-Shortcuts	3397621807
 Error, NULL state description?\n	ShortcutsSpec		Błąd, brak opisu stanu?\n
 MoveMouse	ShortcutsSpec		MoveMouse
 OK	ShortcutsWindow		OK
@@ -15,7 +15,6 @@ Alt	ShortcutsSpec	Name for modifier on keyboard	Alt
 *InsertString \"Your Text Here\"	ShortcutsWindow		*InsertString \"Tutaj umieść swój tekst\"
 *MouseUp	ShortcutsWindow		*MouseUp
 (Choose application with file requester)	ShortcutsWindow		(Wybierz aplikację żądającą pliku)
-Window	ShortcutsSpec	Name for modifier on keyboard	Window
 *LaunchHandler text/html	ShortcutsWindow		*LaunchHandler text/html
 Shortcuts was couldn't open your KeySet file!	ShortcutsWindow		Skróty nie zdołały otworzyć pliku KeySet!
 *Multi \"*MoveMouseTo 100% 0\" \"*MouseButton 1\"	ShortcutsWindow		Multi \"*MoveMouseTo 100% 0\" \"*MouseButton 1\"
@@ -25,6 +24,7 @@ Save	ShortcutsWindow		Zapisz
 *MouseButton 1	ShortcutsWindow		*MouseButton 1
 *MoveMouse +20 +0	ShortcutsWindow		*MoveMouse +20 +0
 MouseDown	ShortcutsSpec		MouseDown
+Save changes before closing?	ShortcutsWindow		Zapisać zmiany przed zamknięciem?
 Remove selected shortcut	ShortcutsWindow		Usuń zaznaczony skrót
 MouseButton	ShortcutsSpec		MouseButton
 Add new shortcut	ShortcutsWindow		Dodaj nowy skrót
@@ -43,7 +43,6 @@ Shift	ShortcutsSpec	Name for modifier on keyboard	Shift
 *MoveMouseTo 50% 50%	ShortcutsWindow		*MoveMouseTo 50% 50%
 Save KeySet as…	ShortcutsWindow		Zapisz KeySet jako…
 Open	ShortcutsWindow		Otwórz
-Really quit without saving your changes?	ShortcutsWindow		Wyjść nie zapisując zmian?
 Shortcuts was unable to parse your KeySet file!	ShortcutsWindow		Skróty nie zdołały przetworzyć pliku Keyset!
 Select	ShortcutsWindow		Wybierz
 Shortcuts was unable to save your KeySet file!	ShortcutsWindow		Skróty nie zdołały zapisać pliku Keyset!

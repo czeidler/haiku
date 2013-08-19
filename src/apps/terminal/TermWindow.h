@@ -136,6 +136,8 @@ private:
 			void				_SetupMenu();
 	static	BMenu*				_MakeEncodingMenu();
 	static	BMenu*				_MakeWindowSizeMenu();
+	static	BMenu*				_MakeFontSizeMenu(uint32 command,
+									uint8 defaultSize);
 			void				_UpdateSwitchTerminalsMenuItem();
 
 			status_t			_GetWindowPositionFile(BFile* file,
@@ -183,6 +185,8 @@ private:
 			SessionID			_NewSessionID();
 			int32				_NewSessionIndex();
 
+			void				_MoveWindowInScreen(BWindow* window);
+
 private:
 			TerminalRoster		fTerminalRoster;
 
@@ -198,6 +202,7 @@ private:
 			BMenuBar*			fMenuBar;
 			BMenuItem*			fSwitchTerminalsMenuItem;
 			BMenu*				fEncodingMenu;
+			BMenu*				fFontSizeMenu;
 
 			BMessage*			fPrintSettings;
 			PrefWindow*			fPrefWindow;
@@ -212,7 +217,7 @@ private:
 			// Saved search parameters
 			BString				fFindString;
 			BMenuItem*			fFindNextMenuItem;
-			BMenuItem *			fFindPreviousMenuItem;
+			BMenuItem*			fFindPreviousMenuItem;
 			BMenuItem*			fIncreaseFontSizeMenuItem;
 			BMenuItem*			fDecreaseFontSizeMenuItem;
 

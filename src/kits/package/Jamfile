@@ -1,6 +1,6 @@
 SubDir HAIKU_TOP src kits package ;
 
-UseLibraryHeaders zlib ;
+UseHeaders $(HAIKU_ZLIB_HEADERS) : true ;
 
 UsePrivateHeaders
 	kernel
@@ -41,6 +41,9 @@ HPKG_SOURCES =
 	ZlibDecompressor.cpp
 	;
 
+Includes [ FGristFiles $(HPKG_SOURCES) ]
+	: $(HAIKU_ZLIB_HEADERS_DEPENDENCY) ;
+
 SharedLibrary libpackage.so
 	:
 	ActivateRepositoryCacheJob.cpp
@@ -72,5 +75,5 @@ SharedLibrary libpackage.so
 
 	$(HPKG_SOURCES)
 	:
-	libshared.a be z $(TARGET_LIBSTDC++)
+	libshared.a be $(HAIKU_ZLIB_LIB) $(TARGET_LIBSTDC++)
 ;

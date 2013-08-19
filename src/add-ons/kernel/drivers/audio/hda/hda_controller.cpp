@@ -34,6 +34,34 @@
 #define ALIGN(size, align)	(((size) + align - 1) & ~(align - 1))
 #define PAGE_ALIGN(size)	(((size) + B_PAGE_SIZE - 1) & ~(B_PAGE_SIZE - 1))
 
+
+#define PCI_VENDOR_AMD			0x1002
+#define PCI_VENDOR_INTEL		0x8086
+#define PCI_VENDOR_NVIDIA		0x10de
+#define PCI_ALL_DEVICES			0xffffffff
+#define HDA_QUIRK_SNOOP			0x0001
+
+
+static const struct {
+	uint32 vendor_id, device_id;
+	uint32 quirks;
+} kControllerQuirks[] = {
+	{ PCI_VENDOR_INTEL, 0x1c20, HDA_QUIRK_SNOOP },
+	{ PCI_VENDOR_INTEL, 0x1d20, HDA_QUIRK_SNOOP },
+	{ PCI_VENDOR_INTEL, 0x1e20, HDA_QUIRK_SNOOP },
+	{ PCI_VENDOR_INTEL, 0x8c20, HDA_QUIRK_SNOOP },
+	{ PCI_VENDOR_INTEL, 0x9c20, HDA_QUIRK_SNOOP },
+	{ PCI_VENDOR_INTEL, 0x9c21, HDA_QUIRK_SNOOP },
+	{ PCI_VENDOR_INTEL, 0x0c0c, HDA_QUIRK_SNOOP },
+	{ PCI_VENDOR_INTEL, 0x811b, HDA_QUIRK_SNOOP },
+	{ PCI_VENDOR_INTEL, 0x080a, HDA_QUIRK_SNOOP },
+	// Enable snooping for ATI and Nvidia, right now for all their hda-devices,
+	// but only based on guessing.
+	{ PCI_VENDOR_AMD, PCI_ALL_DEVICES, HDA_QUIRK_SNOOP },
+	{ PCI_VENDOR_NVIDIA, PCI_ALL_DEVICES, HDA_QUIRK_SNOOP },
+};
+
+
 static const struct {
 	uint32 multi_rate;
 	uint32 hw_rate;
@@ -54,7 +82,22 @@ static const struct {
 	// {B_SR_384000, MAKE_RATE(44100, ??, ??), 384000},
 };
 
+
 static pci_x86_module_info* sPCIx86Module;
+
+
+static uint32
+get_controller_quirks(pci_info& info)
+{
+	for (size_t i = 0;
+			i < sizeof(kControllerQuirks) / sizeof(kControllerQuirks[0]); i++) {
+		if (info.vendor_id == kControllerQuirks[i].vendor_id
+			&& (kControllerQuirks[i].device_id == PCI_ALL_DEVICES
+				|| kControllerQuirks[i].device_id == info.device_id))
+			return kControllerQuirks[i].quirks;
+	}
+	return 0;
+}
 
 
 static inline void
@@ -727,6 +770,14 @@ hda_stream_setup_buffers(hda_audio_group* audioGroup, hda_stream* stream,
 		hda_send_verbs(codec, verb, response, 2);
 		//channelNum += 2; // TODO stereo widget ? Every output gets the same stream for now
 		dprintf("%ld ", stream->io_widgets[i]);
+
+		hda_widget* widget = hda_audio_group_get_widget(audioGroup,
+			stream->io_widgets[i]);
+		if ((widget->capabilities.audio & AUDIO_CAP_DIGITAL) != 0) {
+    		verb[0] = MAKE_VERB(codec->addr, stream->io_widgets[i],
+				VID_SET_DIGITAL_CONVERTER_CONTROL1, format);
+   			hda_send_verbs(codec, verb, response, 1);
+		}
 	}
 	dprintf("\n");
 
@@ -798,8 +849,11 @@ hda_verb_read(hda_codec* codec, uint32 nid, uint32 vid, uint32* response)
 status_t
 hda_hw_init(hda_controller* controller)
 {
-	uint16 capabilities, stateStatus, cmd;
+	uint16 capabilities;
+	uint16 stateStatus;
+	uint16 cmd;
 	status_t status;
+	uint32 quirks;
 
 	// Map MMIO registers
 	controller->regs_area = map_physical_memory("hda_hw_regs",
@@ -815,11 +869,20 @@ hda_hw_init(hda_controller* controller)
 		controller->pci_info.device, controller->pci_info.function,
 		PCI_command, 2);
 	if (!(cmd & PCI_command_master)) {
-		(gPci->write_pci_config)(controller->pci_info.bus,
-			controller->pci_info.device, controller->pci_info.function,
-				PCI_command, 2, cmd | PCI_command_master);
 		dprintf("hda: enabling PCI bus mastering\n");
+		cmd |= PCI_command_master;
 	}
+	if (!(cmd & PCI_command_memory)) {
+		dprintf("hda: enabling PCI memory access\n");
+		cmd |= PCI_command_memory;
+	}
+	if ((cmd & PCI_command_int_disable)) {
+		dprintf("hda: enabling PCI interrupts\n");
+		cmd &= ~PCI_command_int_disable;
+	}
+	(gPci->write_pci_config)(controller->pci_info.bus,
+		controller->pci_info.device, controller->pci_info.function,
+			PCI_command, 2, cmd);
 
 	if (get_module(B_PCI_X86_MODULE_NAME, (module_info**)&sPCIx86Module)
 			!= B_OK)
@@ -830,6 +893,9 @@ hda_hw_init(hda_controller* controller)
 	controller->irq = controller->pci_info.u.h0.interrupt_line;
 	controller->msi = false;
 
+	// TODO: temporarily disabled, as at least on my hardware audio becomes
+	// flaky after this.
+/*
 	if (sPCIx86Module != NULL && sPCIx86Module->get_msi_count(
 			controller->pci_info.bus, controller->pci_info.device,
 			controller->pci_info.function) >= 1) {
@@ -846,6 +912,7 @@ hda_hw_init(hda_controller* controller)
 			controller->msi = true;
 		}
 	}
+*/
 
 	status = install_io_interrupt_handler(controller->irq,
 		(interrupt_handler)hda_interrupt_handler, controller, 0);
@@ -855,27 +922,26 @@ hda_hw_init(hda_controller* controller)
 	// TCSEL is reset to TC0 (clear 0-2 bits)
 	update_pci_register(controller, PCI_HDA_TCSEL, PCI_HDA_TCSEL_MASK, 0, 1);
 
-	// Enable snooping for ATI and Nvidia, right now for all their hda-devices,
-	// but only based on guessing.
-	switch (controller->pci_info.vendor_id) {
-		case NVIDIA_VENDORID:
-			update_pci_register(controller, NVIDIA_HDA_TRANSREG,
-				NVIDIA_HDA_TRANSREG_MASK, NVIDIA_HDA_ENABLE_COHBITS, 1);
-			update_pci_register(controller, NVIDIA_HDA_ISTRM_COH,
-				~NVIDIA_HDA_ENABLE_COHBIT, NVIDIA_HDA_ENABLE_COHBIT, 1);
-			update_pci_register(controller, NVIDIA_HDA_OSTRM_COH,
-				~NVIDIA_HDA_ENABLE_COHBIT, NVIDIA_HDA_ENABLE_COHBIT, 1);
-			break;
-		case ATI_VENDORID:
-			update_pci_register(controller, ATI_HDA_MISC_CNTR2,
-				ATI_HDA_MISC_CNTR2_MASK, ATI_HDA_ENABLE_SNOOP, 1);
-			break;
-		case INTEL_VENDORID:
-			if (controller->pci_info.device_id == INTEL_SCH_DEVICEID) {
+	quirks = get_controller_quirks(controller->pci_info);
+	if ((quirks & HDA_QUIRK_SNOOP) != 0) {
+		switch (controller->pci_info.vendor_id) {
+			case PCI_VENDOR_NVIDIA:
+				update_pci_register(controller, NVIDIA_HDA_TRANSREG,
+					NVIDIA_HDA_TRANSREG_MASK, NVIDIA_HDA_ENABLE_COHBITS, 1);
+				update_pci_register(controller, NVIDIA_HDA_ISTRM_COH,
+					~NVIDIA_HDA_ENABLE_COHBIT, NVIDIA_HDA_ENABLE_COHBIT, 1);
+				update_pci_register(controller, NVIDIA_HDA_OSTRM_COH,
+					~NVIDIA_HDA_ENABLE_COHBIT, NVIDIA_HDA_ENABLE_COHBIT, 1);
+				break;
+			case PCI_VENDOR_AMD:
+				update_pci_register(controller, ATI_HDA_MISC_CNTR2,
+					ATI_HDA_MISC_CNTR2_MASK, ATI_HDA_ENABLE_SNOOP, 1);
+				break;
+			case PCI_VENDOR_INTEL:
 				update_pci_register(controller, INTEL_SCH_HDA_DEVC,
 					~INTEL_SCH_HDA_DEVC_SNOOP, 0, 2);
-			}
-			break;
+				break;
+		}
 	}
 
 	capabilities = controller->Read16(HDAC_GLOBAL_CAP);

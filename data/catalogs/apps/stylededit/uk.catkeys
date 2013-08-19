@@ -1,4 +1,4 @@
-1	ukrainian	x-vnd.Haiku-StyledEdit	1508367857
+1	ukrainian	x-vnd.Haiku-StyledEdit	3019034824
 StyledEdit	System name		Редактор тексту StyledEdit
 Paste	Menus		Вставити
 OK	LoadAlert		Гаразд
@@ -7,7 +7,6 @@ File	Menus		Файл
 Lines:	Statistics		Стрічка:
 Italic	Menus		Italic
 Left	Menus		Вліво
-Revert to the last version of \"%s\"? 	RevertToSavedAlert		Повернутись до останньої версії \"%s\" ?
 Search backwards	FindandReplaceWindow		Повторний пошук
 Size	Menus		Розмір
 Save	QuitAlert		Зберегти
@@ -20,7 +19,6 @@ Cancel	SaveAlert		Відмінити
 Cannot revert, file not found: \"%s\".	RevertToSavedAlert		Неможливо повернути, файл не знайдено: \"%s\".
 Case-sensitive	FindandReplaceWindow		Чутливий до регістра
 Green	Menus		Зелений
-Revert to saved…	Menus		Повернутись до збереження…
 Yellow	Menus		Жовтий
 Replace in all windows	FindandReplaceWindow		Замінити  у всіх вікнах
 Wrap lines	Menus		Перенос по словах
@@ -45,6 +43,7 @@ Don't save	QuitAlert		Не зберігати
 Align	Menus		Вирівняти
 Color	Menus		Колір
 Red	Menus		Червоний
+OK	QuitAlert		Гаразд
 Open…	Menus		Відкрити…
 Center	Menus		Центр
 Blue	Menus		Синій
@@ -67,7 +66,6 @@ Select all	Menus		Вибрати все
 Don't save	SaveAlert		Не зберігати
 Error loading \"%s\":\n\t%s	LoadAlert		Помилка загрузки "%s":\n\t%s
 Undo typing	QuitAlert		Відміна друку
-This file is marked Read-Only. Save changes to the document \"%s\"? 	SaveAlert		Файл помічений, як такий, що є тільки для читання. Зберегти зміни в документі \"%s\"?
 Black	Menus		Чорний
 Untitled 	StyledEditWindow		Неназваний 
 OK	SaveAlert		Гаразд

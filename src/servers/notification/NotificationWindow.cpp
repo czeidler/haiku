@@ -48,7 +48,7 @@ property_info main_prop_list[] = {
 };
 
 
-const float kCloseSize				= 8;
+const float kCloseSize				= 6;
 const float kExpandSize				= 8;
 const float kPenSize				= 1;
 const float kEdgePadding			= 2;
@@ -101,6 +101,13 @@ NotificationWindow::WorkspaceActivated(int32 /*workspace*/, bool active)
 	// Ensure window is in the correct position
 	if (active)
 		SetPosition();
+}
+
+
+void
+NotificationWindow::FrameResized(float width, float height)
+{
+	SetPosition();
 }
 
 
@@ -369,11 +376,11 @@ NotificationWindow::SetPosition()
 			break;
 		case B_DESKBAR_RIGHT_TOP:
 			x = frame.left - width - rightOffset;
-			y = frame.top - topOffset;
+			y = frame.top - topOffset + 1;
 			break;
 		case B_DESKBAR_LEFT_TOP:
 			x = frame.right + leftOffset;
-			y = frame.top - topOffset;
+			y = frame.top - topOffset + 1;
 			break;
 		case B_DESKBAR_RIGHT_BOTTOM:
 			y = frame.bottom - height + bottomOffset;

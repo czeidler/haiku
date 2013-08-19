@@ -33,6 +33,7 @@ static const float kMaximumHeightBasic		= 400.0f;
 
 class BString;
 class BMenuItem;
+class BMessage;
 class BPopUpMenu;
 class CalcOptions;
 class CalcOptionsWindow;
@@ -48,9 +49,7 @@ class CalcView : public BView {
 								CalcView(BRect frame,
 									rgb_color rgbBaseColor,
 									BMessage* settings);
-
 								CalcView(BMessage* archive);
-
 	virtual						~CalcView();
 
 	virtual	void				AttachedToWindow();
@@ -60,11 +59,8 @@ class CalcView : public BView {
 	virtual	void				MouseUp(BPoint point);
 	virtual	void				KeyDown(const char* bytes, int32 numBytes);
 	virtual	void				MakeFocus(bool focused = true);
-	virtual void				ResizeTo(float width, float height);
+	virtual	void				ResizeTo(float width, float height);
 	virtual	void				FrameResized(float width, float height);
-
-			// Present about box for view (replicant).
-	virtual	void				AboutRequested();
 
 			// Archive this view.
 	virtual	status_t			Archive(BMessage* archive, bool deep) const;
@@ -101,6 +97,8 @@ class CalcView : public BView {
 			void				SetKeypadMode(uint8 mode);
 
  private:
+			void				_Init(BMessage* settings);
+			status_t			_LoadSettings(BMessage* archive);
 			void				_ParseCalcDesc(const char* keypadDescription);
 
 			void				_PressKey(int key);
@@ -119,8 +117,6 @@ class CalcView : public BView {
 			void				_MarkKeypadItems(uint8 mode);
 
 			void				_FetchAppIcon(BBitmap* into);
-
-			status_t			_LoadSettings(BMessage* archive);
 
 			// grid dimensions
 			int16				fColumns;

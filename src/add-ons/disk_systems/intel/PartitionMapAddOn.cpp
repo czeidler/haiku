@@ -4,7 +4,6 @@
  */
 
 
-#include "CreationParameterEditor.h"
 #include "PartitionMapAddOn.h"
 
 #include <new>
@@ -17,6 +16,7 @@
 #include <AutoDeleter.h>
 
 #include "IntelDiskSystem.h"
+#include "PrimaryParameterEditor.h"
 
 
 //#define TRACE_PARTITION_MAP_ADD_ON
@@ -90,18 +90,10 @@ PartitionMapAddOn::CreatePartitionHandle(BMutablePartition* partition,
 bool
 PartitionMapAddOn::CanInitialize(const BMutablePartition* partition)
 {
-	// If it's big enough, we can initialize it.
-	return partition->Size() >= 2 * partition->BlockSize();
-}
-
-
-status_t
-PartitionMapAddOn::GetInitializationParameterEditor(
-	const BMutablePartition* partition, BPartitionParameterEditor** editor)
-{
-	// Nothing to edit, really.
-	*editor = NULL;
-	return B_OK;
+	// If it's big enough, but not too big (ie. larger than 2^32 blocks) we can
+	// initialize it.
+	return partition->Size() >= 2 * partition->BlockSize()
+		&& partition->Size() / partition->BlockSize() < UINT32_MAX;
 }
 
 
@@ -306,7 +298,8 @@ PartitionMapHandle::GetParameterEditor(B_PARAMETER_EDITOR_TYPE type,
 	BPartitionParameterEditor** editor)
 {
 	*editor = NULL;
-	if (type == B_CREATE_PARAMETER_EDITOR) {
+	if (type == B_CREATE_PARAMETER_EDITOR
+		|| type == B_PROPERTIES_PARAMETER_EDITOR) {
 		try {
 			*editor = new PrimaryPartitionEditor();
 		} catch (std::bad_alloc) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009, Haiku, Inc. All rights reserved.
+ * Copyright 2007-2013 Haiku, Inc. All rights reserved.
  * Distributed under the terms of the MIT License.
  */
 #ifndef _MENU_H
@@ -9,6 +9,7 @@
 #include <InterfaceDefs.h>
 #include <List.h>
 #include <View.h>
+
 
 class BMenu;
 class BMenuBar;
@@ -122,6 +123,7 @@ public:
 			float				MaxContentWidth() const;
 
 			BMenuItem*			FindMarked();
+			int32				FindMarkedIndex();
 
 			BMenu*				Supermenu() const;
 			BMenuItem*			Superitem() const;
@@ -213,9 +215,9 @@ private:
 									bool moveItems, float* width,
 									float* height);
 			void				_ComputeColumnLayout(int32 index, bool bestFit,
-									bool moveItems, BRect& outRect);
+									bool moveItems, BRect* override, BRect& outRect);
 			void				_ComputeRowLayout(int32 index, bool bestFit,
-									bool moveItems, BRect& outRect);		
+									bool moveItems, BRect& outRect);
 			void				_ComputeMatrixLayout(BRect& outRect);
 
 			BRect				_CalcFrame(BPoint where, bool* scrollOn);

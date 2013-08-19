@@ -296,14 +296,15 @@ TSignatureWindow::Clear()
 		beep();
 		BAlert *alert = new BAlert("",
 			B_TRANSLATE("Save changes to this signature?"),
-			B_TRANSLATE("Don't save"),
 			B_TRANSLATE("Cancel"),
+			B_TRANSLATE("Don't save"),
 			B_TRANSLATE("Save"),
-			B_WIDTH_AS_USUAL, B_WARNING_ALERT);
-		alert->SetShortcut(0, 'd');
-		alert->SetShortcut(1, B_ESCAPE);
+			B_WIDTH_AS_USUAL, B_OFFSET_SPACING, B_WARNING_ALERT);
+		alert->SetShortcut(0, B_ESCAPE);
+		alert->SetShortcut(1, 'd');
+		alert->SetShortcut(2, 's');
 		result = alert->Go();
-		if (result == 1)
+		if (result == 0)
 			return false;
 		if (result == 2)
 			Save();
@@ -368,7 +369,7 @@ TSignatureWindow::Save()
 
 		fFile = new BFile();
 		while(true) {
-			sprintf(name, "signature_%ld", index++);
+			sprintf(name, "signature_%" B_PRId32, index++);
 			if ((result = dir.CreateFile(name, fFile, true)) == B_NO_ERROR)
 				break;
 			if (result != EEXIST)

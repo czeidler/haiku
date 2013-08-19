@@ -98,7 +98,6 @@ EthernetSettingsView::EthernetSettingsView()
 {
 	SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
 
-	fSocket = socket(AF_INET, SOCK_DGRAM, 0);
 	_GatherInterfaces();
 
 	// build the GUI
@@ -216,7 +215,6 @@ EthernetSettingsView::EthernetSettingsView()
 
 EthernetSettingsView::~EthernetSettingsView()
 {
-	close(fSocket);
 }
 
 
@@ -629,9 +627,19 @@ EthernetSettingsView::_ValidateControl(BTextControl* control)
 	if (control->IsEnabled() && !MatchPattern(control->Text(), pattern)) {
 		control->MakeFocus();
 		BString errorMessage;
-		errorMessage << control->Label();
-		errorMessage.RemoveLast(":");
-		errorMessage << " is invalid";
+
+		if (control == fIPTextControl) {
+			errorMessage << B_TRANSLATE("IP address is invalid");
+		} else if (control == fNetMaskTextControl) {
+			errorMessage << B_TRANSLATE("Netmask is invalid");
+		} else if (control == fGatewayTextControl) {
+			errorMessage << B_TRANSLATE("Gateway is invalid");
+		} else if (control == fPrimaryDNSTextControl) {
+			errorMessage << B_TRANSLATE("DNS #1 is invalid");
+		} else if (control == fSecondaryDNSTextControl) {
+			errorMessage << B_TRANSLATE("DNS #2 is invalid");
+		}
+
 		fErrorMessage->SetText(errorMessage.String());
 		beep();
 		return false;

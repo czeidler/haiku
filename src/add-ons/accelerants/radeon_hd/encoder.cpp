@@ -294,7 +294,7 @@ encoder_mode_set(uint8 crtcID)
 	uint16 encoderFlags = gConnector[connectorIndex]->encoder.flags;
 	pll_info* pll = &gConnector[connectorIndex]->encoder.pll;
 
-	// Adjusted pixel clock (*NOT* original mode pixel clock)
+	// TODO: Should this be the adjusted pll or the original?
 	uint32 pixelClock = pll->pixelClock;
 
 	switch (gConnector[connectorIndex]->encoder.objectID) {
@@ -1828,8 +1828,17 @@ encoder_dpms_set_dig(uint8 crtcID, int mode)
 					transmitter_dig_setup(connectorIndex, pll->pixelClock, 0, 0,
 						ATOM_ENCODER_CMD_SETUP);
 				}
+				encoder_dig_setup(connectorIndex, pll->pixelClock, ATOM_ENABLE);
+				transmitter_dig_setup(connectorIndex, pll->pixelClock, 0, 0,
+					ATOM_TRANSMITTER_ACTION_SETUP);
 				transmitter_dig_setup(connectorIndex, pll->pixelClock, 0, 0,
 					ATOM_TRANSMITTER_ACTION_ENABLE);
+				/* some early dce3.2 boards have a bug in their transmitter
+				   control table */
+				if (info.chipsetID != RADEON_RV710
+					&& info.chipsetID != RADEON_RV730)
+					transmitter_dig_setup(connectorIndex, pll->pixelClock, 0, 0,
+						ATOM_TRANSMITTER_ACTION_ENABLE_OUTPUT);
 			} else {
 				transmitter_dig_setup(connectorIndex, pll->pixelClock, 0, 0,
 					ATOM_TRANSMITTER_ACTION_ENABLE_OUTPUT);
@@ -1845,12 +1854,15 @@ encoder_dpms_set_dig(uint8 crtcID, int mode)
 					encoder_dig_setup(connectorIndex, pll->pixelClock,
 						ATOM_ENCODER_CMD_DP_VIDEO_OFF);
 				}
-				// TODO: dp link train here
-				//radeon_dp_link_train(encoder, connector);
+				// dp link train
+				dp_link_train(crtcID);
 				if (info.dceMajor >= 4) {
 					encoder_dig_setup(connectorIndex, pll->pixelClock,
 						ATOM_ENCODER_CMD_DP_VIDEO_ON);
 				}
+				// not sure what AtomBIOS table/command sets this
+				// register, but it's required to get the video output
+				Write32(OUT, AVIVO_DP_VID_STREAM_CNTL, 0x201);
 			}
 			if ((encoderFlags & ATOM_DEVICE_LCD_SUPPORT) != 0) {
 				transmitter_dig_setup(connectorIndex, pll->pixelClock,
@@ -1866,6 +1878,9 @@ encoder_dpms_set_dig(uint8 crtcID, int mode)
 			} else {
 				transmitter_dig_setup(connectorIndex, pll->pixelClock, 0, 0,
 					ATOM_TRANSMITTER_ACTION_DISABLE_OUTPUT);
+				transmitter_dig_setup(connectorIndex, pll->pixelClock, 0, 0,
+					ATOM_TRANSMITTER_ACTION_DISABLE);
+				encoder_dig_setup(connectorIndex, pll->pixelClock, ATOM_DISABLE);
 			}
 			if (connector_is_dp(connectorIndex)) {
 				if (info.dceMajor >= 4) {

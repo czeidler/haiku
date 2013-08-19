@@ -15,6 +15,7 @@
 
 #include <syscall_utils.h>
 
+#include <libroot_private.h>
 #include <syscalls.h>
 #include <thread_defs.h>
 #include <tls.h>
@@ -25,7 +26,8 @@
 static const pthread_attr pthread_attr_default = {
 	PTHREAD_CREATE_JOINABLE,
 	B_NORMAL_PRIORITY,
-	USER_STACK_SIZE
+	USER_STACK_SIZE,
+	USER_STACK_GUARD_SIZE
 };
 
 
@@ -117,6 +119,7 @@ __pthread_init_creation_attributes(const pthread_attr_t* pthreadAttributes,
 	attributes->args2 = argument2;
 	attributes->stack_address = NULL;
 	attributes->stack_size = attr->stack_size;
+	attributes->guard_size = attr->guard_size;
 	attributes->pthread = thread;
 	attributes->flags = 0;
 
@@ -156,6 +159,7 @@ pthread_create(pthread_t* _thread, const pthread_attr_t* attr,
 		return EAGAIN;
 	}
 
+	__set_stack_protection();
 	resume_thread(thread->id);
 	*_thread = thread;
 

@@ -88,17 +88,28 @@ private:
 
 	// BreakpointsView::Listener
 	virtual	void				BreakpointSelectionChanged(
-									UserBreakpoint* breakpoint);
+									BreakpointProxyList& proxies);
 	virtual	void				SetBreakpointEnabledRequested(
 									UserBreakpoint* breakpoint,
 									bool enabled);
 	virtual	void				ClearBreakpointRequested(
 									UserBreakpoint* breakpoint);
 
+	virtual	void				SetWatchpointEnabledRequested(
+									Watchpoint* breakpoint,
+									bool enabled);
+	virtual	void				ClearWatchpointRequested(
+									Watchpoint* watchpoint);
+
+
 	// SourceView::Listener
 	virtual	void				SetBreakpointRequested(target_addr_t address,
 									bool enabled);
-	virtual	void				ClearBreakpointRequested(target_addr_t address);
+	virtual	void				ClearBreakpointRequested(
+									target_addr_t address);
+	virtual	void				ThreadActionRequested(::Thread* thread,
+									uint32 action, target_addr_t address);
+
 
 	// VariablesView::Listener
 	virtual	void				ValueNodeValueRequested(CpuState* cpuState,
@@ -116,6 +127,10 @@ private:
 									const Team::ImageEvent& event);
 	virtual	void				UserBreakpointChanged(
 									const Team::UserBreakpointEvent& event);
+	virtual	void				WatchpointChanged(
+									const Team::WatchpointEvent& event);
+	virtual void				DebugReportChanged(
+									const Team::DebugReportEvent& event);
 
 	// Function::Listener
 	virtual	void				FunctionSourceCodeChanged(Function* function);
@@ -142,6 +157,8 @@ private:
 			void				_HandleSourceCodeChanged();
 			void				_HandleUserBreakpointChanged(
 									UserBreakpoint* breakpoint);
+			void				_HandleWatchpointChanged(
+									Watchpoint* watchpoint);
 			void				_HandleResolveMissingSourceFile(entry_ref&
 									locatedPath);
 
@@ -180,7 +197,7 @@ private:
 			BSplitView*			fThreadSplitView;
 			InspectorWindow*	fInspectorWindow;
 			GuiTeamUiSettings	fUiSettings;
-			BFilePanel*			fSourceLocatePanel;
+			BFilePanel*			fFilePanel;
 };
 
 

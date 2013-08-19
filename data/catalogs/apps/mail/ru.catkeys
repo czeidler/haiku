@@ -1,4 +1,4 @@
-1	russian	x-vnd.Be-MAIL	3337401776
+1	russian	x-vnd.Be-MAIL	233997769
 View	Mail		Вид
 %d - Date	Mail		%d - Дата
 Attach attributes:	Mail		Прикрепление атрибутов:
@@ -10,6 +10,7 @@ Edit	Mail		Изменить
 Print	Mail		Печать
 <none>	Mail		<пусто>
 New mail message	Mail		Новое сообщение
+Untitled	Mail		Безымянный
 Automatic	Mail		Автоматическая
 Automatically mark mail as read:	Mail		Автоматически помечать письмо как прочитанное:
 helpful message	Mail		полезное сообщение
@@ -25,7 +26,6 @@ Beginner	Mail		Новичок
 Don't save	Mail		Не сохранять
 Expert	Mail		Эксперт
 Reply account:	Mail		Ответить, используя акканут:
-Discard	Mail		Сбросить
 Message	Mail		Сообщение
 Settings…	Mail		Настройки…
 Reply to sender	Mail		Ответить отправителю
@@ -33,7 +33,7 @@ There is no installed handler for URL links.	Mail		Не выбрано прил�
 Signature	Mail		Подпись
 Find again	Mail		Найти далее
 Bcc:	Mail		Скрытая копия:
-Your main text contains %ld unencodable characters. Perhaps a different character set would work better? Hit Send to send it anyway (a substitute character will be used in place of the unencodable ones), or choose Cancel to go back and try fixing it up.	Mail		Ваш основной текст содержит %ld некодируемых символов. Возможно, другая кодировка подойдет лучше? Нажмите /\"Отправить/\" чтобы все равно отправить письмо (некодиуемые символы будут заменены на кодируемые), или нажмите /\"Отмена/\" и попробуйте исправить их вручную.
+Your main text contains %ld unencodable characters. Perhaps a different character set would work better? Hit Send to send it anyway (a substitute character will be used in place of the unencodable ones), or choose Cancel to go back and try fixing it up.	Mail		Ваш основной текст содержит %ld некодируемых символов. Возможно, другая кодировка подойдет лучше? Нажмите Отправить чтобы все равно отправить письмо (некодиуемые символы будут заменены на кодируемые), или нажмите Отмена и попробуйте исправить их вручную.
 Signature:	Mail		Подпись:
 Save changes to this signature?	Mail		Сохранить изменения в этой подписи?
 Cc:	Mail		Копия:
@@ -82,6 +82,7 @@ Only files can be added as attachments.	Mail		Только файлы могут
 Previous message	Mail		Предыдущее письмо
 Attachments:	Mail		Вложения:
 Title:	Mail		Заголовок:
+<no account found>	Mail		<аккаунт не найден>
 Find…	Mail		Найти…
 Accounts…	Mail		Аккаунты…
 Mail preferences	Mail		Настройки почты
@@ -106,6 +107,7 @@ Close	Mail		Закрыть
 No matches	Mail		Нет совпадений
 The mail_daemon is not running. The message is queued and will be sent when the mail_daemon is started.	Mail		Не запущен mail_daemon. Сообщение поставлено в очередь и будет отправлено как только mail_daemon будет запущен.
 Really delete this signature? This cannot be undone.	Mail		Действительно удалить эту подпись? Эту операцию будет невозможно отменить.
+Save this message as a draft before closing?	Mail		Сохранитьэто сообщение в черновики перед закрытием?
 Open	Mail		Открыть
 draft	B_USER_DIRECTORY/mail/draft		Черновики
 Quote	Mail		Цитата
@@ -118,8 +120,8 @@ Remove enclosure	Mail		Удалить вложения
 Account:	Mail		Аккаунт:
 Decoding:	Mail		Кодировка:
 Sorry, could not find an application that supports the 'Person' data type.	Mail		Извините, не удалось найти приложение поддерживающее тип файлов 'Персона'.
-Do you wish to send this message before closing?	Mail		Хотите отправить это сообщение перед закрытием?
 Delete	Mail		Удалить
+Don't send	Mail		Не отправлять
 Leave as '%s'	Mail		Оставить как '%s'
 Copy	Mail		Копия
 Mail couldn't find its dictionary.	Mail		Невозможно найти файл словаря.
@@ -134,7 +136,7 @@ Font:	Mail		Шрифт:
 (Address unavailable)	Mail		(Адрес недоступен)
 Save address	Mail		Сохранить адрес
 Queries	Mail		Запросы
-Do you wish to save this message as a draft before closing?	Mail		Сохранить это сообщение как черновик?
+Send this message before closing?	Mail		Отправить это сообщение перед закрытием?
 Save	Mail		Сохранить
 Random	Mail		Случайная
 Close and 	Mail		Закрыть и 

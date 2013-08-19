@@ -1,6 +1,6 @@
 /*
  * Copyright 2009-2010, Ingo Weinhold, ingo_weinhold@gmx.de.
- * Copyright 2012, Rene Gollent, rene@gollent.com.
+ * Copyright 2012-2013, Rene Gollent, rene@gollent.com.
  * Distributed under the terms of the MIT License.
  */
 #ifndef DWARF_FILE_H
@@ -39,6 +39,10 @@ public:
 			const char*			Name() const		{ return fName; }
 			ElfFile*			GetElfFile() const	{ return fElfFile; }
 
+			bool				HasFrameInformation() const
+									{ return fDebugFrameSection != NULL
+										|| fEHFrameSection != NULL; }
+
 			int32				CountCompilationUnits() const;
 			CompilationUnit*	CompilationUnitAt(int32 index) const;
 			CompilationUnit*	CompilationUnitForDIE(
@@ -48,6 +52,7 @@ public:
 									uint64 offset) const;
 
 			status_t			UnwindCallFrame(CompilationUnit* unit,
+									uint8 addressSize,
 									DIESubprogram* subprogramEntry,
 									target_addr_t location,
 									const DwarfTargetInterface* inputInterface,
@@ -55,6 +60,7 @@ public:
 									target_addr_t& _framePointer);
 
 			status_t			EvaluateExpression(CompilationUnit* unit,
+									uint8 addressSize,
 									DIESubprogram* subprogramEntry,
 									const void* expression,
 									off_t expressionLength,
@@ -64,6 +70,7 @@ public:
 									target_addr_t valueToPush, bool pushValue,
 									target_addr_t& _result);
 			status_t			ResolveLocation(CompilationUnit* unit,
+									uint8 addressSize,
 									DIESubprogram* subprogramEntry,
 									const LocationDescription* location,
 									const DwarfTargetInterface* targetInterface,
@@ -78,13 +85,14 @@ public:
 									// bit offsets/sizes (cf. bit pieces).
 
 			status_t			EvaluateConstantValue(CompilationUnit* unit,
+									uint8 addressSize,
 									DIESubprogram* subprogramEntry,
 									const ConstantAttributeValue* value,
 									const DwarfTargetInterface* targetInterface,
 									target_addr_t instructionPointer,
 									target_addr_t framePointer,
 									BVariant& _result);
-			status_t			EvaluateDynamicValue(CompilationUnit* unit,
+			status_t			EvaluateDynamicValue(CompilationUnit* unit, uint8 addressSize,
 									DIESubprogram* subprogramEntry,
 									const DynamicAttributeValue* value,
 									const DwarfTargetInterface* targetInterface,
@@ -115,20 +123,25 @@ private:
 
 			status_t			_UnwindCallFrame(bool usingEHFrameSection,
 									CompilationUnit* unit,
+									uint8 addressSize,
 									DIESubprogram* subprogramEntry,
 									target_addr_t location,
 									const DwarfTargetInterface* inputInterface,
 									DwarfTargetInterface* outputInterface,
 									target_addr_t& _framePointer);
 
-			status_t			_ParseCIE(ElfSection* debugFrameSection,
+			status_t			_ParseCIEHeader(ElfSection* debugFrameSection,
 									bool usingEHFrameSection,
 									CompilationUnit* unit,
+									uint8 addressSize,
 									CfaContext& context, off_t cieOffset,
-									CIEAugmentation& cieAugmentation);
+									CIEAugmentation& cieAugmentation,
+									DataReader& reader,
+									off_t& _cieRemaining);
 			status_t			_ParseFrameInfoInstructions(
 									CompilationUnit* unit, CfaContext& context,
-									DataReader& dataReader);
+									DataReader& dataReader,
+									CIEAugmentation& cieAugmentation);
 
 			status_t			_ParsePublicTypesInfo();
 			status_t			_ParsePublicTypesInfo(DataReader& dataReader,

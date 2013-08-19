@@ -90,19 +90,21 @@ MainWindow::QuitRequested()
 		if (dynamic_cast<MainWindow*>(window))
 			padWindowCount++;
 	}
+	bool canClose = true;
+	
 	if (padWindowCount == 1) {
 		be_app->PostMessage(B_QUIT_REQUESTED);
-		return false;
+		canClose = false;
 	} else {
 		BAlert* alert = new BAlert(B_TRANSLATE("last chance"),
 			B_TRANSLATE("Really close this pad?\n"
-						"(The pad will not be remembered.)"),
+							"(The pad will not be remembered.)"),
 			B_TRANSLATE("Close"), B_TRANSLATE("Cancel"), NULL);
 		alert->SetShortcut(1, B_ESCAPE);
 		if (alert->Go() == 1)
-			return false;
+			canClose = false;
 	}
-	return true;
+	return canClose;
 }
 
 
@@ -110,7 +112,8 @@ void
 MainWindow::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
-		case MSG_LAUNCH: {
+		case MSG_LAUNCH: 
+		{
 			BView* pointer;
 			if (message->FindPointer("be:source", (void**)&pointer) < B_OK)
 				break;
@@ -178,7 +181,8 @@ MainWindow::MessageReceived(BMessage* message)
 			}
 			break;
 		}
-		case MSG_ADD_SLOT: {
+		case MSG_ADD_SLOT: 
+		{
 			LaunchButton* button;
 			if (message->FindPointer("be:source", (void**)&button) >= B_OK) {
 				fPadView->AddButton(new LaunchButton("launch button",
@@ -186,13 +190,15 @@ MainWindow::MessageReceived(BMessage* message)
 			}
 			break;
 		}
-		case MSG_CLEAR_SLOT: {
+		case MSG_CLEAR_SLOT: 
+		{
 			LaunchButton* button;
 			if (message->FindPointer("be:source", (void**)&button) >= B_OK)
 				button->SetTo((entry_ref*)NULL);
 			break;
 		}
-		case MSG_REMOVE_SLOT: {
+		case MSG_REMOVE_SLOT: 
+		{
 			LaunchButton* button;
 			if (message->FindPointer("be:source", (void**)&button) >= B_OK) {
 				if (fPadView->RemoveButton(button))
@@ -200,7 +206,8 @@ MainWindow::MessageReceived(BMessage* message)
 			}
 			break;
 		}
-		case MSG_SET_DESCRIPTION: {
+		case MSG_SET_DESCRIPTION: 
+		{
 			LaunchButton* button;
 			if (message->FindPointer("be:source", (void**)&button) >= B_OK) {
 				const char* name;
@@ -258,7 +265,8 @@ MainWindow::MessageReceived(BMessage* message)
 			}
 			break;
 		}
-		case MSG_ADD_WINDOW: {
+		case MSG_ADD_WINDOW: 
+		{
 			BMessage settings('sett');
 			SaveSettings(&settings);
 			message->AddMessage("window", &settings);
@@ -281,6 +289,21 @@ MainWindow::MessageReceived(BMessage* message)
 			else
 				SetWorkspaces(1L << current_workspace());
 			break;
+		case MSG_OPEN_CONTAINING_FOLDER: 
+		{
+			LaunchButton* button;
+			if (message->FindPointer("be:source", (void**)&button) == B_OK && button->Ref() != NULL) {
+				entry_ref target = *button->Ref();
+				BEntry openTarget(&target);
+				BMessage openMsg(B_REFS_RECEIVED);
+				BMessenger tracker("application/x-vnd.Be-TRAK");
+				openTarget.GetParent(&openTarget);
+				openTarget.GetRef(&target);
+				openMsg.AddRef("refs",&target);
+				tracker.SendMessage(&openMsg);
+			}
+		}
+		break;
 		case B_SIMPLE_DATA:
 		case B_REFS_RECEIVED:
 		case B_PASTE:

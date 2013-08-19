@@ -25,7 +25,7 @@ struct intel_info {
 	addr_t			aperture_base;
 	aperture_id		aperture;
 
-	uint8*			registers;
+	addr_t			registers;
 
 	area_id			registers_area;
 	struct intel_shared_info* shared_info;
@@ -60,7 +60,7 @@ find_reg(const intel_info& info, uint32 target)
 		RETURN_REG(INTERRUPT_STATUS)
 	}
 
-	#undef RETURN_REG;
+	#undef RETURN_REG
 
 	panic("find_reg didn't have any matching register\n");
 	return target;

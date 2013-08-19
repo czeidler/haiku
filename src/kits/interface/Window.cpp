@@ -515,7 +515,7 @@ BWindow::Quit()
 			name = "no-name";
 
 		printf("ERROR - you must Lock a looper before calling Quit(), "
-			   "team=%ld, looper=%s\n", Team(), name);
+			   "team=%" B_PRId32 ", looper=%s\n", Team(), name);
 	}
 
 	// Try to lock
@@ -1029,7 +1029,8 @@ BWindow::DispatchMessage(BMessage* msg, BHandler* target)
 			be_roster->GetAppList(info.signature, &list);
 
 			for (int32 i = 0; i < list.CountItems(); i++) {
-				do_minimize_team(BRect(), (team_id)list.ItemAt(i), false);
+				do_minimize_team(BRect(), (team_id)(addr_t)list.ItemAt(i),
+					false);
 			}
 			break;
 		}
@@ -1430,8 +1431,8 @@ FrameMoved(origin);
 					if (BView* view = _FindView(info->token))
 						view->_Draw(info->updateRect);
 					else {
-						printf("_UPDATE_ - didn't find view by token: %ld\n",
-							info->token);
+						printf("_UPDATE_ - didn't find view by token: %"
+							B_PRId32 "\n", info->token);
 					}
 //drawTime += system_time() - drawStart;
 				}
@@ -1859,6 +1860,13 @@ BWindow::AddShortcut(uint32 key, uint32 modifiers, BMessage* message,
 }
 
 
+bool
+BWindow::HasShortcut(uint32 key, uint32 modifiers)
+{
+	return _FindShortcut(key, modifiers) != NULL;
+}
+
+
 void
 BWindow::RemoveShortcut(uint32 key, uint32 modifiers)
 {
@@ -2131,13 +2139,13 @@ BWindow::DecoratorFrame() const
 		// else use fall-back values from above
 	}
 
-	if (fLook & kLeftTitledWindowLook) {
+	if (fLook == kLeftTitledWindowLook) {
 		decoratorFrame.top -= borderWidth;
-		decoratorFrame.left -= tabRect.Width();
+		decoratorFrame.left -= borderWidth + tabRect.Width();
 		decoratorFrame.right += borderWidth;
 		decoratorFrame.bottom += borderWidth;
 	} else {
-		decoratorFrame.top -= tabRect.Height();
+		decoratorFrame.top -= borderWidth + tabRect.Height();
 		decoratorFrame.left -= borderWidth;
 		decoratorFrame.right += borderWidth;
 		decoratorFrame.bottom += borderWidth;
@@ -2576,6 +2584,10 @@ BWindow::ResizeTo(float width, float height)
 }
 
 
+/*!
+	\brief Center the window in the passed in \a rect.
+	\param rect The rectangle to center the window in.
+*/
 void
 BWindow::CenterIn(const BRect& rect)
 {
@@ -2588,11 +2600,23 @@ BWindow::CenterIn(const BRect& rect)
 }
 
 
+/*!
+	\brief Centers the window on the screen the window is currently on.
+*/
 void
 BWindow::CenterOnScreen()
 {
-	BScreen screen(this);
-	CenterIn(screen.Frame());
+	CenterIn(BScreen(this).Frame());
+}
+
+
+/*!
+	\brief Centers the window on the screen with the passed in \a id.
+*/
+void
+BWindow::CenterOnScreen(screen_id id)
+{
+	CenterIn(BScreen(id).Frame());
 }
 
 
@@ -3841,6 +3865,58 @@ BWindow::_KeyboardNavigation()
 	if (nextFocus && nextFocus != fFocus) {
 		nextFocus->MakeFocus(true);
 	}
+}
+
+
+/*!
+	\brief Return the position of the window centered horizontally to the passed
+           in \a frame and vertically 3/4 from the top of \a frame.
+
+	If the window is on the borders
+
+	\param width The width of the window.
+	\param height The height of the window.
+	\param frame The \a frame to center the window in.
+
+	\return The new window position.
+*/
+BPoint
+BWindow::AlertPosition(const BRect& frame)
+{
+	float width = Bounds().Width();
+	float height = Bounds().Height();
+
+	BPoint point(frame.left + (frame.Width() / 2.0f) - (width / 2.0f),
+		frame.top + (frame.Height() / 4.0f) - ceil(height / 3.0f));
+
+	BRect screenFrame = BScreen(this).Frame();
+	if (frame == screenFrame) {
+		// reference frame is screen frame, skip the below adjustments
+		return point;
+	}
+
+	float borderWidth;
+	float tabHeight;
+	_GetDecoratorSize(&borderWidth, &tabHeight);
+
+	// clip the x position within the horizontal edges of the screen
+	if (point.x < screenFrame.left + borderWidth)
+		point.x = screenFrame.left + borderWidth;
+	else if (point.x + width > screenFrame.right - borderWidth)
+		point.x = screenFrame.right - borderWidth - width;
+
+	// lower the window down if it is covering the window tab
+	float tabPosition = frame.LeftTop().y + tabHeight + borderWidth;
+	if (point.y < tabPosition)
+		point.y = tabPosition;
+
+	// clip the y position within the vertical edges of the screen
+	if (point.y < screenFrame.top + borderWidth)
+		point.y = screenFrame.top + borderWidth;
+	else if (point.y + height > screenFrame.bottom - borderWidth)
+		point.y = screenFrame.bottom - borderWidth - height;
+
+	return point;
 }
 
 

@@ -1,6 +1,6 @@
 /*
  * Copyright 2009-2012, Ingo Weinhold, ingo_weinhold@gmx.de.
- * Copyright 2011, Rene Gollent, rene@gollent.com.
+ * Copyright 2011-2013, Rene Gollent, rene@gollent.com.
  * Distributed under the terms of the MIT License.
  */
 
@@ -15,6 +15,8 @@
 #include <Application.h>
 #include <Message.h>
 
+#include <ArgumentVector.h>
+#include <AutoDeleter.h>
 #include <AutoLocker.h>
 #include <ObjectList.h>
 
@@ -56,8 +58,10 @@ static const char* kUsage =
 	"fourth form additionally stops the specified thread.\n"
 	"\n"
 	"Options:\n"
-	"  -h, --help    - Print this usage info and exit.\n"
-	"  -c, --cli     - Use command line user interface\n"
+	"  -h, --help        - Print this usage info and exit.\n"
+	"  -c, --cli         - Use command line user interface\n"
+	"  -s, --save-report - Save crash report for the targetted team and exit.\n"
+	"                      Implies --cli.\n"
 ;
 
 
@@ -76,6 +80,8 @@ struct Options {
 	team_id				team;
 	thread_id			thread;
 	bool				useCLI;
+	bool				saveReport;
+	const char*			reportPath;
 
 	Options()
 		:
@@ -83,7 +89,9 @@ struct Options {
 		commandLineArgv(NULL),
 		team(-1),
 		thread(-1),
-		useCLI(false)
+		useCLI(false),
+		saveReport(false),
+		reportPath(NULL)
 	{
 	}
 };
@@ -105,15 +113,16 @@ parse_arguments(int argc, const char* const* argv, bool noOutput,
 	while (true) {
 		static struct option sLongOptions[] = {
 			{ "help", no_argument, 0, 'h' },
+			{ "cli", no_argument, 0, 'c' },
+			{ "save-report", optional_argument, 0, 's' },
 			{ "team", required_argument, 0, 't' },
 			{ "thread", required_argument, 0, 'T' },
-			{ "cli", no_argument, 0, 'c' },
 			{ 0, 0, 0, 0 }
 		};
 
 		opterr = 0; // don't print errors
 
-		int c = getopt_long(argc, (char**)argv, "+ch", sLongOptions, NULL);
+		int c = getopt_long(argc, (char**)argv, "+chs", sLongOptions, NULL);
 		if (c == -1)
 			break;
 
@@ -127,6 +136,14 @@ parse_arguments(int argc, const char* const* argv, bool noOutput,
 					return false;
 				print_usage_and_exit(false);
 				break;
+
+			case 's':
+			{
+				options.useCLI = true;
+				options.saveReport = true;
+				options.reportPath = optarg;
+				break;
+			}
 
 			case 't':
 			{
@@ -264,7 +281,8 @@ get_debugged_program(const Options& options, DebuggedProgramInfo& _info)
 static TeamDebugger*
 start_team_debugger(team_id teamID, SettingsManager* settingsManager,
 	TeamDebugger::Listener* listener, thread_id threadID = -1,
-	bool stopInMain = false, UserInterface* userInterface = NULL)
+	bool stopInMain = false, UserInterface* userInterface = NULL,
+	status_t* _result = NULL)
 {
 	if (teamID < 0)
 		return NULL;
@@ -292,11 +310,13 @@ start_team_debugger(team_id teamID, SettingsManager* settingsManager,
 		printf("Error: debugger for team %" B_PRId32 " failed to init: %s!\n",
 			teamID, strerror(error));
 		delete debugger;
-		return NULL;
+		debugger = NULL;
 	} else
 		printf("debugger for team %" B_PRId32 " created and initialized "
 			"successfully!\n", teamID);
 
+	if (_result != NULL)
+		*_result = error;
 	return debugger;
 }
 
@@ -326,6 +346,9 @@ private:
 	virtual void 				Quit();
 
 			TeamDebugger* 		_FindTeamDebugger(team_id teamID) const;
+
+			status_t			_StartNewTeam(const char* path, const char* args);
+			status_t			_StartOrFindTeam(Options& options);
 
 private:
 			SettingsManager		fSettingsManager;
@@ -418,6 +441,20 @@ Debugger::MessageReceived(BMessage* message)
 			start_team_debugger(teamID, &fSettingsManager, this);
 			break;
 		}
+		case MSG_START_NEW_TEAM:
+		{
+			const char* teamPath = NULL;
+			const char* args = NULL;
+
+			message->FindString("path", &teamPath);
+			message->FindString("arguments", &args);
+
+			status_t result = _StartNewTeam(teamPath, args);
+			BMessage reply;
+			reply.AddInt32("status", result);
+			message->SendReply(&reply);
+			break;
+		}
 		case MSG_TEAM_DEBUGGER_QUIT:
 		{
 			int32 threadID;
@@ -452,20 +489,8 @@ Debugger::ArgvReceived(int32 argc, char** argv)
 		return;
 	}
 
-	DebuggedProgramInfo programInfo;
-	if (!get_debugged_program(options, programInfo))
-		return;
+	_StartOrFindTeam(options);
 
-	TeamDebugger* debugger = _FindTeamDebugger(programInfo.team);
-	if (debugger != NULL) {
-		printf("There's already a debugger for team: %" B_PRId32 "\n",
-			programInfo.team);
-		debugger->Activate();
-		return;
-	}
-
-	start_team_debugger(programInfo.team, &fSettingsManager, this,
-		programInfo.thread, programInfo.stopInMain);
 }
 
 
@@ -542,6 +567,57 @@ Debugger::_FindTeamDebugger(team_id teamID) const
 }
 
 
+status_t
+Debugger::_StartNewTeam(const char* path, const char* args)
+{
+	if (path == NULL)
+		return B_BAD_VALUE;
+
+	BString data;
+	data.SetToFormat("%s %s", path, args);
+	if (data.Length() == 0)
+		return B_NO_MEMORY;
+
+	ArgumentVector argVector;
+	argVector.Parse(data.String());
+
+	Options options;
+	options.commandLineArgc = argVector.ArgumentCount();
+	if (options.commandLineArgc <= 0)
+		return B_BAD_VALUE;
+
+	char** argv = argVector.DetachArguments();
+
+	options.commandLineArgv = argv;
+	MemoryDeleter deleter(argv);
+
+	return _StartOrFindTeam(options);
+}
+
+
+status_t
+Debugger::_StartOrFindTeam(Options& options)
+{
+	DebuggedProgramInfo programInfo;
+	if (!get_debugged_program(options, programInfo))
+		return B_BAD_VALUE;
+
+	TeamDebugger* debugger = _FindTeamDebugger(programInfo.team);
+	if (debugger != NULL) {
+		printf("There's already a debugger for team: %" B_PRId32 "\n",
+			programInfo.team);
+		debugger->Activate();
+		return B_OK;
+	}
+
+	status_t result;
+	start_team_debugger(programInfo.team, &fSettingsManager, this,
+		programInfo.thread, programInfo.stopInMain, NULL, &result);
+
+	return result;
+}
+
+
 // #pragma mark - CliDebugger
 
 
@@ -581,7 +657,8 @@ CliDebugger::Run(const Options& options)
 
 	// create the command line UI
 	CommandLineUserInterface* userInterface
-		= new(std::nothrow) CommandLineUserInterface;
+		= new(std::nothrow) CommandLineUserInterface(options.saveReport,
+			options.reportPath);
 	if (userInterface == NULL) {
 		fprintf(stderr, "Error: Out of memory!\n");
 		return false;

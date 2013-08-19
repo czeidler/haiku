@@ -12,6 +12,7 @@
 #include <vector>
 
 #ifdef __HAIKU__
+#	include <AboutWindow.h>
 #	include <AbstractLayoutItem.h>
 #	include <ControlLook.h>
 #endif
@@ -175,6 +176,7 @@ const uint32 kMsgToggleDataSource = 'tgds';
 const uint32 kMsgToggleLegend = 'tglg';
 const uint32 kMsgUpdateResolution = 'ures';
 
+extern const char* kAppName;
 extern const char* kSignature;
 
 
@@ -1104,8 +1106,21 @@ ActivityView::MessageReceived(BMessage* message)
 
 	switch (message->what) {
 		case B_ABOUT_REQUESTED:
-			ActivityMonitor::ShowAbout();
+		{
+			BAboutWindow* window = new BAboutWindow(kAppName, kSignature);
+
+			const char* authors[] = {
+				"Axel Dörfler",
+				NULL
+			};
+
+			window->AddCopyright(2008, "Haiku, Inc.");
+			window->AddAuthors(authors);
+
+			window->Show();
+
 			break;
+		}
 
 		case kMsgUpdateResolution:
 		{

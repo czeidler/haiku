@@ -23,6 +23,7 @@
 #include <sys/sockio.h>
 #include <unistd.h>
 
+#include <AboutWindow.h>
 #include <Alert.h>
 #include <Application.h>
 #include <Catalog.h>
@@ -216,7 +217,7 @@ NetworkStatusView::_Quit()
 }
 
 
-NetworkStatusView *
+NetworkStatusView*
 NetworkStatusView::Instantiate(BMessage* archive)
 {
 	if (!validate_instantiation(archive, "NetworkStatusView"))
@@ -503,26 +504,19 @@ NetworkStatusView::MouseDown(BPoint point)
 void
 NetworkStatusView::_AboutRequested()
 {
-	BString about = B_TRANSLATE(
-		"NetworkStatus\n\twritten by %1 and Hugo Santos\n\t%2, Haiku, Inc.\n"
-		);
-	about.ReplaceFirst("%1", "Axel Dörfler");
-		// Append a new developer here
-	about.ReplaceFirst("%2", "Copyright 2007-2010");
-		// Append a new year here
-	BAlert* alert = new BAlert("about", about, B_TRANSLATE("OK"));
-	alert->SetFlags(alert->Flags() | B_CLOSE_ON_ESCAPE);
-	BTextView *view = alert->TextView();
-	BFont font;
+	BAboutWindow* window = new BAboutWindow(
+		B_TRANSLATE_SYSTEM_NAME("NetworkStatus"), kSignature);
+	
+	const char* authors[] = {
+		"Axel Dörfler",
+		"Hugo Santos",
+		NULL
+	};
 
-	view->SetStylable(true);
+	window->AddCopyright(2007, "Haiku, Inc.");
+	window->AddAuthors(authors);
 
-	view->GetFont(&font);
-	font.SetSize(18);
-	font.SetFace(B_BOLD_FACE);
-	view->SetFontAndColor(0, 13, &font);
-
-	alert->Go();
+	window->Show();
 }
 
 

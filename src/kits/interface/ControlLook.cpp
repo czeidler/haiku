@@ -740,14 +740,14 @@ BControlLook::DrawArrowShape(BView* view, BRect& rect, const BRect& updateRect,
 		case B_LEFT_ARROW:
 			tri1.Set(rect.right, rect.top);
 			tri2.Set(rect.right - rect.Width() / 1.33,
-				(rect.top + rect.bottom + 1) /2 );
+				(rect.top + rect.bottom + 1) / 2);
 			tri3.Set(rect.right, rect.bottom + 1);
 			break;
 		case B_RIGHT_ARROW:
-			tri1.Set(rect.left, rect.bottom + 1);
-			tri2.Set(rect.left + rect.Width() / 1.33,
+			tri1.Set(rect.left + 1, rect.bottom + 1);
+			tri2.Set(rect.left + 1 + rect.Width() / 1.33,
 				(rect.top + rect.bottom + 1) / 2);
-			tri3.Set(rect.left, rect.top);
+			tri3.Set(rect.left + 1, rect.top);
 			break;
 		case B_UP_ARROW:
 			tri1.Set(rect.left, rect.bottom);
@@ -757,17 +757,32 @@ BControlLook::DrawArrowShape(BView* view, BRect& rect, const BRect& updateRect,
 			break;
 		case B_DOWN_ARROW:
 		default:
-			tri1.Set(rect.left, rect.top);
+			tri1.Set(rect.left, rect.top + 1);
 			tri2.Set((rect.left + rect.right + 1) / 2,
-				rect.top + rect.Height() / 1.33);
-			tri3.Set(rect.right + 1, rect.top);
+				rect.top + 1 + rect.Height() / 1.33);
+			tri3.Set(rect.right + 1, rect.top + 1);
+			break;
+		case B_LEFT_UP_ARROW:
+			tri1.Set(rect.left, rect.bottom);
+			tri2.Set(rect.left, rect.top);
+			tri3.Set(rect.right - 1, rect.top);
+			break;
+		case B_RIGHT_UP_ARROW:
+			tri1.Set(rect.left + 1, rect.top);
+			tri2.Set(rect.right, rect.top);
+			tri3.Set(rect.right, rect.bottom);
+			break;
+		case B_RIGHT_DOWN_ARROW:
+			tri1.Set(rect.right, rect.top);
+			tri2.Set(rect.right, rect.bottom);
+			tri3.Set(rect.left + 1, rect.bottom);
+			break;
+		case B_LEFT_DOWN_ARROW:
+			tri1.Set(rect.right - 1, rect.bottom);
+			tri2.Set(rect.left, rect.bottom);
+			tri3.Set(rect.left, rect.top);
 			break;
 	}
-	// offset triangle if down
-	if ((flags & B_ACTIVATED) != 0)
-		view->MovePenTo(BPoint(1, 1));
-	else
-		view->MovePenTo(BPoint(0, 0));
 
 	BShape arrowShape;
 	arrowShape.MoveTo(tri1);
@@ -781,6 +796,8 @@ BControlLook::DrawArrowShape(BView* view, BRect& rect, const BRect& updateRect,
 
 	float penSize = view->PenSize();
 	drawing_mode mode = view->DrawingMode();
+
+	view->MovePenTo(BPoint(0, 0));
 
 	view->SetPenSize(ceilf(hInset / 2.0));
 	view->SetDrawingMode(B_OP_OVER);
@@ -805,6 +822,9 @@ BControlLook::DrawSliderBar(BView* view, BRect rect, const BRect& updateRect,
 {
 	if (!rect.IsValid() || !rect.Intersects(updateRect))
 		return;
+
+	// save the clipping constraints of the view
+	view->PushState();
 
 	// separate the bar in two sides
 	float sliderPosition;
@@ -847,8 +867,8 @@ BControlLook::DrawSliderBar(BView* view, BRect rect, const BRect& updateRect,
 
 	view->PopState();
 
-	// reset clipping constraints
-	view->ConstrainClippingRegion(NULL);
+	// restore the clipping constraints of the view
+	view->PopState();
 }
 
 
@@ -1309,15 +1329,11 @@ BControlLook::DrawActiveTab(BView* view, BRect& rect, const BRect& updateRect,
 	if (!rect.IsValid() || !rect.Intersects(updateRect))
 		return;
 
-	// clipping constraints for the view
-	BRegion clipping;
-	view->GetClippingRegion(&clipping);
+	// save the clipping constraints of the view
+	view->PushState();
 
-	// intersect constraints with updateRect
-	BRegion updateClipping(updateRect);
-	clipping.IntersectWith(&updateClipping);
-
-	// clip to the intersection
+	// set clipping constraints to updateRect
+	BRegion clipping(updateRect);
 	view->ConstrainClippingRegion(&clipping);
 
 	rgb_color edgeShadowColor;
@@ -1396,8 +1412,8 @@ BControlLook::DrawActiveTab(BView* view, BRect& rect, const BRect& updateRect,
 
 	view->FillRect(rect, fillGradient);
 
-	// reset clipping constraints
-	view->ConstrainClippingRegion(NULL);
+	// restore the clipping constraints of the view
+	view->PopState();
 }
 
 
@@ -1898,15 +1914,11 @@ BControlLook::_DrawButtonFrame(BView* view, BRect& rect,
 	if (!rect.IsValid() || !rect.Intersects(updateRect))
 		return;
 
-	// clipping constraints for the view
-	BRegion clipping;
-	view->GetClippingRegion(&clipping);
+	// save the clipping constraints of the view
+	view->PushState();
 
-	// intersect constraints with updateRect
-	BRegion updateClipping(updateRect);
-	clipping.IntersectWith(&updateClipping);
-
-	// clip to the intersection
+	// set clipping constraints to updateRect
+	BRegion clipping(updateRect);
 	view->ConstrainClippingRegion(&clipping);
 
 	// outer edge colors
@@ -2046,7 +2058,8 @@ BControlLook::_DrawButtonFrame(BView* view, BRect& rect,
 			frameShadowColor, frameShadowColor, borders);
 	}
 
-	view->ConstrainClippingRegion(NULL);
+	// restore the clipping constraints of the view
+	view->PopState();
 }
 
 
@@ -2172,15 +2185,11 @@ BControlLook::_DrawButtonBackground(BView* view, BRect& rect,
 	if (!rect.IsValid() || !rect.Intersects(updateRect))
 		return;
 
-	// clipping constraints for the view
-	BRegion clipping;
-	view->GetClippingRegion(&clipping);
+	// save the clipping constraints of the view
+	view->PushState();
 
-	// intersect constraints with updateRect
-	BRegion updateClipping(updateRect);
-	clipping.IntersectWith(&updateClipping);
-
-	// clip to the intersection
+	// set clipping constraints to updateRect
+	BRegion clipping(updateRect);
 	view->ConstrainClippingRegion(&clipping);
 
 	// inner bevel colors
@@ -2288,8 +2297,8 @@ BControlLook::_DrawButtonBackground(BView* view, BRect& rect,
 	// fill in the background
 	view->FillRect(rect, fillGradient);
 
-	// reset clipping constraints
-	view->ConstrainClippingRegion(NULL);
+	// restore the clipping constraints of the view
+	view->PopState();
 }
 
 
@@ -2365,15 +2374,11 @@ BControlLook::_DrawMenuFieldBackgroundInside(BView* view, BRect& rect,
 	if (!rect.IsValid() || !rect.Intersects(updateRect))
 		return;
 
-	// clipping constraints for the view
-	BRegion clipping;
-	view->GetClippingRegion(&clipping);
+	// save the clipping constraints of the view
+	view->PushState();
 
-	// intersect constraints with updateRect
-	BRegion updateClipping(updateRect);
-	clipping.IntersectWith(&updateClipping);
-
-	// clip to the intersection
+	// set clipping constraints to updateRect
+	BRegion clipping(updateRect);
 	view->ConstrainClippingRegion(&clipping);
 
 	// frame colors
@@ -2547,8 +2552,8 @@ BControlLook::_DrawMenuFieldBackgroundInside(BView* view, BRect& rect,
 	// fill in the background
 	view->FillRect(rect, fillGradient);
 
-	// reset clipping constraints
-	view->ConstrainClippingRegion(NULL);
+	// restore the clipping constraints of the view
+	view->PopState();
 }
 
 
@@ -2939,7 +2944,7 @@ BControlLook::_EdgeLightColor(const rgb_color& base, float contrast,
 
 	if ((flags & B_BLEND_FRAME) != 0) {
 		uint8 alpha = uint8(20 * contrast);
-		uint32 white = uint8(255 * brightness);
+		uint8 white = uint8(255 * brightness);
 
 		edgeLightColor = (rgb_color){ white, white, white, alpha };
 	} else {

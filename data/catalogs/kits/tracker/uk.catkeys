@@ -1,4 +1,4 @@
-1	ukrainian	x-vnd.Haiku-libtracker	3680490064
+1	ukrainian	x-vnd.Haiku-libtracker	571939486
 common	B_COMMON_DIRECTORY		common
 OK	WidgetAttributeText		Гаразд
 Icon view	VolumeWindow		У вигляді іконок
@@ -199,7 +199,6 @@ Resize to fit	VolumeWindow		Припасувати
 Could not find application \"%appname\"	OpenWithWindow		Невдалось знайти програму \"%appname\"
 The selected item cannot be moved to the Trash. Would you like to delete it instead? (This operation cannot be reverted.)	PoseView		Деякі з вибраних елементів не можуть бути переміщені Кошик . Ви хочете видалити їх все одно? ( Операція необоротна.)
 Invert	SelectionWindow		Інвертувати
-Save Query as template…	FindPanel		Зберегти запит як шаблон…
 rename	InfoWindow	As in 'if you rename this folder...' (en) 'Wird dieser Ordner umbenannt...' (de)	перейменуєте
 Find	FindPanel		Знайти
 Move	FSUtils	Button label, 'Move' (en), 'Verschieben' (de)	Перемістити
@@ -244,7 +243,6 @@ TiB	WidgetAttributeText		TiB
 The file \"%name\" already exists in the specified folder. Do you want to replace it?	FilePanelPriv		Файл \"%name\" вже існує в цій папці. Ви хочете його замінити?
 Cancel	ContainerWindow		Відміна
 Only the boot disk	AutoMounterSettings		Тільки загрузочний диск
-Trash	TrackerSettingsWindow		Кошик
 Unmount	ContainerWindow		Відмонтувати
 Copy layout	ContainerWindow		Копіювати макет
 label too long	PoseView		Мітка занадто довга
@@ -374,7 +372,6 @@ Icon view	DeskWindow		У вигляді іконок
 Select all	QueryContainerWindow		Вибрати все
 Files cannot be moved or deleted from a read-only volume.	PoseView		Неможливо видалити або перемістити файл з тому тільки для читання.
 There was a problem trying to replace \"%name\". The item might be open or busy.	FSUtils		Виникла проблема при спробі перемістити \"%name\". Елемент може бути відкритим або зайнятим.
-You cannot put the Trash, home or Desktop directory into the trash.	FSUtils		Ви не можете покласти Кошик, home або Робочий стіл в кошик.
 Owner	FilePermissionsView		Власник
 There was a problem trying to save in the folder you specified. Please try another one.	FilePanelPriv		Виникла проблема збереження у визначену папку. Будь-ласка спробуйте іншу.
 Restore	ContainerWindow		Відновити
@@ -393,7 +390,6 @@ Paste layout	ContainerWindow		Вставити макет
 Select	InfoWindow		Вибрати
 Could not update permissions of file \"%name\". %error	FSUtils		Не вдалося обновити дозволи файлу \"%name\". %error
 Select…	FilePanelPriv		Вибрати…
-Don't move files to Trash	SettingsView		Не переміщайте файли до Кошика
 There was an error resolving the link.	Tracker		Виникла проблема відтворення посилання.
 %BytesPerSecond/s	StatusWindow		%BytesPerSecond/s
 You can't move or copy the trash.	FSUtils		Ви не можете копіювати або переміщати Кошик.
@@ -424,7 +420,6 @@ Automatic disk mounting	AutoMounterSettings		Автоматичне монтув
 Original name	ContainerWindow		Справжнє ім'я
 Find	FSUtils		Знайти
 Error copying file \"%name\":\n\t%error\n\nWould you like to continue?	FSUtils		Помилка копіювання файлу \"%name\":\n\t%error\n\nЧи хочете ви продовжити?
-Ask before delete	SettingsView		Спитати перед видаленням
 Single window navigation	SettingsView		Одновіконна навігація
 parent folder	NavMenu		батьківська папка
 contains	FindPanel		містить

@@ -1,4 +1,4 @@
-1	russian	x-vnd.Haiku-FileTypes	2496450458
+1	russian	x-vnd.Haiku-FileTypes	133192727
 Application types…	FileTypes Window		Типы приложений…
 Description:	Application Types Window		Описание:
 Args only	Application Type Window		Только аргументы
@@ -16,7 +16,6 @@ New file type	New File Type Window		Новый тип файла
 Rule:	FileTypes Window		Правило:
 Add icon…	Icon View		Добавить значок…
 Multiple files from \"%s\" file type	FileType Window		Множество файлов из типа файла \"%s\"
-Do you want to save the changes?	Application Type Window		Хотите сохранить изменения?
 File type	FileType Window		Тип файла
 Could not change attributes	Attribute Window		Невозможно изменить атрибуты
 Could not retrieve preferred application of this file	Preferred App Menu		Невозможно определить предпочтительное приложение этого файла
@@ -50,6 +49,8 @@ Group name:	New File Type Window		Имя группы:
 Preferred application	FileType Window		Предпочтительное приложение
 Progress	Application Types Window		Состояние
 Set preferred application	Preferred App Menu		Установить предпочтительное приложение
+Don't save	Application Type Window		Не сохранять
+Save changes before closing?	Application Type Window		Сохранить изменения перед выходом?
 File	Application Type Window		Файл
 Version:	Application Type Window		Версия:
 Select…	FileTypes Window		Выбрать…
@@ -72,7 +73,6 @@ Special:	Attribute Window		Особый:
 Alpha	Application Type Window		Альфа
 Add…	FileTypes Window		Добавить…
 Signature:	Application Type Window		Сигнатура:
-Quit, don't save	Application Type Window		Выйти без сохранения
 Add…	Application Type Window		Добавить…
 [Multiple files] file types	FileType Window		[Несколько файлов] типы файлов
 Information	Application Types Window		Информация

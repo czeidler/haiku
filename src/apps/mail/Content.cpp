@@ -119,19 +119,14 @@ Unicode2UTF8(int32 c, char **out)
 
 	if (c < 0x80)
 		*(s++) = c;
-	else if (c < 0x800)
-	{
+	else if (c < 0x800) {
 		*(s++) = 0xc0 | (c >> 6);
 		*(s++) = 0x80 | (c & 0x3f);
-	}
-	else if (c < 0x10000)
-	{
+	} else if (c < 0x10000) {
 		*(s++) = 0xe0 | (c >> 12);
 		*(s++) = 0x80 | ((c >> 6) & 0x3f);
 		*(s++) = 0x80 | (c & 0x3f);
-	}
-	else if (c < 0x200000)
-	{
+	} else if (c < 0x200000) {
 		*(s++) = 0xf0 | (c >> 18);
 		*(s++) = 0x80 | ((c >> 12) & 0x3f);
 		*(s++) = 0x80 | ((c >> 6) & 0x3f);
@@ -153,7 +148,7 @@ FilterHTMLTag(int32 &first, char **t, char *end)
 	// check for some common entities (in ISO-Latin-1)
 	if (first == '&') {
 		// filter out and convert decimal values
-		if (a[1] == '#' && sscanf(a + 2, "%ld;", &first) == 1) {
+		if (a[1] == '#' && sscanf(a + 2, "%" B_SCNd32 ";", &first) == 1) {
 			t[0] += strchr(a, ';') - a;
 			return false;
 		}
@@ -937,11 +932,11 @@ TTextView::UpdateFont(const BFont* newFont)
 	fFont = *newFont;
 
 	// update the text run array safely with new font
-	text_run_array *runArray = RunArray(0, LONG_MAX);
+	text_run_array *runArray = RunArray(0, INT32_MAX);
 	for (int i = 0; i < runArray->count; i++)
 		runArray->runs[i].font = *newFont;
 
-	SetRunArray(0, LONG_MAX, runArray);
+	SetRunArray(0, INT32_MAX, runArray);
 	FreeRunArray(runArray);
 }
 
@@ -974,15 +969,12 @@ TTextView::KeyDown(const char *key, int32 count)
 	msg = Window()->CurrentMessage();
 	mods = msg->FindInt32("modifiers");
 
-	switch (key[0])
-	{
+	switch (key[0]) {
 		case B_HOME:
-			if (IsSelectable())
-			{
+			if (IsSelectable()) {
 				if (IsEditable())
 					BTextView::KeyDown(key, count);
-				else
-				{
+				else {
 					// scroll to the beginning
 					Select(0, 0);
 					ScrollToSelection();
@@ -991,12 +983,10 @@ TTextView::KeyDown(const char *key, int32 count)
 			break;
 
 		case B_END:
-			if (IsSelectable())
-			{
+			if (IsSelectable()) {
 				if (IsEditable())
 					BTextView::KeyDown(key, count);
-				else
-				{
+				else {
 					// scroll to the end
 					int32 length = TextLength();
 					Select(length, length);
@@ -1006,19 +996,15 @@ TTextView::KeyDown(const char *key, int32 count)
 			break;
 
 		case 0x02:						// ^b - back 1 char
-			if (IsSelectable())
-			{
+			if (IsSelectable()) {
 				GetSelection(&start, &end);
-				while (!IsInitialUTF8Byte(ByteAt(--start)))
-				{
-					if (start < 0)
-					{
+				while (!IsInitialUTF8Byte(ByteAt(--start))) {
+					if (start < 0) {
 						start = 0;
 						break;
 					}
 				}
-				if (start >= 0)
-				{
+				if (start >= 0) {
 					Select(start, start);
 					ScrollToSelection();
 				}
@@ -1026,21 +1012,16 @@ TTextView::KeyDown(const char *key, int32 count)
 			break;
 
 		case B_DELETE:
-			if (IsSelectable())
-			{
-				if ((key[0] == B_DELETE) || (mods & B_CONTROL_KEY))	// ^d
-				{
-					if (IsEditable())
-					{
+			if (IsSelectable()) {
+				if ((key[0] == B_DELETE) || (mods & B_CONTROL_KEY)) {
+					// ^d
+					if (IsEditable()) {
 						GetSelection(&start, &end);
 						if (start != end)
 							Delete();
-						else
-						{
-							for (end = start + 1; !IsInitialUTF8Byte(ByteAt(end)); end++)
-							{
-								if (end > textLen)
-								{
+						else {
+							for (end = start + 1; !IsInitialUTF8Byte(ByteAt(end)); end++) {
+								if (end > textLen) {
 									end = textLen;
 									break;
 								}
@@ -1057,12 +1038,10 @@ TTextView::KeyDown(const char *key, int32 count)
 			break;
 
 		case 0x05:						// ^e - end of line
-			if ((IsSelectable()) && (mods & B_CONTROL_KEY))
-			{
+			if (IsSelectable() && (mods & B_CONTROL_KEY)) {
 				if (CurrentLine() == CountLines() - 1)
 					Select(TextLength(), TextLength());
-				else
-				{
+				else {
 					GoToLine(CurrentLine() + 1);
 					GetSelection(&start, &end);
 					Select(start - 1, start - 1);
@@ -1071,17 +1050,14 @@ TTextView::KeyDown(const char *key, int32 count)
 			break;
 
 		case 0x06:						// ^f - forward 1 char
-			if (IsSelectable())
-			{
+			if (IsSelectable()) {
 				GetSelection(&start, &end);
 				if (end > start)
 					start = end;
-				else
-				{
-					for (end = start + 1; !IsInitialUTF8Byte(ByteAt(end)); end++)
-					{
-						if (end > textLen)
-						{
+				else {
+					for (end = start + 1; !IsInitialUTF8Byte(ByteAt(end));
+						end++) {
+						if (end > textLen) {
 							end = textLen;
 							break;
 						}
@@ -1094,16 +1070,14 @@ TTextView::KeyDown(const char *key, int32 count)
 			break;
 
 		case 0x0e:						// ^n - next line
-			if (IsSelectable())
-			{
+			if (IsSelectable()) {
 				raw = B_DOWN_ARROW;
 				BTextView::KeyDown(&raw, 1);
 			}
 			break;
 
 		case 0x0f:						// ^o - open line
-			if (IsEditable())
-			{
+			if (IsEditable()) {
 				GetSelection(&start, &end);
 				Delete();
 
@@ -1123,7 +1097,7 @@ TTextView::KeyDown(const char *key, int32 count)
 						fYankBuffer = NULL;
 					}
 					fLastPosition = start;
-					if (CurrentLine() < (CountLines() - 1)) {
+					if (CurrentLine() < CountLines() - 1) {
 						GoToLine(CurrentLine() + 1);
 						GetSelection(&end, &end);
 						end--;
@@ -1161,7 +1135,7 @@ TTextView::KeyDown(const char *key, int32 count)
 			break;
 
 		case 0x19:						// ^y yank text
-			if ((IsEditable()) && (fYankBuffer)) {
+			if (IsEditable() && fYankBuffer) {
 				Delete();
 				Insert(fYankBuffer);
 				ScrollToSelection();
@@ -1943,7 +1917,7 @@ TTextView::Open(hyper_text *enclosure)
 						strcpy(baseName, enclosure->name ? enclosure->name : "enclosure");
 						strcpy(name, baseName);
 						for (int32 index = 0; dir.Contains(name); index++)
-							sprintf(name, "%s_%ld", baseName, index);
+							sprintf(name, "%s_%" B_PRId32, baseName, index);
 
 						BEntry entry(path.Path());
 						entry_ref ref;
@@ -2256,7 +2230,7 @@ TTextView::AddAsContent(BEmailMessage *mail, bool wrap, uint32 charset, mail_enc
 
 			// add a newline to every line except for the ones
 			// that already end in newlines, and the last line
-			if ((text[endOffset - 1] != '\n') && (i < (numLines - 1))) {
+			if ((text[endOffset - 1] != '\n') && (i < numLines - 1)) {
 				content[contentLength++] = '\n';
 
 				// copy quote level of the first line

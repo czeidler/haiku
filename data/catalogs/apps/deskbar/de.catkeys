@@ -1,21 +1,21 @@
-1	german	x-vnd.Be-TSKB	3197510812
+1	german	x-vnd.Be-TSKB	2335730970
 Power off	DeskbarMenu		Ausschalten
-Show day of week	PreferencesWindow		Wochentag anzeigen
-Edit menu…	PreferencesWindow		Menü bearbeiten…
+Sort applications by name	PreferencesWindow		Laufende Anwendungen sortieren
 Suspend	DeskbarMenu		Ruhezustand
+Hide clock	TimeView		Uhr ausblenden
 Applications	PreferencesWindow		Anwendungen
 Time preferences…	TimeView		Datum & Zeit Einstellungen…
 About Haiku	DeskbarMenu		Über Haiku
+Edit in Tracker…	PreferencesWindow		Im Tracker bearbeiten…
 Recent documents:	PreferencesWindow		Letzte Dokumente:
 Recent applications	DeskbarMenu		Letzte Anwendungen
-Sort running applications	PreferencesWindow		Laufende Anwendungen sortieren
-Show time	Tray		Uhrzeit anzeigen
 Applications	B_USER_DESKBAR_DIRECTORY/Applications		Anwendungen
 Find…	DeskbarMenu		Suchen…
+Show clock	Tray		Uhr anzeigen
 Window	PreferencesWindow		Fenster
+Defaults	PreferencesWindow		Standardwerte
 Menu	PreferencesWindow		Menü
 Recent documents	DeskbarMenu		Letzte Dokumente
-Show seconds	PreferencesWindow		Sekunden anzeigen
 Auto-hide	PreferencesWindow		Automatisch ausblenden
 Always on top	PreferencesWindow		Immer im Vordergrund
 <Deskbar folder is empty>	DeskbarMenu		<Deskbar-Ordner ist leer>
@@ -25,13 +25,13 @@ Deskbar	System name		Deskbar
 Restart system	DeskbarMenu		Neustarten
 Large	PreferencesWindow		Groß
 Auto-raise	PreferencesWindow		Automatisch nach vorn holen
-Hide time	TimeView		Uhrzeit ausblenden
 Recent folders:	PreferencesWindow		Letzte Ordner:
 Show application expander	PreferencesWindow		Expander anzeigen
 Restart Tracker	DeskbarMenu		Tracker neu starten
 Close all	WindowMenu		Alle schließen
 Deskbar preferences	PreferencesWindow		Deskbar-Einstellungen
 Mount	DeskbarMenu		Einhängen
+Revert	PreferencesWindow		Anfangswerte
 Small	PreferencesWindow		Klein
 Recent applications:	PreferencesWindow		Letzte Anwendungen:
 Shutdown…	DeskbarMenu		Herunterfahren…
@@ -44,7 +44,6 @@ Deskbar preferences…	DeskbarMenu		Deskbar-Einstellungen…
 Expand new applications	PreferencesWindow		Neue Anwendungen aufklappen
 Show replicants	DeskbarMenu		Replikanten einblenden
 Hide application names	PreferencesWindow		Anwendungsnamen ausblenden
-Clock	PreferencesWindow		Uhr
 Demos	B_USER_DESKBAR_DIRECTORY/Demos		Demos
 Icon size	PreferencesWindow		Icon-Größe
 Desktop applets	B_USER_DESKBAR_DIRECTORY/Desktop applets		Desktop-Apps

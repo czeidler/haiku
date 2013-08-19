@@ -348,7 +348,7 @@ THeaderView::THeaderView(BRect rect, BRect windowRect, bool incoming,
 				fAccountMenu->AddItem(
 					item = new BMenuItem(B_TRANSLATE("<none>"), NULL));
 				item->SetEnabled(false);
-				fAccountID = ~0UL;
+				fAccountID = ~(int32)0;
 			}
 			// default account is invalid, set to marked
 			// TODO: do this differently, no casting and knowledge
@@ -390,6 +390,19 @@ THeaderView::THeaderView(BRect rect, BRect windowRect, bool incoming,
 			AddChild(fAccount);
 		}
 		y += controlHeight;
+	}
+	
+	if (fIncoming) {
+		--y;
+		r.Set(SEPARATOR_MARGIN, y,
+			windowRect.Width() - SEPARATOR_MARGIN, y + menuFieldHeight);
+		y += controlHeight;
+		fCc = new TTextControl(r, B_TRANSLATE("Cc:"),
+			NULL, fIncoming, false, B_FOLLOW_LEFT_RIGHT);
+		fCc->SetEnabled(false);
+		fCc->SetDivider(x - 12 - SEPARATOR_MARGIN);
+		fCc->SetAlignment(B_ALIGN_RIGHT, B_ALIGN_LEFT);
+		AddChild(fCc);
 	}
 
 	--y;
@@ -723,8 +736,10 @@ THeaderView::LoadMessage(BEmailMessage *mail)
 		if (fBcc != NULL)
 			fBcc->SetEnabled(false);
 
-		if (fCc != NULL)
+		if (fCc != NULL) {
 			fCc->SetEnabled(false);
+			fCc->SetText(mail->CC());
+		}
 
 		if (fAccount != NULL)
 			fAccount->SetEnabled(false);
@@ -734,6 +749,29 @@ THeaderView::LoadMessage(BEmailMessage *mail)
 
 		fSubject->SetEnabled(false);
 		fTo->SetEnabled(false);
+		
+		// show/hide CC field
+		bool haveText = false;
+		if (mail->CC() != NULL && strlen(mail->CC()) > 0) {
+			haveText = true;
+		}
+		bool isHidden = fCc->IsHidden(this);	// hidden relative to parent
+		if (haveText && isHidden) {
+			float diff = fAccountTo->Frame().top - fTo->Frame().top;
+			fSubject->MoveBy(0, diff);
+			fDate->MoveBy(0, diff);
+			fDateLabel->MoveBy(0, diff);
+			fCc->Show();
+			this->ResizeBy(0, diff);
+		}
+		else if (!haveText && !isHidden) {
+			float diff = fAccountTo->Frame().top - fTo->Frame().top;
+			fSubject->MoveBy(0, - diff);
+			fDate->MoveBy(0, - diff);
+			fDateLabel->MoveBy(0, - diff);
+			fCc->Hide();
+			this->ResizeBy(0, - diff);
+		}
 	}
 
 	//	Set Subject: & From: fields
@@ -1055,7 +1093,7 @@ QPopupMenu::AddPersonItem(const entry_ref *ref, ino_t node, BString &name,
 
 	if (!parentMenu->AddItem(newItem, index + 1)) {
 		fprintf (stderr, "QPopupMenu::AddPersonItem: Unable to add menu "
-			"item \"%s\" at index %ld.\n", sortKey.String(), index + 1);
+			"item \"%s\" at index %" B_PRId32 ".\n", sortKey.String(), index + 1);
 		delete newItem;
 	}
 }

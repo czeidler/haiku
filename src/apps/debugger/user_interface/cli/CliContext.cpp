@@ -1,4 +1,5 @@
 /*
+ * Copyright 2012, Rene Gollent, rene@gollent.com.
  * Copyright 2012, Ingo Weinhold, ingo_weinhold@gmx.de.
  * Distributed under the terms of the MIT License.
  */
@@ -9,8 +10,9 @@
 #include <AutoDeleter.h>
 #include <AutoLocker.h>
 
+#include "StackTrace.h"
 #include "UserInterface.h"
-
+#include "ValueNodeManager.h"
 
 // NOTE: This is a simple work-around for EditLine not having any kind of user
 // data field. Hence in _GetPrompt() we don't have access to the context object.
@@ -24,10 +26,11 @@ static CliContext* sCurrentContext;
 
 
 struct CliContext::Event : DoublyLinkedListLinkImpl<CliContext::Event> {
-	Event(int type, Thread* thread = NULL)
+	Event(int type, Thread* thread = NULL, TeamMemoryBlock* block = NULL)
 		:
 		fType(type),
-		fThreadReference(thread)
+		fThreadReference(thread),
+		fMemoryBlockReference(block)
 	{
 	}
 
@@ -41,9 +44,15 @@ struct CliContext::Event : DoublyLinkedListLinkImpl<CliContext::Event> {
 		return fThreadReference.Get();
 	}
 
+	TeamMemoryBlock* GetMemoryBlock() const
+	{
+		return fMemoryBlockReference.Get();
+	}
+
 private:
 	int					fType;
 	BReference<Thread>	fThreadReference;
+	BReference<TeamMemoryBlock> fMemoryBlockReference;
 };
 
 
@@ -55,6 +64,7 @@ CliContext::CliContext()
 	fLock("CliContext"),
 	fTeam(NULL),
 	fListener(NULL),
+	fNodeManager(NULL),
 	fEditLine(NULL),
 	fHistory(NULL),
 	fPrompt(NULL),
@@ -63,7 +73,10 @@ CliContext::CliContext()
 	fEventsOccurred(0),
 	fInputLoopWaiting(false),
 	fTerminating(false),
-	fCurrentThread(NULL)
+	fCurrentThread(NULL),
+	fCurrentStackTrace(NULL),
+	fCurrentStackFrameIndex(-1),
+	fCurrentBlock(NULL)
 {
 	sCurrentContext = this;
 }
@@ -110,6 +123,11 @@ CliContext::Init(Team* team, UserInterfaceListener* listener)
 	el_set(fEditLine, EL_EDITOR, "emacs");
 	el_set(fEditLine, EL_PROMPT, &_GetPrompt);
 
+	fNodeManager = new(std::nothrow) ValueNodeManager();
+	if (fNodeManager == NULL)
+		return B_NO_MEMORY;
+	fNodeManager->AddListener(this);
+
 	return B_OK;
 }
 
@@ -135,6 +153,16 @@ CliContext::Cleanup()
 	if (fTeam != NULL) {
 		fTeam->RemoveListener(this);
 		fTeam = NULL;
+	}
+
+	if (fNodeManager != NULL) {
+		fNodeManager->ReleaseReference();
+		fNodeManager = NULL;
+	}
+
+	if (fCurrentBlock != NULL) {
+		fCurrentBlock->ReleaseReference();
+		fCurrentBlock = NULL;
 	}
 }
 
@@ -168,8 +196,25 @@ CliContext::SetCurrentThread(Thread* thread)
 
 	fCurrentThread = thread;
 
-	if (fCurrentThread != NULL)
+	if (fCurrentStackTrace != NULL) {
+		fCurrentStackTrace->ReleaseReference();
+		fCurrentStackTrace = NULL;
+		fCurrentStackFrameIndex = -1;
+		fNodeManager->SetStackFrame(NULL, NULL);
+	}
+
+	if (fCurrentThread != NULL) {
 		fCurrentThread->AcquireReference();
+		StackTrace* stackTrace = fCurrentThread->GetStackTrace();
+		// if the thread's stack trace has already been loaded,
+		// set it, otherwise we'll set it when we process the thread's
+		// stack trace changed event.
+		if (stackTrace != NULL) {
+			fCurrentStackTrace = stackTrace;
+			fCurrentStackTrace->AcquireReference();
+			SetCurrentStackFrameIndex(0);
+		}
+	}
 }
 
 
@@ -183,6 +228,24 @@ CliContext::PrintCurrentThread()
 			fCurrentThread->Name());
 	} else
 		printf("no current thread\n");
+}
+
+
+void
+CliContext::SetCurrentStackFrameIndex(int32 index)
+{
+	AutoLocker<BLocker> locker(fLock);
+
+	if (fCurrentStackTrace == NULL)
+		return;
+	else if (index < 0 || index >= fCurrentStackTrace->CountFrames())
+		return;
+
+	fCurrentStackFrameIndex = index;
+
+	StackFrame* frame = fCurrentStackTrace->FrameAt(index);
+	if (frame != NULL)
+		fNodeManager->SetStackFrame(fCurrentThread, frame);
 }
 
 
@@ -253,13 +316,32 @@ CliContext::WaitForThreadOrUser()
 
 		if (stoppedThread != NULL) {
 			if (fCurrentThread == NULL)
-				fCurrentThread = stoppedThread;
+				SetCurrentThread(stoppedThread);
 
 			_SignalInputLoop(EVENT_THREAD_STOPPED);
 		}
 
 		uint32 events = _WaitForEvents();
 		if ((events & EVENT_QUIT) != 0 || stoppedThread != NULL) {
+			ProcessPendingEvents();
+			return;
+		}
+	}
+}
+
+
+void
+CliContext::WaitForEvents(int32 eventMask)
+{
+	for (;;) {
+		_PrepareToWaitForEvents(eventMask | EVENT_USER_INTERRUPT);
+		uint32 events = fEventsOccurred;
+		if ((events & eventMask) == 0) {
+			events = _WaitForEvents();
+		}
+
+		if ((events & EVENT_QUIT) != 0 || (events & eventMask) != 0) {
+			_SignalInputLoop(eventMask);
 			ProcessPendingEvents();
 			return;
 		}
@@ -300,6 +382,20 @@ CliContext::ProcessPendingEvents()
 				printf("[thread stopped: %" B_PRId32 " \"%s\"]\n",
 					thread->ID(), thread->Name());
 				break;
+			case EVENT_THREAD_STACK_TRACE_CHANGED:
+				if (thread == fCurrentThread) {
+					fCurrentStackTrace = thread->GetStackTrace();
+					fCurrentStackTrace->AcquireReference();
+					SetCurrentStackFrameIndex(0);
+				}
+				break;
+			case EVENT_TEAM_MEMORY_BLOCK_RETRIEVED:
+				if (fCurrentBlock != NULL) {
+					fCurrentBlock->ReleaseReference();
+					fCurrentBlock = NULL;
+				}
+				fCurrentBlock = event->GetMemoryBlock();
+				break;
 		}
 	}
 }
@@ -332,6 +428,58 @@ CliContext::ThreadStateChanged(const Team::ThreadEvent& threadEvent)
 	_QueueEvent(
 		new(std::nothrow) Event(EVENT_THREAD_STOPPED, threadEvent.GetThread()));
 	_SignalInputLoop(EVENT_THREAD_STOPPED);
+}
+
+
+void
+CliContext::ThreadStackTraceChanged(const Team::ThreadEvent& threadEvent)
+{
+	if (threadEvent.GetThread()->State() != THREAD_STATE_STOPPED)
+		return;
+
+	_QueueEvent(
+		new(std::nothrow) Event(EVENT_THREAD_STACK_TRACE_CHANGED,
+			threadEvent.GetThread()));
+	_SignalInputLoop(EVENT_THREAD_STACK_TRACE_CHANGED);
+}
+
+
+void
+CliContext::MemoryBlockRetrieved(TeamMemoryBlock* block)
+{
+	_QueueEvent(
+		new(std::nothrow) Event(EVENT_TEAM_MEMORY_BLOCK_RETRIEVED,
+			NULL, block));
+	_SignalInputLoop(EVENT_TEAM_MEMORY_BLOCK_RETRIEVED);
+}
+
+
+void
+CliContext::ValueNodeChanged(ValueNodeChild* nodeChild, ValueNode* oldNode,
+	ValueNode* newNode)
+{
+	_SignalInputLoop(EVENT_VALUE_NODE_CHANGED);
+}
+
+
+void
+CliContext::ValueNodeChildrenCreated(ValueNode* node)
+{
+	_SignalInputLoop(EVENT_VALUE_NODE_CHANGED);
+}
+
+
+void
+CliContext::ValueNodeChildrenDeleted(ValueNode* node)
+{
+	_SignalInputLoop(EVENT_VALUE_NODE_CHANGED);
+}
+
+
+void
+CliContext::ValueNodeValueChanged(ValueNode* oldNode)
+{
+	_SignalInputLoop(EVENT_VALUE_NODE_CHANGED);
 }
 
 

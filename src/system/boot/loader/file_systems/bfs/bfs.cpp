@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2009, Axel Dörfler, axeld@pinc-software.de.
+ * Copyright 2003-2013, Axel Dörfler, axeld@pinc-software.de.
  * Distributed under the terms of the MIT License.
  */
 
@@ -12,7 +12,6 @@
 #include <boot/partitions.h>
 #include <boot/platform.h>
 #include <boot/vfs.h>
-#include <util/kernel_cpp.h>
 
 #include "Volume.h"
 #include "Directory.h"
@@ -54,7 +53,7 @@ Volume::Volume(boot::Partition *partition)
 #endif
 	}
 
-	TRACE(("bfs: we do have a valid super block (name = %s)!\n", fSuperBlock.name));
+	TRACE(("bfs: we do have a valid superblock (name = %s)!\n", fSuperBlock.name));
 
 	fRootNode = new(nothrow) BFS::Directory(*this, Root());
 	if (fRootNode == NULL)

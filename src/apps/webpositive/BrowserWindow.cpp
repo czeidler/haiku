@@ -39,6 +39,8 @@
 #include <Catalog.h>
 #include <CheckBox.h>
 #include <Clipboard.h>
+#include <ControlLook.h>
+#include <Debug.h>
 #include <Directory.h>
 #include <Entry.h>
 #include <File.h>
@@ -56,6 +58,7 @@
 #include <Roster.h>
 #include <Screen.h>
 #include <SeparatorView.h>
+#include <Size.h>
 #include <SpaceLayoutItem.h>
 #include <StatusBar.h>
 #include <StringView.h>
@@ -83,6 +86,7 @@
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "WebPositive Window"
+
 
 enum {
 	OPEN_LOCATION								= 'open',
@@ -234,6 +238,81 @@ private:
 	BString		fURLInputContents;
 	int32		fURLInputSelectionStart;
 	int32		fURLInputSelectionEnd;
+};
+
+
+class CloseButton : public BButton {
+public:
+	CloseButton(BMessage* message)
+		:
+		BButton("close button", NULL, message),
+		fOverCloseRect(false)
+	{
+		// Button is 16x16 regardless of font size
+		SetExplicitMinSize(BSize(15, 15));
+		SetExplicitMaxSize(BSize(15, 15));
+	}
+
+	virtual void Draw(BRect updateRect)
+	{
+		BRect frame = Bounds();
+		BRect closeRect(frame.InsetByCopy(4, 4));
+		rgb_color base = ui_color(B_PANEL_BACKGROUND_COLOR);
+		float tint = B_DARKEN_1_TINT;
+
+		if (fOverCloseRect)
+			tint *= 1.4;
+		else
+			tint *= 1.2;
+
+		if (Value() == B_CONTROL_ON && fOverCloseRect) {
+			// Draw the button frame
+			be_control_look->DrawButtonFrame(this, frame, updateRect,
+				base, base, BControlLook::B_ACTIVATED
+					| BControlLook::B_BLEND_FRAME);
+			be_control_look->DrawButtonBackground(this, frame,
+				updateRect, base, BControlLook::B_ACTIVATED);
+			closeRect.OffsetBy(1, 1);
+			tint *= 1.2;
+		} else {
+			SetHighColor(base);
+			FillRect(updateRect);
+		}
+
+		// Draw the ×
+		base = tint_color(base, tint);
+		SetHighColor(base);
+		SetPenSize(2);
+		StrokeLine(closeRect.LeftTop(), closeRect.RightBottom());
+		StrokeLine(closeRect.LeftBottom(), closeRect.RightTop());
+		SetPenSize(1);
+	}
+
+	virtual void MouseMoved(BPoint where, uint32 transit,
+		const BMessage* dragMessage)
+	{
+		switch (transit) {
+			case B_ENTERED_VIEW:
+				fOverCloseRect = true;
+				Invalidate();
+				break;
+			case B_EXITED_VIEW:
+				fOverCloseRect = false;
+				Invalidate();
+				break;
+			case B_INSIDE_VIEW:
+				fOverCloseRect = true;
+				break;
+			case B_OUTSIDE_VIEW:
+				fOverCloseRect = false;
+				break;
+		}
+
+		BButton::MouseMoved(where, transit, dragMessage);
+	}
+
+private:
+	bool fOverCloseRect;
 };
 
 
@@ -424,25 +503,29 @@ BrowserWindow::BrowserWindow(BRect frame, SettingsMessage* appSettings,
 	const float kElementSpacing = 5;
 
 	// Find group
+	fFindCloseButton = new CloseButton(new BMessage(EDIT_HIDE_FIND_GROUP));
 	fFindTextControl = new BTextControl("find", B_TRANSLATE("Find:"), "",
 		new BMessage(EDIT_FIND_NEXT));
 	fFindTextControl->SetModificationMessage(new BMessage(FIND_TEXT_CHANGED));
 	fFindPreviousButton = new BButton(B_TRANSLATE("Previous"),
 		new BMessage(EDIT_FIND_PREVIOUS));
+	fFindPreviousButton->SetToolTip(
+		B_TRANSLATE_COMMENT("Find previous occurrence of search terms",
+			"find bar previous button tooltip"));
 	fFindNextButton = new BButton(B_TRANSLATE("Next"),
 		new BMessage(EDIT_FIND_NEXT));
-	fFindCloseButton = new BButton(B_TRANSLATE("Close"),
-		new BMessage(EDIT_HIDE_FIND_GROUP));
+	fFindNextButton->SetToolTip(
+		B_TRANSLATE_COMMENT("Find next occurrence of search terms",
+			"find bar next button tooltip"));
 	fFindCaseSensitiveCheckBox = new BCheckBox(B_TRANSLATE("Match case"));
 	BGroupLayout* findGroup = BLayoutBuilder::Group<>(B_VERTICAL, 0.0)
 		.Add(new BSeparatorView(B_HORIZONTAL, B_PLAIN_BORDER))
-		.Add(BGroupLayoutBuilder(B_HORIZONTAL, kElementSpacing)
+		.Add(BGroupLayoutBuilder(B_HORIZONTAL, B_USE_SMALL_SPACING)
+			.Add(fFindCloseButton)
 			.Add(fFindTextControl)
 			.Add(fFindPreviousButton)
 			.Add(fFindNextButton)
 			.Add(fFindCaseSensitiveCheckBox)
-			.Add(BSpaceLayoutItem::CreateGlue())
-			.Add(fFindCloseButton)
 			.SetInsets(kInsetSpacing, kInsetSpacing,
 				kInsetSpacing, kInsetSpacing)
 		)
@@ -652,11 +735,10 @@ BrowserWindow::MessageReceived(BMessage* message)
 			BString url;
 			if (message->FindString("url", &url) != B_OK)
 				url = fURLInputGroup->Text();
+
 			_SetPageIcon(CurrentWebView(), NULL);
-			BString newUrl = _SmartURLHandler(url);
-			if (newUrl != url)
-				fURLInputGroup->TextView()->SetText(newUrl);
-			CurrentWebView()->LoadURL(newUrl.String());
+			_SmartURLHandler(url);
+
 			break;
 		}
 		case GO_BACK:
@@ -2148,19 +2230,115 @@ BrowserWindow::_NewTabURL(bool isNewWindow) const
 	return url;
 }
 
-
 BString
-BrowserWindow::_SmartURLHandler(const BString& url) const
+BrowserWindow::_EncodeURIComponent(const BString& search)
 {
-	BString result = url;
+	const BString escCharList = " $&`:<>[]{}\"+#%@/;=?\\^|~\',";
+	BString result = search;
+	char hexcode[4];
 
+	for (int32 i = 0; i < result.Length(); i++) {
+		if (escCharList.FindFirst(result[i]) != B_ERROR) {
+			sprintf(hexcode, "%02X", (unsigned int)result[i]);
+			result[i] = '%';
+			result.Insert(hexcode, i + 1);
+			i += 2;
+		}
+	}
+
+	return result;
+}
+
+
+void
+BrowserWindow::_VisitURL(const BString& url)
+{
+	//fURLInputGroup->TextView()->SetText(url);
+	CurrentWebView()->LoadURL(url.String());
+}
+
+
+void
+BrowserWindow::_VisitSearchEngine(const BString& search)
+{
+	// TODO: Google Code-In Task to make default search
+	//			engine modifiable from Settings? :)
+
+	BString engine = "http://www.google.com/search?q=";
+	engine += _EncodeURIComponent(search);
+		// We have to take care of some of the escaping before
+		// we hand over the string to WebKit, if we want queries
+		// like "4+3" to not be searched as "4 3".
+
+	_VisitURL(engine);
+}
+
+
+inline bool
+BrowserWindow::_IsValidDomainChar(char ch)
+{
+	// TODO: Currenlty, only a whitespace character
+	//			breaks a domain name. It might be
+	//			a good idea (or a bad one) to make
+	//			character filtering based on the
+	//			IDNA 2008 standard.
+
+	return ch != ' ';
+}
+
+
+void
+BrowserWindow::_SmartURLHandler(const BString& url)
+{
 	// Only process if this doesn't look like a full URL (http:// or
 	// file://, etc.)
-	if (url.FindFirst("://") == B_ERROR) {
-		if (url.FindFirst(".") == B_ERROR || url.FindFirst(" ") != B_ERROR)
-			result.Prepend("http://www.google.com/search?q=");
+
+	BString temp;
+	int32 at = url.FindFirst(":");
+
+	if (at != B_ERROR) {
+		BString proto;
+		url.CopyInto(proto, 0, at);
+
+		if (proto == "http" || 	proto == "https" ||	proto == "file")
+			_VisitURL(url);
+		else {
+			temp = "application/x-vnd.Be.URL.";
+			temp += proto;
+
+			char* argv[1] = { (char*)url.String() };
+
+			if (be_roster->Launch(temp.String(), 1, argv) != B_OK)
+				_VisitSearchEngine(url);
+		}
+	} else if (url == "localhost")
+		_VisitURL("http://localhost/");
+	else {
+		const char* localhostPrefix = "localhost/";
+
+		if(url.Compare(localhostPrefix, strlen(localhostPrefix)) == 0)
+			_VisitURL(url);
+		else {
+			bool isURL = false;
+
+			for (int32 i = 0; i < url.CountChars(); i++) {
+				if (url[i] == '.')
+					isURL = true;
+				else if (url[i] == '/')
+					break;
+				else if (!_IsValidDomainChar(url[i])) {
+					isURL = false;
+
+					break;
+				}
+			}
+
+			if (isURL)
+				_VisitURL(url);
+			else
+				_VisitSearchEngine(url);
+		}
 	}
-	return result;
 }
 
 
@@ -2237,5 +2415,3 @@ BrowserWindow::_HandlePageSourceResult(const BMessage* message)
 		alert->Go(NULL);
 	}
 }
-
-

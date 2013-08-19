@@ -106,9 +106,7 @@ BTitledColumn::FontHeight() const
 float
 BTitledColumn::GetPreferredWidth(BField *_field, BView* parent) const
 {
-	BFont font;
-	parent->GetFont(&font);
-	return font.StringWidth(fTitle.String()) + 2 * kTEXT_MARGIN;
+	return parent->StringWidth(fTitle.String()) + 2 * kTEXT_MARGIN;
 }
 
 
@@ -161,6 +159,13 @@ BStringField::SetClippedString(const char* val)
 }
 
 
+bool
+BStringField::HasClippedString() const
+{
+	return !fClippedString.IsEmpty();
+}
+
+
 const char*
 BStringField::ClippedString()
 {
@@ -184,17 +189,22 @@ BStringColumn::DrawField(BField* _field, BRect rect, BView* parent)
 {
 	float width = rect.Width() - (2 * kTEXT_MARGIN);
 	BStringField* field = static_cast<BStringField*>(_field);
-	bool clipNeeded = width < field->Width();
+	float fieldWidth = field->Width();
+	bool updateNeeded = width != fieldWidth;
 
-	if (clipNeeded) {
+	if (updateNeeded) {
 		BString out_string(field->String());
-
-		parent->TruncateString(&out_string, fTruncate, width + 2);
-		field->SetClippedString(out_string.String());
+		float preferredWidth = parent->StringWidth(out_string.String());
+		if (width < preferredWidth) {
+			parent->TruncateString(&out_string, fTruncate, width + 2);
+			field->SetClippedString(out_string.String());
+		} else
+			field->SetClippedString("");
 		field->SetWidth(width);
 	}
 
-	DrawString(clipNeeded ? field->ClippedString() : field->String(), parent, rect);
+	DrawString(field->HasClippedString() ? field->ClippedString()
+			: field->String(), parent, rect);
 }
 
 
@@ -202,11 +212,7 @@ float
 BStringColumn::GetPreferredWidth(BField *_field, BView* parent) const
 {
 	BStringField* field = static_cast<BStringField*>(_field);
-	BFont font;
-	parent->GetFont(&font);
-	float width = font.StringWidth(field->String()) + 2 * kTEXT_MARGIN;
-	float parentWidth = BTitledColumn::GetPreferredWidth(_field, parent);
-	return max_c(width, parentWidth);
+	return parent->StringWidth(field->String()) + 2 * kTEXT_MARGIN;
 }
 
 

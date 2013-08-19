@@ -38,6 +38,9 @@ All rights reserved.
 
 #include <Application.h>
 
+#include "BarSettings.h"
+
+
 /* ------------------------------------ */
 // Private app_server defines that I need to use
 
@@ -68,102 +71,95 @@ const uint32 kSuspendSystem = 304;
 const int32 kMinimumIconSize = 16;
 const int32 kMaximumIconSize = 96;
 const int32 kIconSizeInterval = 8;
+const int32 kIconCacheCount = (kMaximumIconSize - kMinimumIconSize)
+	/ kIconSizeInterval + 1;
+
+// update preferences message constant
+const uint32 kUpdatePreferences = 'Pref';
 
 /* --------------------------------------------- */
 
-struct desk_settings {
-	bool vertical;
-	bool left;
-	bool top;
-	bool showSeconds;
-	bool showDayOfWeek;
-	uint32 state;
-	float width;
-	BPoint switcherLoc;
-	int32 recentAppsCount;
-	int32 recentDocsCount;
-	bool timeShowSeconds;
-	int32 recentFoldersCount;
-	bool alwaysOnTop;
-	bool timeFullDate;
-	bool trackerAlwaysFirst;
-	bool sortRunningApps;
-	bool superExpando;
-	bool expandNewTeams;
-	bool hideLabels;
-	int32 iconSize;
-	bool autoRaise;
-	bool autoHide;
-	bool recentAppsEnabled;
-	bool recentDocsEnabled;
-	bool recentFoldersEnabled;
-};
-
+class BBitmap;
 class BFile;
 class BList;
-class BBitmap;
 class PreferencesWindow;
 class TBarView;
 class TBarWindow;
 
-
 class BarTeamInfo {
 public:
-	BarTeamInfo(BList* teams, uint32 flags, char* sig, BBitmap* icon,
-				char* name);
-	BarTeamInfo(const BarTeamInfo &info);
-	~BarTeamInfo();
+									BarTeamInfo(BList* teams, uint32 flags,
+										char* sig, BBitmap* icon, char* name);
+									BarTeamInfo(const BarTeamInfo &info);
+									~BarTeamInfo();
 
-	BList* teams;
-	uint32 flags;
-	char* sig;
-	BBitmap* icon;
-	char* name;
+private:
+			void					_Init();
+
+public:
+			BList*					teams;
+			uint32					flags;
+			char*					sig;
+			BBitmap*				icon;
+			char*					name;
+			BBitmap*				iconCache[kIconCacheCount];
 };
-
 
 class TBarApp : public BApplication {
-	public:
-		TBarApp();
-		virtual ~TBarApp();
+public:
+									TBarApp();
+	virtual							~TBarApp();
 
-		virtual bool QuitRequested();
-		virtual void MessageReceived(BMessage* message);
-		virtual void RefsReceived(BMessage* refs);
+	virtual	bool					QuitRequested();
+	virtual	void					MessageReceived(BMessage* message);
+	virtual	void					RefsReceived(BMessage* refs);
 
-		desk_settings* Settings() { return &fSettings; }
-		TBarView* BarView() const { return fBarView; }
-		TBarWindow* BarWindow() const { return fBarWindow; }
+			desk_settings*			Settings() { return &fSettings; }
+			desk_settings*			DefaultSettings()
+										{ return &fDefaultSettings; }
+			clock_settings*			ClockSettings() { return &fClockSettings; }
 
-		static void Subscribe(const BMessenger &subscriber, BList*);
-		static void Unsubscribe(const BMessenger &subscriber);
-		int32 IconSize();
+			TBarView*				BarView() const { return fBarView; }
+			TBarWindow*				BarWindow() const { return fBarWindow; }
 
-	private:
-		void AddTeam(team_id team, uint32 flags, const char* sig, entry_ref*);
-		void RemoveTeam(team_id);
+	static	void					Subscribe(const BMessenger &subscriber,
+										BList*);
+	static	void					Unsubscribe(const BMessenger &subscriber);
 
-		void InitSettings();
-		void SaveSettings();
+			int32					IconSize();
 
-		void ShowPreferencesWindow();
-		void ResizeTeamIcons();
-		void FetchAppIcon(const char* signature, BBitmap* icon);
-		BRect IconRect();
+private:
+			void					AddTeam(team_id team, uint32 flags,
+										const char* sig, entry_ref*);
+			void					RemoveTeam(team_id);
 
-		TBarWindow* fBarWindow;
-		TBarView*	fBarView;
-		BMessenger fSwitcherMessenger;
-		BMessenger fStatusViewMessenger;
-		BFile* fSettingsFile;
-		desk_settings fSettings;
+			void					InitSettings();
+			void					SaveSettings();
 
-		PreferencesWindow* fPreferencesWindow;
+			void					ShowPreferencesWindow();
+			void					QuitPreferencesWindow();
 
-		static BLocker sSubscriberLock;
-		static BList sBarTeamInfoList;
-		static BList sSubscribers;
+			void					ResizeTeamIcons();
+			void					FetchAppIcon(BarTeamInfo* barInfo);
+
+			BRect					IconRect();
+
+private:
+			TBarWindow*				fBarWindow;
+			TBarView*				fBarView;
+			BMessenger				fSwitcherMessenger;
+			BMessenger				fStatusViewMessenger;
+			BFile*					fSettingsFile;
+			BFile*					fClockSettingsFile;
+			desk_settings			fSettings;
+			desk_settings			fDefaultSettings;
+			clock_settings			fClockSettings;
+			PreferencesWindow*		fPreferencesWindow;
+
+	static	BLocker					sSubscriberLock;
+	static	BList					sBarTeamInfoList;
+	static	BList					sSubscribers;
 };
 
 
-#endif	/* BAR_APP_H */
+#endif	// BAR_APP_H

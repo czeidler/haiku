@@ -25,7 +25,7 @@ const uint32 MENU_NEW					= 'MFnw';
 const uint32 MENU_OPEN					= 'MFop';
 const uint32 MENU_SAVE					= 'MSav';
 const uint32 MENU_SAVEAS				= 'MEsa';
-const uint32 MENU_REVERT				= 'MFre';
+const uint32 MENU_RELOAD				= 'MFrl';
 const uint32 MENU_CLOSE					= 'MFcl';
 const uint32 MENU_PAGESETUP				= 'MFps';
 const uint32 MENU_PRINT					= 'MFpr';
@@ -78,8 +78,10 @@ const uint32 OPEN_AS_ENCODING			= 'FPoe';
 const uint32 SAVE_AS_ENCODING			= 'FPse';
 const uint32 SAVE_THEN_QUIT				= 'FPsq';
 
-// Update Line Info
-const uint32 UPDATE_LINE				= 'UPln';
+// Update StatusView
+const uint32 UPDATE_STATUS				= 'UPSt';
+const uint32 UNLOCK_FILE				= 'UNLk';
+const uint32 UPDATE_LINE_SELECTION		= 'UPls';
 
 #endif	// CONSTANTS_H
 

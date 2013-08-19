@@ -1,4 +1,4 @@
-1	dutch; flemish	x-vnd.Be-MAIL	849531913
+1	dutch; flemish	x-vnd.Be-MAIL	2646020355
 View	Mail		Bekijken
 %d - Date	Mail		%d - Datum
 Attach attributes:	Mail		Attributen bijvoegen:
@@ -25,8 +25,8 @@ Beginner	Mail		Beginner
 Don't save	Mail		Niet opslaan
 Expert	Mail		Expert
 Reply account:	Mail		Antwoordaccount:
-Discard	Mail		Verwerpen
 Message	Mail		Bericht
+Settings…	Mail		Instellingen…
 Reply to sender	Mail		Afzender beantwoorden
 There is no installed handler for URL links.	Mail		Er is geen toepassing voor het openen van URL-links.
 Signature	Mail		Onderschrift
@@ -81,6 +81,7 @@ Only files can be added as attachments.	Mail		Alleen bestanden kunnen bijlagen w
 Previous message	Mail		Vorig bericht
 Attachments:	Mail		Bijlagen: 
 Title:	Mail		Titel:
+<no account found>	Mail		<geen account gevonden>
 Find…	Mail		Zoeken...
 Accounts…	Mail		Accounts…
 Mail preferences	Mail		Mailvoorkeuren
@@ -117,7 +118,6 @@ Remove enclosure	Mail		Bijlage verwijderen
 Account:	Mail		Account:
 Decoding:	Mail		Bezig met decoderen:
 Sorry, could not find an application that supports the 'Person' data type.	Mail		Sorry, kon geen toepassing vinden die het 'Person'-datatype ondersteunt.
-Do you wish to send this message before closing?	Mail		Wilt u dit bericht versturen voordat u afsluit?
 Delete	Mail		Verwijderen
 Leave as '%s'	Mail		Behouden als '%s'
 Copy	Mail		Kopiëren
@@ -133,7 +133,6 @@ Font:	Mail		Lettertype:
 (Address unavailable)	Mail		(Adres niet beschikbaar)
 Save address	Mail		Adres opslaan
 Queries	Mail		Zoektermen
-Do you wish to save this message as a draft before closing?	Mail		Wilt u dit bericht als concept opslaan voordat u afsluit?
 Save	Mail		Opslaan
 Random	Mail		Willekeurig
 Close and 	Mail		Sluiten en

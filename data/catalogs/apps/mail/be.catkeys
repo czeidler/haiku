@@ -1,8 +1,8 @@
-1	belarusian	x-vnd.Be-MAIL	3337401776
+1	belarusian	x-vnd.Be-MAIL	233997769
 View	Mail		Агляд
 %d - Date	Mail		%d - Дата
 Attach attributes:	Mail		Атрыбуты ўкладання:
-Inconsistency occurred in the undo/redo buffer.	Mail		Неадпаведнасць ў чарзе аперацый паўтора/адмены
+Inconsistency occurred in the undo/redo buffer.	Mail		Неадпаведнасць ў чарзе аперацый паўтора/адмены.
 An error occurred trying to save the attachment.	Mail		Немагчыма захаваць гэтае ўкладанне.
 Copy to new	Mail		Капіраваць як новае
 Leave as 'New'	Mail	Do not translate New - this is non-localizable e-mail status	Пакінуць як 'Новы'
@@ -10,9 +10,10 @@ Edit	Mail		Правіць
 Print	Mail		Друкаваць
 <none>	Mail		<няма>
 New mail message	Mail		Новае паведамленне
+Untitled	Mail		Без назвы
 Automatic	Mail		Аўтаматычна
 Automatically mark mail as read:	Mail		Аўтаматычна пазначаць паведамленні як прачытаныя:
-helpful message	Mail		Карыснае паведамленне
+helpful message	Mail		карыснае паведамленне
 Colored quotes:	Mail		Каляровыя цытаты:
 Subject:	Mail		Тэма:
 Reply to all	Mail		Адкзаць усім
@@ -25,18 +26,17 @@ Beginner	Mail		Спрошчаны
 Don't save	Mail		Не захоўваць
 Expert	Mail		Поўны
 Reply account:	Mail		Акаунт для адказаў:
-Discard	Mail		Адхіліць
 Message	Mail		Паведамленне
 Settings…	Mail		Наладкі…
 Reply to sender	Mail		Адказаць адпраўніку
 There is no installed handler for URL links.	Mail		Апрацоўшчык URL спасылак не ўсталяваны.
 Signature	Mail		Подпіс
 Find again	Mail		Шукаць далей
-Bcc:	Mail		Bcc:
+Bcc:	Mail		Скрытая копія:
 Your main text contains %ld unencodable characters. Perhaps a different character set would work better? Hit Send to send it anyway (a substitute character will be used in place of the unencodable ones), or choose Cancel to go back and try fixing it up.	Mail		Ваша паведамленне месціць %ld літар якія адсутнічаюць у выбранай кадоўцы. Нягледзячы на гэта вы маеце магчымасць Даслаць яго (у такім разе адсутныя літары будуць заменены на больш стасуючыя), ці Адмяніць перасылку ды вярнуцца і правіць гэтае паведамленне далей. Магчыма іншая кадоўка дапаможа даслаць паведамленне ў зыходным выглядзе.
 Signature:	Mail		Подпіс:
 Save changes to this signature?	Mail		Захаваць змены подпісу?
-Cc:	Mail		Cc:
+Cc:	Mail		Копія:
 Off	Mail		Адключыць
 Find	Mail		Шукаць
 Undo	Mail		Вярнуць
@@ -63,7 +63,7 @@ Print…	Mail		Друкаваць…
 Warn unencodable:	Mail		Правяраць кадоўку:
 Quit	Mail		Выйсці
 %n - Full name	Mail		%n - Поўнае імя
- Read 	Mail		Чытаць
+ Read 	Mail		 Чытаць 
 UTF-8	Mail	This string is used as a key to set default message compose encoding. It must be correct IANA name from http://cgit.haiku-os.org/haiku/tree/src/kits/textencoding/character_sets.cpp Translate it only if you want to change default message compose encoding for your locale. If you don't know what is it and why it may needs changing, just leave \"UTF-8\".	cp1251
 Trash	Mail		Сметніца
 Default account:	Mail		Прадвызначаны акаунт:
@@ -71,7 +71,7 @@ Size:	Mail		Памер:
 Account from mail	Mail		Акаунт з паведамлення
 Edit signatures…	Mail		Праўка подпісаў…
 New	Mail		Новае
-Attachments: 	Mail		Укладаньні
+Attachments: 	Mail		Укладаньні: 
 On	Mail		Уключыць
 Set to %s	Mail		Паставіць у %s
 Forward	Mail		Пераслаць
@@ -80,8 +80,9 @@ E-mail draft could not be saved!	Mail		Немагчыма захаваць па�
 To:	Mail		Каму:
 Only files can be added as attachments.	Mail		Можна ўкладаць толькі файлы.
 Previous message	Mail		Папярэдняе паведамленне
-Attachments:	Mail		Укладанні: 
+Attachments:	Mail		Укладанні:
 Title:	Mail		Загаловак:
+<no account found>	Mail		<рахунак ня знойдзены>
 Find…	Mail		Знайсці…
 Accounts…	Mail		Акаунты…
 Mail preferences	Mail		Наладкі Пошты
@@ -106,6 +107,7 @@ Close	Mail		Закрыць
 No matches	Mail		Няма супадзенняў
 The mail_daemon is not running. The message is queued and will be sent when the mail_daemon is started.	Mail		Сервіс mail_daemon не актыўны. Паведамленне будзе пастаўлена ў чаргу і дасланае пасля таго як гэты сервіс будзе запушчаны наноў.
 Really delete this signature? This cannot be undone.	Mail		Сапраўды жадаеце знішчыць подпіс? Гэтую аперацыю немагчыма адмяніць.
+Save this message as a draft before closing?	Mail		Захаваць гэты ліст як чарнавік?
 Open	Mail		Адкрыць
 draft	B_USER_DIRECTORY/mail/draft		чарнавік
 Quote	Mail		Цытата
@@ -118,8 +120,8 @@ Remove enclosure	Mail		Выдаліць укладанне
 Account:	Mail		Акаунт:
 Decoding:	Mail		Кадаванне:
 Sorry, could not find an application that supports the 'Person' data type.	Mail		Выбачайце, але мне не ўдалося знайсці праграму якая можа працаваць с дадзенымі тыпу 'Person'.
-Do you wish to send this message before closing?	Mail		Жадаеце даслаць гэтае паведамленне да таго як закрыеце яго?
 Delete	Mail		Выдаліць
+Don't send	Mail		Не дасылаць
 Leave as '%s'	Mail		Пакінуць як '%s'
 Copy	Mail		Капіяваць
 Mail couldn't find its dictionary.	Mail		Немагчыма знайсці слоўнік.
@@ -134,10 +136,10 @@ Font:	Mail		Шрыфт:
 (Address unavailable)	Mail		(Адрэс невядомы)
 Save address	Mail		Захаваць адрас
 Queries	Mail		Запыты
-Do you wish to save this message as a draft before closing?	Mail		Жадаеце захаваць паведамленне ў чарнавіках да таго як закрыеце яго?
+Send this message before closing?	Mail		Даслаць гэты ліст зараз?
 Save	Mail		Захаваць
 Random	Mail		Выпадковы
-Close and 	Mail		Закрыць ды
+Close and 	Mail		Закрыць ды 
 Save as draft	Mail		Захаваць у чарнавіках
 The mail_daemon could not be started:\n\t	Mail		Сервер mail_daemon ня можа быць запушчаны:\n\t
 Open attachment	Mail		Адкрыць укладанне

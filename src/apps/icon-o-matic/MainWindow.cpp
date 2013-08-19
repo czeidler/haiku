@@ -176,7 +176,7 @@ MainWindow::MessageReceived(BMessage* message)
 
 	if (message->WasDropped()) {
 		const rgb_color* color;
-		int32 length;
+		ssize_t length;
 		// create styles from dropped colors
 		for (int32 i = 0; message->FindData("RGBColor", B_RGB_COLOR_TYPE, i, 
 			(const void**)&color, &length) == B_OK; i++) {
@@ -1274,17 +1274,21 @@ MainWindow::_CheckSaveIcon(const BMessage* currentMessage)
 	Activate();
 
 	BAlert* alert = new BAlert("save", 
-		B_TRANSLATE("Save changes to current icon?"), B_TRANSLATE("Discard"),
-			B_TRANSLATE("Cancel"), B_TRANSLATE("Save"));
+		B_TRANSLATE("Save changes to current icon before closing?"),
+			B_TRANSLATE("Cancel"), B_TRANSLATE("Don't save"),
+			B_TRANSLATE("Save"), B_WIDTH_AS_USUAL,	B_OFFSET_SPACING,
+			B_WARNING_ALERT);
 	alert->SetShortcut(0, B_ESCAPE);
+	alert->SetShortcut(1, 'd');
+	alert->SetShortcut(2, 's');
 	int32 choice = alert->Go();
 	switch (choice) {
 		case 0:
-			// discard
-			return true;
-		case 1:
 			// cancel
 			return false;
+		case 1:
+			// don't save
+			return true;
 		case 2:
 		default:
 			// cancel (save first) but pick up what we were doing before

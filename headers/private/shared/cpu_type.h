@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2012, Axel Dörfler, axeld@pinc-software.de.
+ * Copyright 2004-2013, Axel Dörfler, axeld@pinc-software.de.
  * Distributed under the terms of the MIT License.
  */
 
@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <OS.h>
 
@@ -18,7 +19,7 @@ extern "C" {
 #endif
 
 const char *get_cpu_vendor_string(enum cpu_types type);
-const char *get_cpu_model_string(system_info *info);
+const char *get_cpu_model_string(const system_info *info);
 void get_cpu_type(char *vendorBuffer, size_t vendorSize,
 		char *modelBuffer, size_t modelSize);
 int32 get_rounded_cpu_speed(void);
@@ -28,7 +29,7 @@ int32 get_rounded_cpu_speed(void);
 #endif
 
 
-#if __INTEL__
+#if defined(__INTEL__) || defined(__x86_64__)
 /*!	Tries to parse an Intel CPU ID string to match our usual naming scheme.
 	Note, this function is not thread safe, and must only be called once
 	at a time.
@@ -77,6 +78,90 @@ parse_intel(const char* name)
 	buffer[outIndex] = '\0';
 	return buffer;
 }
+
+
+static const char*
+parse_amd(const char* name)
+{
+	static char buffer[49];
+
+	// ignore initial spaces
+	int index = 0;
+	for (; name[index] != '\0'; index++) {
+		if (name[index] != ' ')
+			break;
+	}
+
+	// Keep an initial "mobile"
+	int outIndex = 0;
+	bool spaceWritten = false;
+	if (!strncasecmp(&name[index], "Mobile ", 7)) {
+		strcpy(buffer, "Mobile ");
+		spaceWritten = true;
+		outIndex += 7;
+		index += 7;
+	}
+
+	// parse model
+	for (; name[index] != '\0'; index++) {
+		if (!strncasecmp(&name[index], "(r)", 3)) {
+			outIndex += strlcpy(&buffer[outIndex], "®",
+				sizeof(buffer) - outIndex);
+			index += 2;
+		} else if (!strncasecmp(&name[index], "(tm)", 4)) {
+			outIndex += strlcpy(&buffer[outIndex], "™",
+				sizeof(buffer) - outIndex);
+			index += 3;
+		} else if (!strncmp(&name[index], "with ", 5)
+			|| !strncmp(&name[index], "/w", 2)) {
+			// Cut off the rest
+			break;
+		} else if (name[index] == '-') {
+			if (!spaceWritten)
+				buffer[outIndex++] = ' ';
+			spaceWritten = true;
+		} else {
+			const char* kWords[] = {
+				"Eight-core", "6-core", "Six-core", "Quad-core", "Dual-core",
+				"Dual core", "Processor", "APU", "AMD", "Intel", "Integrated",
+				"CyrixInstead", "Advanced Micro Devices", "Comb", "DualCore",
+				"Technology", "Mobile", "Triple-Core"
+			};
+			bool removed = false;
+			for (size_t i = 0; i < sizeof(kWords) / sizeof(kWords[0]); i++) {
+				size_t length = strlen(kWords[i]);
+				if (!strncasecmp(&name[index], kWords[i], length)) {
+					index += length - 1;
+					removed = true;
+					break;
+				}
+			}
+			if (removed)
+				continue;
+
+			if (name[index] == ' ') {
+				if (spaceWritten)
+					continue;
+				spaceWritten = true;
+			} else
+				spaceWritten = false;
+			buffer[outIndex++] = name[index];
+		}
+	}
+
+	// cut off trailing spaces
+	while (outIndex > 1 && buffer[outIndex - 1] == ' ')
+		outIndex--;
+
+	buffer[outIndex] = '\0';
+
+	// skip new initial spaces
+	for (outIndex = 0; buffer[outIndex] != '\0'; outIndex++) {
+		if (buffer[outIndex] != ' ')
+			break;
+	}
+	return buffer + outIndex;
+}
 #endif
 
 
@@ -87,7 +172,7 @@ get_cpu_vendor_string(enum cpu_types type)
 	/* We're not that nice here. */
 	return "IBM/Motorola";
 #endif
-#if __INTEL__
+#if defined(__INTEL__) || defined(__x86_64__)
 	/* Determine x86 vendor name */
 	switch (type & B_CPU_x86_VENDOR_MASK) {
 		case B_CPU_INTEL_x86:
@@ -113,7 +198,7 @@ get_cpu_vendor_string(enum cpu_types type)
 }
 
 
-#ifdef __INTEL__
+#if defined(__INTEL__) || defined(__x86_64__)
 /*! Parameter 'name' needs to point to an allocated array of 49 characters. */
 void
 get_cpuid_model_string(char *name)
@@ -168,16 +253,16 @@ get_cpuid_model_string(char *name)
 		}
 	}
 }
-#endif	/* __INTEL__ */
+#endif	/* __INTEL__ || __x86_64__ */
 
 
 const char *
-get_cpu_model_string(system_info *info)
+get_cpu_model_string(const system_info *info)
 {
-#if __INTEL__
+#if defined(__INTEL__) || defined(__x86_64__)
 	char cpuidName[49];
 		/* for use with get_cpuid_model_string() */
-#endif	/* __INTEL__ */
+#endif	/* __INTEL__ || __x86_64__ */
 
 	/* Determine CPU type */
 	switch (info->cpu_type) {
@@ -195,7 +280,7 @@ get_cpu_model_string(system_info *info)
 		default:
 			return NULL;
 #endif	/* __POWERPC__ */
-#if __INTEL__
+#if defined(__INTEL__) || defined(__x86_64__)
 		case B_CPU_x86:
 			return "Unknown x86";
 
@@ -349,7 +434,8 @@ get_cpu_model_string(system_info *info)
 			return "C-Series";
 		case B_CPU_AMD_E_SERIES:
 			return "E-Series";
-		case B_CPU_AMD_FX_SERIES:
+		case B_CPU_AMD_FX_SERIES_MODEL_1:
+		case B_CPU_AMD_FX_SERIES_MODEL_2:
 			return "FX-Series";
 
 		/* Transmeta */
@@ -404,8 +490,13 @@ get_cpu_model_string(system_info *info)
 				get_cpuid_model_string(cpuidName);
 				return parse_intel(cpuidName);
 			}
+			if ((info->cpu_type & B_CPU_x86_VENDOR_MASK) == B_CPU_AMD_x86) {
+				// Fallback to manual parsing of the model string
+				get_cpuid_model_string(cpuidName);
+				return parse_amd(cpuidName);
+			}
 			return NULL;
-#endif	/* __INTEL__ */
+#endif	/* __INTEL__ || __x86_64__ */
 	}
 }
 

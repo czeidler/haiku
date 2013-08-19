@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009, Haiku, Inc. All rights reserved.
+ * Copyright 2002-2012, Haiku, Inc. All rights reserved.
  * Copyright 2002, François Revol, revol@free.fr.
  * This file is distributed under the terms of the MIT License.
  *
@@ -11,7 +11,7 @@
  */
 
 
-#include <Alert.h>
+#include <AboutWindow.h>
 #include <Application.h>
 #include <Catalog.h>
 #include <Deskbar.h>
@@ -400,28 +400,31 @@ WorkspacesView::Archive(BMessage* archive, bool deep) const
 void
 WorkspacesView::_AboutRequested()
 {
-	BString text = B_TRANSLATE("Workspaces\n"
-		"written by %1, and %2.\n\n"
-		"Copyright %3, Haiku.\n\n"
-		"Send windows behind using the Option key. "
-		"Move windows to front using the Control key.\n");
-	text.ReplaceFirst("%1", "François Revol, Axel Dörfler");
-	text.ReplaceFirst("%2", "Matt Madia");
-	text.ReplaceFirst("%3", "2002-2008");
-		
-	BAlert *alert = new BAlert("about", text.String(), B_TRANSLATE("OK"));
-	BTextView *view = alert->TextView();
-	BFont font;
+	BAboutWindow* window = new BAboutWindow(
+		B_TRANSLATE_SYSTEM_NAME("Workspaces"), kSignature);
 
-	view->SetStylable(true);
+	const char* authors[] = {
+		"Axel Dörfler",
+		"Oliver \"Madison\" Kohl",
+		"Matt Madia",
+		"François Revol",
+		NULL
+	};
 
-	view->GetFont(&font);
-	font.SetSize(18);
-	font.SetFace(B_BOLD_FACE);
-	view->SetFontAndColor(0, 10, &font);
+	const char* extraCopyrights[] = {
+		"2002 François Revol",
+		NULL
+	};
 
-	alert->SetFlags(alert->Flags() | B_CLOSE_ON_ESCAPE);
-	alert->Go();
+	const char* extraInfo = "Send windows behind using the Option key. "
+		"Move windows to front using the Control key.\n";
+
+	window->AddCopyright(2002, "Haiku, Inc.",
+			extraCopyrights);
+	window->AddAuthors(authors);
+	window->AddExtraInfo(extraInfo);
+
+	window->Show();
 }
 
 

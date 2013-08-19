@@ -1,9 +1,10 @@
 /*
- * Copyright 2011, Haiku, Inc. All Rights Reserved.
+ * Copyright 2011-2013, Haiku, Inc. All Rights Reserved.
  * Distributed under the terms of the MIT License.
  *
  * Authors:
  *		Alexander von Gluck IV, kallisti5@unixzen.com
+ *		Bill Randle, billr@neocat.org
  */
 
 
@@ -14,6 +15,7 @@
 #include "accelerant_protos.h"
 #include "connector.h"
 #include "mode.h"
+#include "edid.h"
 
 
 #undef TRACE
@@ -178,20 +180,26 @@ dpcd_reg_read(uint32 hwPin, uint16 address)
 
 
 status_t
-dp_aux_get_i2c_byte(uint32 hwPin, uint16 address, uint8* data, bool end)
+dp_aux_get_i2c_byte(uint32 hwPin, uint16 address, uint8* data, bool start, bool stop)
 {
 	uint8 auxMessage[5];
 	int auxMessageBytes = 4; // 4 for read
 
 	/* Set up the command byte */
 	auxMessage[2] = AUX_I2C_READ << 4;
-	if (end == false)
+	if (stop == false)
 		auxMessage[2] |= AUX_I2C_MOT << 4;
 
 	auxMessage[0] = address;
 	auxMessage[1] = address >> 8;
 
 	auxMessage[3] = auxMessageBytes << 4;
+
+	/* special case for sending the START or STOP */
+	if (start || stop) {
+		auxMessage[3] = 3 << 4;
+		auxMessageBytes = 4;
+	}
 
 	int retry;
 	for (retry = 0; retry < 4; retry++) {
@@ -249,14 +257,14 @@ dp_aux_get_i2c_byte(uint32 hwPin, uint16 address, uint8* data, bool end)
 
 
 status_t
-dp_aux_set_i2c_byte(uint32 hwPin, uint16 address, uint8* data, bool end)
+dp_aux_set_i2c_byte(uint32 hwPin, uint16 address, uint8* data, bool start, bool stop)
 {
 	uint8 auxMessage[5];
 	int auxMessageBytes = 5; // 5 for write
 
 	/* Set up the command byte */
 	auxMessage[2] = AUX_I2C_WRITE << 4;
-	if (end == false)
+	if (stop == false)
 		auxMessage[2] |= AUX_I2C_MOT << 4;
 
 	auxMessage[0] = address;
@@ -264,6 +272,12 @@ dp_aux_set_i2c_byte(uint32 hwPin, uint16 address, uint8* data, bool end)
 
 	auxMessage[3] = auxMessageBytes << 4;
 	auxMessage[4] = *data;
+
+	/* special case for sending the START or STOP */
+	if (start || stop) {
+		auxMessage[3] = 3 << 4;
+		auxMessageBytes = 4;
+	}
 
 	int retry;
 	for (retry = 0; retry < 4; retry++) {
@@ -328,8 +342,8 @@ dp_get_lane_count(uint32 connectorIndex, display_mode* mode)
 
 	size_t pixelChunk;
 	size_t pixelsPerChunk;
-	status_t result = get_pixel_size_for((color_space)mode->space, &pixelChunk,
-		NULL, &pixelsPerChunk);
+	status_t result = dp_get_pixel_size_for((color_space)mode->space,
+		&pixelChunk, NULL, &pixelsPerChunk);
 
 	if (result != B_OK) {
 		TRACE("%s: Invalid color space!\n", __func__);
@@ -342,7 +356,8 @@ dp_get_lane_count(uint32 connectorIndex, display_mode* mode)
 	uint32 dpMaxLaneCount = dp_get_lane_count_max(dpInfo);
 
 	uint32 lane;
-	for (lane = 1; lane < dpMaxLaneCount; lane <<= 1) {
+	// don't go below 2 lanes or display is jittery
+	for (lane = 2; lane < dpMaxLaneCount; lane <<= 1) {
 		uint32 maxPixelClock = dp_get_pixel_clock_max(dpMaxLinkRate, lane,
 			bitsPerPixel);
 		if (mode->timing.pixel_clock <= maxPixelClock)
@@ -367,8 +382,8 @@ dp_get_link_rate(uint32 connectorIndex, display_mode* mode)
 
 	size_t pixelChunk;
 	size_t pixelsPerChunk;
-	status_t result = get_pixel_size_for((color_space)mode->space, &pixelChunk,
-		NULL, &pixelsPerChunk);
+	status_t result = dp_get_pixel_size_for((color_space)mode->space,
+		&pixelChunk, NULL, &pixelsPerChunk);
 
 	if (result != B_OK) {
 		TRACE("%s: Invalid color space!\n", __func__);
@@ -417,6 +432,8 @@ dp_setup_connectors()
 			continue;
 		}
 
+		TRACE("%s: found dp connector on index %" B_PRIu32 "\n",
+			__func__, index);
 		uint32 gpioID = gConnector[index]->gpioID;
 
 		uint32 auxPin = gGPIOInfo[gpioID]->hwPin;
@@ -642,6 +659,7 @@ dp_link_train_cr(uint32 connectorIndex)
 	dp_set_tp(connectorIndex, DP_TRAIN_PATTERN_1);
 	memset(dp->trainingSet, 0, 4);
 	dp_update_vs_emph(connectorIndex);
+	snooze(400);
 
 	while (1) {
 		if (dp->trainingReadInterval == 0)
@@ -750,11 +768,13 @@ dp_link_train_ce(uint32 connectorIndex)
 
 
 status_t
-dp_link_train(uint32 connectorIndex, display_mode* mode)
+dp_link_train(uint8 crtcID)
 {
 	TRACE("%s\n", __func__);
 
+        uint32 connectorIndex = gDisplay[crtcID]->connectorIndex;
 	dp_info* dp = &gConnector[connectorIndex]->dpInfo;
+	display_mode* mode = &gDisplay[crtcID]->currentMode;
 
 	if (dp->valid != true) {
 		ERROR("%s: started on invalid DisplayPort connector #%" B_PRIu32 "\n",
@@ -817,7 +837,10 @@ dp_link_train(uint32 connectorIndex, display_mode* mode)
 	encoder_dig_setup(connectorIndex, mode->timing.pixel_clock,
 		ATOM_ENCODER_CMD_SETUP_PANEL_MODE);
 
-	if (dp->config[0] >= DP_DPCD_REV_11)
+	// TODO: Doesn't this overwrite important dpcd info?
+	sandbox = dp->laneCount;
+	if ((dp->config[0] >= DP_DPCD_REV_11)
+		&& (dp->config[2] & DP_ENHANCED_FRAME_CAP_EN))
 		sandbox |= DP_ENHANCED_FRAME_EN;
 	dpcd_reg_write(hwPin, DP_LANE_COUNT, sandbox);
 
@@ -856,6 +879,75 @@ dp_link_train(uint32 connectorIndex, display_mode* mode)
 	}
 
 	return B_OK;
+}
+
+
+bool
+ddc2_dp_read_edid1(uint32 connectorIndex, edid1_info* edid)
+{
+	TRACE("%s\n", __func__);
+
+	dp_info* dpInfo = &gConnector[connectorIndex]->dpInfo;
+
+	if (!dpInfo->valid)
+		return false;
+
+	// The following sequence is from a trace of the Linux kernel
+	// radeon code; not sure if the initial writes to address 0 are
+	// requried.
+
+	// TODO: This surely cane be cleaned up
+	edid1_raw raw;
+	uint8* rdata = (uint8*)&raw;
+	uint8 sdata = 0;
+	dp_aux_set_i2c_byte(dpInfo->auxPin, 0x00, &sdata, true, false);
+	dp_aux_set_i2c_byte(dpInfo->auxPin, 0x00, &sdata, false, true);
+
+	dp_aux_set_i2c_byte(dpInfo->auxPin, 0x50, &sdata, true, false);
+	dp_aux_set_i2c_byte(dpInfo->auxPin, 0x50, &sdata, false, false);
+	dp_aux_get_i2c_byte(dpInfo->auxPin, 0x50, rdata, true, false);
+	dp_aux_get_i2c_byte(dpInfo->auxPin, 0x50, rdata, false, false);
+	dp_aux_get_i2c_byte(dpInfo->auxPin, 0x50, rdata, false, true);
+	dp_aux_set_i2c_byte(dpInfo->auxPin, 0x50, &sdata, true, false);
+	dp_aux_set_i2c_byte(dpInfo->auxPin, 0x50, &sdata, false, false);
+	dp_aux_get_i2c_byte(dpInfo->auxPin, 0x50, rdata, true, false);
+
+	for (uint32 i = 0; i < sizeof(raw); i++) {
+		status_t ret = dp_aux_get_i2c_byte(dpInfo->auxPin, 0x50,
+			rdata++, false, false);
+		if (ret) {
+			TRACE("%s: error reading EDID data at index %d, ret = %d\n",
+					__func__, i, ret);
+			dp_aux_get_i2c_byte(dpInfo->auxPin, 0x50, &sdata, false, true);
+			return false;
+		}
+	}
+	dp_aux_get_i2c_byte(dpInfo->auxPin, 0x50, &sdata, false, true);
+
+	if (raw.version.version != 1 || raw.version.revision > 4) {
+		ERROR("%s: EDID version or revision out of range\n", __func__);
+		return false;
+	}
+
+	edid_decode(edid, &raw);
+
+	return true;
+}
+
+
+status_t
+dp_get_pixel_size_for(color_space space, size_t *pixelChunk,
+	size_t *rowAlignment, size_t *pixelsPerChunk)
+{
+	status_t result = get_pixel_size_for(space, pixelChunk, NULL,
+		pixelsPerChunk);
+
+	if ((space == B_RGB32) || (space == B_RGBA32) || (space == B_RGB32_BIG)
+		|| (space == B_RGBA32_BIG)) {
+		*pixelChunk = 3;
+	}
+
+	return result;
 }
 
 

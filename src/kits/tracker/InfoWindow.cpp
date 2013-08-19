@@ -675,7 +675,7 @@ BInfoWindow::GetSizeString(BString &result, off_t size, int32 fileCount)
 	// TODO: use BCountry::FormatNumber
 	if (size >= kKBSize) {
 		char numStr[128];
-		snprintf(numStr, sizeof(numStr), "%Ld", size);
+		snprintf(numStr, sizeof(numStr), "%" B_PRIdOFF, size);
 		BString bytes;
 
 		uint32 length = strlen(numStr);
@@ -2129,7 +2129,7 @@ AttributeView::BuildContextMenu(BMenu* parent)
 		parent->AddItem(new BMenuItem(B_TRANSLATE("Edit name"),
 			new BMessage(kEditItem), 'E'));
 		parent->AddSeparatorItem();
-	
+
 		if (fModel->IsVolume()) {
 			BMenuItem* item = new BMenuItem(B_TRANSLATE("Unmount"),
 				new BMessage(kUnmountVolume), 'U');

@@ -73,15 +73,23 @@ typedef struct area_info {
 #define	B_32_BIT_CONTIGUOUS		6	/* B_CONTIGUOUS, < 4 GB physical address */
 
 /* address spec for create_area(), and clone_area() */
-#define B_ANY_ADDRESS			0
-#define B_EXACT_ADDRESS			1
-#define B_BASE_ADDRESS			2
-#define B_CLONE_ADDRESS			3
-#define	B_ANY_KERNEL_ADDRESS	4
+#define B_ANY_ADDRESS				0
+#define B_EXACT_ADDRESS				1
+#define B_BASE_ADDRESS				2
+#define B_CLONE_ADDRESS				3
+#define	B_ANY_KERNEL_ADDRESS		4
+/* B_ANY_KERNEL_BLOCK_ADDRESS		5 */
+#define B_RANDOMIZED_ANY_ADDRESS	6
+#define B_RANDOMIZED_BASE_ADDRESS	7
 
 /* area protection */
 #define B_READ_AREA				1
 #define B_WRITE_AREA			2
+#define B_EXECUTE_AREA			4
+#define B_STACK_AREA			8
+	// "stack" protection is not available on most platforms - it's used
+	// to only commit memory as needed, and have guard pages at the
+	// bottom of the stack.
 
 extern area_id		create_area(const char *name, void **startAddress,
 						uint32 addressSpec, size_t size, uint32 lock,
@@ -96,7 +104,7 @@ extern status_t		set_area_protection(area_id id, uint32 newProtection);
 
 /* system private, use macros instead */
 extern status_t		_get_area_info(area_id id, area_info *areaInfo, size_t size);
-extern status_t		_get_next_area_info(team_id team, int32 *cookie,
+extern status_t		_get_next_area_info(team_id team, ssize_t *cookie,
 						area_info *areaInfo, size_t size);
 
 #define get_area_info(id, areaInfo) \
@@ -592,7 +600,8 @@ typedef enum cpu_types {
 	B_CPU_AMD_E_SERIES					= 0x5011f2,
 
 	// Family 15h
-	B_CPU_AMD_FX_SERIES					= 0x6011f1, /* Bulldozer */
+	B_CPU_AMD_FX_SERIES_MODEL_1			= 0x6011f1, /* Bulldozer */
+	B_CPU_AMD_FX_SERIES_MODEL_2			= 0x6011f2,
 
 	/* VIA/Cyrix */
 	B_CPU_CYRIX_x86						= 0x1200,
@@ -645,7 +654,7 @@ typedef enum cpu_types {
 
 #define B_CPU_x86_VENDOR_MASK	0xff00
 
-#ifdef __INTEL__
+#if defined(__INTEL__) || defined(__x86_64__)
 typedef union {
 	struct {
 		uint32	max_eax;
@@ -713,7 +722,8 @@ typedef enum platform_types {
 	B_MK_61_PLATFORM,
 	B_NINTENDO_64_PLATFORM,
 	B_AMIGA_PLATFORM,
-	B_ATARI_PLATFORM
+	B_ATARI_PLATFORM,
+	B_64_BIT_PC_PLATFORM
 } platform_type;
 
 typedef struct {

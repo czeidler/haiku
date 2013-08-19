@@ -1,5 +1,6 @@
 /*
  * Copyright 2009, Ingo Weinhold, ingo_weinhold@gmx.de.
+ * Copyright 2013, Rene Gollent, rene@gollent.com.
  * Distributed under the terms of the MIT License.
  */
 #ifndef BREAKPOINT_LIST_VIEW_H
@@ -13,6 +14,32 @@
 
 class Team;
 class UserBreakpoint;
+class Watchpoint;
+
+
+enum breakpoint_proxy_type {
+	BREAKPOINT_PROXY_TYPE_BREAKPOINT = 0,
+	BREAKPOINT_PROXY_TYPE_WATCHPOINT = 1
+};
+
+
+class BreakpointProxy : public BReferenceable {
+public:
+								BreakpointProxy(UserBreakpoint* breakpoint,
+									Watchpoint* watchpoint);
+								~BreakpointProxy();
+
+			breakpoint_proxy_type Type() const;
+
+			UserBreakpoint*		GetBreakpoint() const { return fBreakpoint; }
+			Watchpoint*			GetWatchpoint() const { return fWatchpoint; }
+
+private:
+			UserBreakpoint*		fBreakpoint;
+			Watchpoint*			fWatchpoint;
+};
+
+typedef BObjectList<BreakpointProxy> BreakpointProxyList;
 
 
 class BreakpointListView : public BGroupView, private TableListener {
@@ -24,30 +51,32 @@ public:
 									Listener* listener);
 								~BreakpointListView();
 
-	static	BreakpointListView*	Create(Team* team, Listener* listener);
+	static	BreakpointListView*	Create(Team* team, Listener* listener,
+									BView* filterTarget);
 									// throws
 
 			void				UnsetListener();
 
-			void				SetBreakpoint(UserBreakpoint* breakpoint);
 			void				UserBreakpointChanged(
 									UserBreakpoint* breakpoint);
+			void				WatchpointChanged(
+									Watchpoint* breakpoint);
 
 			void				LoadSettings(const BMessage& settings);
 			status_t			SaveSettings(BMessage& settings);
 
 private:
 			class BreakpointsTableModel;
+			class ListInputFilter;
 
 private:
 	// TableListener
 	virtual	void				TableSelectionChanged(Table* table);
 
-			void				_Init();
+			void				_Init(BView* filterTarget);
 
 private:
 			Team*				fTeam;
-			UserBreakpoint*		fBreakpoint;
 			Table*				fBreakpointsTable;
 			BreakpointsTableModel* fBreakpointsTableModel;
 			Listener*			fListener;
@@ -59,7 +88,7 @@ public:
 	virtual						~Listener();
 
 	virtual	void				BreakpointSelectionChanged(
-									UserBreakpoint* breakpoint) = 0;
+									BreakpointProxyList& breakpoints) = 0;
 };
 
 

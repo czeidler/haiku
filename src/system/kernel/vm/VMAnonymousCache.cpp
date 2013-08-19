@@ -238,8 +238,8 @@ dump_swap_info(int argc, char** argv)
 	for (SwapFileList::Iterator it = sSwapFileList.GetIterator();
 		swap_file* file = it.Next();) {
 		swap_addr_t total = file->last_slot - file->first_slot;
-		kprintf("  vnode: %p, pages: total: %lu, free: %lu\n",
-			file->vnode, total, file->bmp->free_slots);
+		kprintf("  vnode: %p, pages: total: %" B_PRIu32 ", free: %" B_PRIu32
+			"\n", file->vnode, total, file->bmp->free_slots);
 
 		totalSwapPages += total;
 		freeSwapPages += file->bmp->free_slots;
@@ -247,12 +247,12 @@ dump_swap_info(int argc, char** argv)
 
 	kprintf("\n");
 	kprintf("swap space in pages:\n");
-	kprintf("total:     %9lu\n", totalSwapPages);
-	kprintf("available: %9llu\n", sAvailSwapSpace / B_PAGE_SIZE);
-	kprintf("reserved:  %9llu\n",
+	kprintf("total:     %9" B_PRIu32 "\n", totalSwapPages);
+	kprintf("available: %9" B_PRIdOFF "\n", sAvailSwapSpace / B_PAGE_SIZE);
+	kprintf("reserved:  %9" B_PRIdOFF "\n",
 		totalSwapPages - sAvailSwapSpace / B_PAGE_SIZE);
-	kprintf("used:      %9lu\n", totalSwapPages - freeSwapPages);
-	kprintf("free:      %9lu\n", freeSwapPages);
+	kprintf("used:      %9" B_PRIu32 "\n", totalSwapPages - freeSwapPages);
+	kprintf("free:      %9" B_PRIu32 "\n", freeSwapPages);
 
 	return 0;
 }
@@ -321,7 +321,8 @@ find_swap_file(swap_addr_t slotIndex)
 		}
 	}
 
-	panic("find_swap_file(): can't find swap file for slot %ld\n", slotIndex);
+	panic("find_swap_file(): can't find swap file for slot %" B_PRIu32 "\n",
+		slotIndex);
 	return NULL;
 }
 
@@ -465,8 +466,9 @@ VMAnonymousCache::Init(bool canOvercommit, int32 numPrecommittedPages,
 	int32 numGuardPages, uint32 allocationFlags)
 {
 	TRACE("%p->VMAnonymousCache::Init(canOvercommit = %s, "
-		"numPrecommittedPages = %ld, numGuardPages = %ld)\n", this,
-		canOvercommit ? "yes" : "no", numPrecommittedPages, numGuardPages);
+		"numPrecommittedPages = %" B_PRId32 ", numGuardPages = %" B_PRId32
+		")\n", this, canOvercommit ? "yes" : "no", numPrecommittedPages,
+		numGuardPages);
 
 	status_t error = VMCache::Init(CACHE_TYPE_RAM, allocationFlags);
 	if (error != B_OK)
@@ -488,10 +490,10 @@ VMAnonymousCache::Resize(off_t newSize, int priority)
 {
 	// If the cache size shrinks, drop all swap pages beyond the new size.
 	if (fAllocatedSwapSize > 0) {
-		page_num_t oldPageCount = (virtual_end + B_PAGE_SIZE - 1) >> PAGE_SHIFT;
+		off_t oldPageCount = (virtual_end + B_PAGE_SIZE - 1) >> PAGE_SHIFT;
 		swap_block* swapBlock = NULL;
 
-		for (page_num_t pageIndex = (newSize + B_PAGE_SIZE - 1) >> PAGE_SHIFT;
+		for (off_t pageIndex = (newSize + B_PAGE_SIZE - 1) >> PAGE_SHIFT;
 			pageIndex < oldPageCount && fAllocatedSwapSize > 0; pageIndex++) {
 
 			WriteLocker locker(sSwapHashLock);
@@ -545,7 +547,7 @@ VMAnonymousCache::Resize(off_t newSize, int priority)
 status_t
 VMAnonymousCache::Commit(off_t size, int priority)
 {
-	TRACE("%p->VMAnonymousCache::Commit(%lld)\n", this, size);
+	TRACE("%p->VMAnonymousCache::Commit(%" B_PRIdOFF ")\n", this, size);
 
 	// If we can overcommit, we don't commit here, but in Fault(). We always
 	// unreserve memory, if we're asked to shrink our commitment, though.
@@ -577,7 +579,7 @@ VMAnonymousCache::HasPage(off_t offset)
 bool
 VMAnonymousCache::DebugHasPage(off_t offset)
 {
-	page_num_t pageIndex = offset >> PAGE_SHIFT;
+	off_t pageIndex = offset >> PAGE_SHIFT;
 	swap_hash_key key = { this, pageIndex };
 	swap_block* swap = sSwapHashTable.Lookup(key);
 	if (swap == NULL)
@@ -785,25 +787,24 @@ VMAnonymousCache::MaxPagesPerAsyncWrite() const
 status_t
 VMAnonymousCache::Fault(struct VMAddressSpace* aspace, off_t offset)
 {
-	if (fCanOvercommit && LookupPage(offset) == NULL && !HasPage(offset)) {
-		if (fGuardedSize > 0) {
-			uint32 guardOffset;
+	if (fGuardedSize > 0) {
+		uint32 guardOffset;
 
 #ifdef STACK_GROWS_DOWNWARDS
-			guardOffset = 0;
+		guardOffset = 0;
 #elif defined(STACK_GROWS_UPWARDS)
-			guardOffset = virtual_size - fGuardedSize;
+		guardOffset = virtual_size - fGuardedSize;
 #else
 #	error Stack direction has not been defined in arch_config.h
 #endif
-
-			// report stack fault, guard page hit!
-			if (offset >= guardOffset && offset < guardOffset + fGuardedSize) {
-				TRACE(("stack overflow!\n"));
-				return B_BAD_ADDRESS;
-			}
+		// report stack fault, guard page hit!
+		if (offset >= guardOffset && offset < guardOffset + fGuardedSize) {
+			TRACE(("stack overflow!\n"));
+			return B_BAD_ADDRESS;
 		}
+	}
 
+	if (fCanOvercommit && LookupPage(offset) == NULL && !HasPage(offset)) {
 		if (fPrecommittedPages == 0) {
 			// never commit more than needed
 			if (committed_size / B_PAGE_SIZE > page_count)
@@ -967,8 +968,9 @@ VMAnonymousCache::_SwapBlockGetAddress(off_t pageIndex)
 status_t
 VMAnonymousCache::_Commit(off_t size, int priority)
 {
-	TRACE("%p->VMAnonymousCache::_Commit(%lld), already committed: %lld "
-		"(%lld swap)\n", this, size, committed_size, fCommittedSwapSize);
+	TRACE("%p->VMAnonymousCache::_Commit(%" B_PRIdOFF "), already committed: "
+		"%" B_PRIdOFF " (%" B_PRIdOFF " swap)\n", this, size, committed_size,
+		fCommittedSwapSize);
 
 	// Basic strategy: reserve swap space first, only when running out of swap
 	// space, reserve real memory.
@@ -982,8 +984,8 @@ VMAnonymousCache::_Commit(off_t size, int priority)
 		fCommittedSwapSize += swap_space_reserve(size - fCommittedSwapSize);
 		committed_size = fCommittedSwapSize + committedMemory;
 		if (size > fCommittedSwapSize) {
-			TRACE("%p->VMAnonymousCache::_Commit(%lld), reserved only %lld "
-				"swap\n", this, size, fCommittedSwapSize);
+			TRACE("%p->VMAnonymousCache::_Commit(%" B_PRIdOFF "), reserved "
+				"only %" B_PRIdOFF " swap\n", this, size, fCommittedSwapSize);
 		}
 	}
 
@@ -1016,8 +1018,8 @@ VMAnonymousCache::_Commit(off_t size, int priority)
 
 	off_t toReserve = size - committed_size;
 	if (vm_try_reserve_memory(toReserve, priority, 1000000) != B_OK) {
-		dprintf("%p->VMAnonymousCache::_Commit(%lld): Failed to reserve %lld "
-			"bytes of RAM\n", this, size, toReserve);
+		dprintf("%p->VMAnonymousCache::_Commit(%" B_PRIdOFF "): Failed to "
+			"reserve %" B_PRIdOFF " bytes of RAM\n", this, size, toReserve);
 		return B_NO_MEMORY;
 	}
 
@@ -1091,7 +1093,7 @@ VMAnonymousCache::_MergeSwapPages(VMAnonymousCache* source)
 
 		WriteLocker locker(sSwapHashLock);
 
-		page_num_t swapBlockPageIndex = offset >> PAGE_SHIFT;
+		off_t swapBlockPageIndex = offset >> PAGE_SHIFT;
 		swap_hash_key key = { source, swapBlockPageIndex };
 		swap_block* sourceSwapBlock = sSwapHashTable.Lookup(key);
 
@@ -1599,8 +1601,8 @@ swap_init_post_modules()
 	status_t error = _kern_write_stat(fd, NULL, false, &stat,
 		sizeof(struct stat), B_STAT_SIZE | B_STAT_SIZE_INSECURE);
 	if (error != B_OK) {
-		dprintf("%s: Failed to resize %s to %lld bytes: %s\n", __func__,
-			swapPath, swapSize, strerror(error));
+		dprintf("%s: Failed to resize %s to %" B_PRIdOFF " bytes: %s\n",
+			__func__, swapPath, swapSize, strerror(error));
 	}
 
 	close(fd);

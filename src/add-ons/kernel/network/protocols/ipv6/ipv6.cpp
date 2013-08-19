@@ -501,7 +501,7 @@ size_t
 MulticastStateHash::HashKey(const KeyType &key) const
 {
 	size_t result = 0;
-	result = jenkins_hashword((const uint32*)&key.first,
+	result = jenkins_hashword((const uint32*)key.first,
 		sizeof(in6_addr) / sizeof(uint32), result);
 	result = jenkins_hashword(&key.second, 1, result);
 	return result;
@@ -1141,6 +1141,8 @@ ipv6_setsockopt(net_protocol* _protocol, int level, int option,
 
 			delete protocol->multicast_address;
 			protocol->multicast_address = (struct sockaddr*)address;
+
+			sDatalinkModule->put_interface(interface);
 			return B_OK;
 		}
 		if (option == IPV6_MULTICAST_HOPS) {

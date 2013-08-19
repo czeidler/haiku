@@ -47,7 +47,7 @@ pci_read_config(uint8 virtualBus, uint8 device, uint8 function, uint8 offset,
 	uint8 size)
 {
 	uint8 bus;
-	int domain;
+	uint8 domain;
 	uint32 value;
 
 	if (gPCI->ResolveVirtualBus(virtualBus, &domain, &bus) != B_OK)
@@ -66,7 +66,7 @@ pci_write_config(uint8 virtualBus, uint8 device, uint8 function, uint8 offset,
 	uint8 size, uint32 value)
 {
 	uint8 bus;
-	int domain;
+	uint8 domain;
 	if (gPCI->ResolveVirtualBus(virtualBus, &domain, &bus) != B_OK)
 		return;
 
@@ -79,7 +79,7 @@ pci_find_capability(uchar virtualBus, uchar device, uchar function,
 	uchar capID, uchar *offset)
 {
 	uint8 bus;
-	int domain;
+	uint8 domain;
 	if (gPCI->ResolveVirtualBus(virtualBus, &domain, &bus) != B_OK)
 		return B_ERROR;
 
@@ -93,7 +93,7 @@ pci_reserve_device(uchar virtualBus, uchar device, uchar function,
 {
 	status_t status;
 	uint8 bus;
-	int domain;
+	uint8 domain;
 	TRACE(("pci_reserve_device(%d, %d, %d, %s)\n", virtualBus, device, function,
 		driverName));
 
@@ -118,7 +118,7 @@ pci_reserve_device(uchar virtualBus, uchar device, uchar function,
 		{B_DEVICE_BUS, B_STRING_TYPE, {string: "pci"}},
 
 		// location on PCI bus
-		{B_PCI_DEVICE_DOMAIN, B_UINT32_TYPE, {ui32: domain}},
+		{B_PCI_DEVICE_DOMAIN, B_UINT8_TYPE, {ui8: domain}},
 		{B_PCI_DEVICE_BUS, B_UINT8_TYPE, {ui8: bus}},
 		{B_PCI_DEVICE_DEVICE, B_UINT8_TYPE, {ui8: device}},
 		{B_PCI_DEVICE_FUNCTION, B_UINT8_TYPE, {ui8: function}},
@@ -191,7 +191,7 @@ pci_unreserve_device(uchar virtualBus, uchar device, uchar function,
 {
 	status_t status;
 	uint8 bus;
-	int domain;
+	uint8 domain;
 	TRACE(("pci_unreserve_device(%d, %d, %d, %s)\n", virtualBus, device,
 		function, driverName));
 
@@ -210,7 +210,7 @@ pci_unreserve_device(uchar virtualBus, uchar device, uchar function,
 		{B_DEVICE_BUS, B_STRING_TYPE, {string: "pci"}},
 
 		// location on PCI bus
-		{B_PCI_DEVICE_DOMAIN, B_UINT32_TYPE, {ui32: domain}},
+		{B_PCI_DEVICE_DOMAIN, B_UINT8_TYPE, {ui8: domain}},
 		{B_PCI_DEVICE_BUS, B_UINT8_TYPE, {ui8: bus}},
 		{B_PCI_DEVICE_DEVICE, B_UINT8_TYPE, {ui8: device}},
 		{B_PCI_DEVICE_FUNCTION, B_UINT8_TYPE, {ui8: function}},
@@ -288,7 +288,7 @@ pci_update_interrupt_line(uchar virtualBus, uchar device, uchar function,
 	uchar newInterruptLineValue)
 {
 	uint8 bus;
-	int domain;
+	uint8 domain;
 	if (gPCI->ResolveVirtualBus(virtualBus, &domain, &bus) != B_OK)
 		return B_ERROR;
 
@@ -299,7 +299,7 @@ pci_update_interrupt_line(uchar virtualBus, uchar device, uchar function,
 
 // used by pci_info.cpp print_info_basic()
 void
-__pci_resolve_virtual_bus(uint8 virtualBus, int *domain, uint8 *bus)
+__pci_resolve_virtual_bus(uint8 virtualBus, uint8 *domain, uint8 *bus)
 {
 	if (gPCI->ResolveVirtualBus(virtualBus, domain, bus) < B_OK)
 		panic("ResolveVirtualBus failed");
@@ -350,7 +350,7 @@ display_io(int argc, char **argv)
 			if (i != 0)
 				kprintf("\n");
 
-			kprintf("[0x%lx]  ", address + i * itemSize);
+			kprintf("[0x%" B_PRIx32 "]  ", address + i * itemSize);
 
 			if (num > displayWidth) {
 				// make sure the spacing in the last line is correct
@@ -362,13 +362,13 @@ display_io(int argc, char **argv)
 
 		switch (itemSize) {
 			case 1:
-				kprintf(" %02x", pci_read_io_8(address + i * itemSize));
+				kprintf(" %02" B_PRIx8, pci_read_io_8(address + i * itemSize));
 				break;
 			case 2:
-				kprintf(" %04x", pci_read_io_16(address + i * itemSize));
+				kprintf(" %04" B_PRIx16, pci_read_io_16(address + i * itemSize));
 				break;
 			case 4:
-				kprintf(" %08lx", pci_read_io_32(address + i * itemSize));
+				kprintf(" %08" B_PRIx32, pci_read_io_32(address + i * itemSize));
 				break;
 		}
 	}
@@ -504,6 +504,9 @@ pci_uninit(void)
 	remove_debugger_command("inb", &display_io);
 	remove_debugger_command("in8", &display_io);
 
+	remove_debugger_command("pcistatus", &pcistatus);
+	remove_debugger_command("pcirefresh", &pcirefresh);
+
 	delete gPCI;
 }
 
@@ -529,7 +532,7 @@ void
 PCI::InitBus()
 {
 	PCIBus **nextBus = &fRootBus;
-	for (int i = 0; i < fDomainCount; i++) {
+	for (uint8 i = 0; i < fDomainCount; i++) {
 		PCIBus *bus = new PCIBus;
 		bus->next = NULL;
 		bus->parent = NULL;
@@ -541,13 +544,13 @@ PCI::InitBus()
 	}
 
 	if (fBusEnumeration) {
-		for (int i = 0; i < fDomainCount; i++) {
+		for (uint8 i = 0; i < fDomainCount; i++) {
 			_EnumerateBus(i, 0);
 		}
 	}
 
 	if (1) {
-		for (int i = 0; i < fDomainCount; i++) {
+		for (uint8 i = 0; i < fDomainCount; i++) {
 			_FixupDevices(i, 0);
 		}
 	}
@@ -567,9 +570,9 @@ PCI::~PCI()
 
 
 status_t
-PCI::_CreateVirtualBus(int domain, uint8 bus, uint8 *virtualBus)
+PCI::_CreateVirtualBus(uint8 domain, uint8 bus, uint8 *virtualBus)
 {
-#if defined(__INTEL__)
+#if defined(__INTEL__) || defined(__x86_64__)
 
 	// IA32 doesn't use domains
 	if (domain)
@@ -581,22 +584,23 @@ PCI::_CreateVirtualBus(int domain, uint8 bus, uint8 *virtualBus)
 
 	if (fNextVirtualBus > 0xff)
 		panic("PCI::CreateVirtualBus: virtual bus number space exhausted");
-	if (unsigned(domain) > 0xff)
-		panic("PCI::CreateVirtualBus: domain %d too large", domain);
 
 	uint16 value = domain << 8 | bus;
 
-	for (VirtualBusMap::Iterator it = fVirtualBusMap.Begin(); it != fVirtualBusMap.End(); ++it) {
+	for (VirtualBusMap::Iterator it = fVirtualBusMap.Begin();
+		it != fVirtualBusMap.End(); ++it) {
 		if (it->Value() == value) {
 			*virtualBus = it->Key();
-			FLOW("PCI::CreateVirtualBus: domain %d, bus %d already in map => virtualBus %d\n", domain, bus, *virtualBus);
+			FLOW("PCI::CreateVirtualBus: domain %d, bus %d already in map => "
+				"virtualBus %d\n", domain, bus, *virtualBus);
 			return B_OK;
 		}
 	}
 
 	*virtualBus = fNextVirtualBus++;
 
-	FLOW("PCI::CreateVirtualBus: domain %d, bus %d => virtualBus %d\n", domain, bus, *virtualBus);
+	FLOW("PCI::CreateVirtualBus: domain %d, bus %d => virtualBus %d\n", domain,
+		bus, *virtualBus);
 
 	return fVirtualBusMap.Insert(*virtualBus, value);
 
@@ -605,9 +609,9 @@ PCI::_CreateVirtualBus(int domain, uint8 bus, uint8 *virtualBus)
 
 
 status_t
-PCI::ResolveVirtualBus(uint8 virtualBus, int *domain, uint8 *bus)
+PCI::ResolveVirtualBus(uint8 virtualBus, uint8 *domain, uint8 *bus)
 {
-#if defined(__INTEL__)
+#if defined(__INTEL__) || defined(__x86_64__)
 
 	// IA32 doesn't use domains
 	*bus = virtualBus;
@@ -647,20 +651,21 @@ PCI::AddController(pci_controller *controller, void *controller_cookie)
 void
 PCI::InitDomainData()
 {
-	for (int i = 0; i < fDomainCount; i++) {
+	for (uint8 i = 0; i < fDomainCount; i++) {
 		int32 count;
 		status_t status;
 
-		status = (*fDomainData[i].controller->get_max_bus_devices)(fDomainData[i].controller_cookie, &count);
+		status = (*fDomainData[i].controller->get_max_bus_devices)(
+			fDomainData[i].controller_cookie, &count);
 		fDomainData[i].max_bus_devices = (status == B_OK) ? count : 0;
 	}
 }
 
 
 domain_data *
-PCI::_GetDomainData(int domain)
+PCI::_GetDomainData(uint8 domain)
 {
-	if (domain < 0 || domain >= fDomainCount)
+	if (domain >= fDomainCount)
 		return NULL;
 
 	return &fDomainData[domain];
@@ -668,7 +673,7 @@ PCI::_GetDomainData(int domain)
 
 
 inline int
-PCI::_NumFunctions(int domain, uint8 bus, uint8 device)
+PCI::_NumFunctions(uint8 domain, uint8 bus, uint8 device)
 {
 	uint8 type = ReadConfig(domain, bus, device,
 		0, PCI_header_type, 1);
@@ -713,7 +718,7 @@ PCI::_GetNthInfo(PCIBus *bus, long *currentIndex, long wantIndex,
 
 
 void
-PCI::_EnumerateBus(int domain, uint8 bus, uint8 *subordinateBus)
+PCI::_EnumerateBus(uint8 domain, uint8 bus, uint8 *subordinateBus)
 {
 	TRACE(("PCI: EnumerateBus: domain %u, bus %u\n", domain, bus));
 
@@ -739,8 +744,17 @@ PCI::_EnumerateBus(int domain, uint8 bus, uint8 *subordinateBus)
 			if (baseClass != PCI_bridge || subClass != PCI_pci)
 				continue;
 
-			TRACE(("PCI: found PCI-PCI bridge: domain %u, bus %u, dev %u, func %u\n", domain, bus, dev, function));
-			TRACE(("PCI: original settings: pcicmd %04lx, primary-bus %lu, secondary-bus %lu, subordinate-bus %lu\n",
+			// skip incorrectly configured devices
+			uint8 headerType = ReadConfig(domain, bus, dev, function,
+				PCI_header_type, 1) & PCI_header_type_mask;
+			if (headerType != PCI_header_type_PCI_to_PCI_bridge)
+				continue;
+
+			TRACE(("PCI: found PCI-PCI bridge: domain %u, bus %u, dev %u, func %u\n",
+				domain, bus, dev, function));
+			TRACE(("PCI: original settings: pcicmd %04" B_PRIx32 ", primary-bus "
+				"%" B_PRIu32 ", secondary-bus %" B_PRIu32 ", subordinate-bus "
+				"%" B_PRIu32 "\n",
 				ReadConfig(domain, bus, dev, function, PCI_command, 2),
 				ReadConfig(domain, bus, dev, function, PCI_primary_bus, 1),
 				ReadConfig(domain, bus, dev, function, PCI_secondary_bus, 1),
@@ -758,7 +772,9 @@ PCI::_EnumerateBus(int domain, uint8 bus, uint8 *subordinateBus)
 			WriteConfig(domain, bus, dev, function, PCI_secondary_bus, 1, 0);
 			WriteConfig(domain, bus, dev, function, PCI_subordinate_bus, 1, 0);
 
-			TRACE(("PCI: disabled settings: pcicmd %04lx, primary-bus %lu, secondary-bus %lu, subordinate-bus %lu\n",
+			TRACE(("PCI: disabled settings: pcicmd %04" B_PRIx32 ", primary-bus "
+				"%" B_PRIu32 ", secondary-bus %" B_PRIu32 ", subordinate-bus "
+				"%" B_PRIu32 "\n",
 				ReadConfig(domain, bus, dev, function, PCI_command, 2),
 				ReadConfig(domain, bus, dev, function, PCI_primary_bus, 1),
 				ReadConfig(domain, bus, dev, function, PCI_secondary_bus, 1),
@@ -788,6 +804,12 @@ PCI::_EnumerateBus(int domain, uint8 bus, uint8 *subordinateBus)
 			if (baseClass != PCI_bridge || subClass != PCI_pci)
 				continue;
 
+			// skip incorrectly configured devices
+			uint8 headerType = ReadConfig(domain, bus, dev, function,
+				PCI_header_type, 1) & PCI_header_type_mask;
+			if (headerType != PCI_header_type_PCI_to_PCI_bridge)
+				continue;
+
 			TRACE(("PCI: configuring PCI-PCI bridge: domain %u, bus %u, dev %u, func %u\n",
 				domain, bus, dev, function));
 
@@ -803,7 +825,9 @@ PCI::_EnumerateBus(int domain, uint8 bus, uint8 *subordinateBus)
 			pcicmd |= PCI_command_io | PCI_command_memory | PCI_command_master;
 			WriteConfig(domain, bus, dev, function, PCI_command, 2, pcicmd);
 
-			TRACE(("PCI: probing settings: pcicmd %04lx, primary-bus %lu, secondary-bus %lu, subordinate-bus %lu\n",
+			TRACE(("PCI: probing settings: pcicmd %04" B_PRIx32 ", primary-bus "
+				"%" B_PRIu32 ", secondary-bus %" B_PRIu32 ", subordinate-bus "
+				"%" B_PRIu32 "\n",
 				ReadConfig(domain, bus, dev, function, PCI_command, 2),
 				ReadConfig(domain, bus, dev, function, PCI_primary_bus, 1),
 				ReadConfig(domain, bus, dev, function, PCI_secondary_bus, 1),
@@ -815,7 +839,9 @@ PCI::_EnumerateBus(int domain, uint8 bus, uint8 *subordinateBus)
 			// close Scheunentor
 			WriteConfig(domain, bus, dev, function, PCI_subordinate_bus, 1, lastUsedBusNumber);
 
-			TRACE(("PCI: configured settings: pcicmd %04lx, primary-bus %lu, secondary-bus %lu, subordinate-bus %lu\n",
+			TRACE(("PCI: configured settings: pcicmd %04" B_PRIx32 ", primary-bus "
+				"%" B_PRIu32 ", secondary-bus %" B_PRIu32 ", subordinate-bus "
+				"%" B_PRIu32 "\n",
 				ReadConfig(domain, bus, dev, function, PCI_command, 2),
 				ReadConfig(domain, bus, dev, function, PCI_primary_bus, 1),
 				ReadConfig(domain, bus, dev, function, PCI_secondary_bus, 1),
@@ -830,7 +856,7 @@ PCI::_EnumerateBus(int domain, uint8 bus, uint8 *subordinateBus)
 
 
 void
-PCI::_FixupDevices(int domain, uint8 bus)
+PCI::_FixupDevices(uint8 domain, uint8 bus)
 {
 	FLOW("PCI: FixupDevices domain %u, bus %u\n", domain, bus);
 
@@ -868,6 +894,18 @@ PCI::_FixupDevices(int domain, uint8 bus)
 			if (subClass != PCI_pci)
 				continue;
 
+			// some FIC motherboards have a buggy BIOS...
+			// make sure the header type is correct for a bridge,
+			uint8 headerType = ReadConfig(domain, bus, dev, function,
+				PCI_header_type, 1) & PCI_header_type_mask;
+			if (headerType != PCI_header_type_PCI_to_PCI_bridge) {
+				dprintf("PCI: dom %u, bus %u, dev %2u, func %u, PCI bridge"
+					" class but wrong header type 0x%02x, ignoring.\n",
+					domain, bus, dev, function, headerType);
+				continue;
+			}
+
+
 			int busBehindBridge = ReadConfig(domain, bus, dev, function,
 				PCI_secondary_bus, 1);
 
@@ -885,7 +923,9 @@ PCI::_ConfigureBridges(PCIBus *bus)
 {
 	for (PCIDev *dev = bus->child; dev; dev = dev->next) {
 		if (dev->info.class_base == PCI_bridge
-			&& dev->info.class_sub == PCI_pci) {
+			&& dev->info.class_sub == PCI_pci
+			&& (dev->info.header_type & PCI_header_type_mask)
+			== PCI_header_type_PCI_to_PCI_bridge) {
 			uint16 bridgeControlOld = ReadConfig(dev->domain, dev->bus,
 				dev->device, dev->function, PCI_bridge_control, 2);
 			uint16 bridgeControlNew = bridgeControlOld;
@@ -1049,7 +1089,10 @@ PCI::_DiscoverDevice(PCIBus *bus, uint8 dev, uint8 function)
 		PCI_class_base, 1);
 	uint8 subClass = ReadConfig(bus->domain, bus->bus, dev, function,
 		PCI_class_sub, 1);
-	if (baseClass == PCI_bridge && subClass == PCI_pci) {
+	uint8 headerType = ReadConfig(bus->domain, bus->bus, dev, function,
+		PCI_header_type, 1) & PCI_header_type_mask;
+	if (baseClass == PCI_bridge && subClass == PCI_pci
+		&& headerType == PCI_header_type_PCI_to_PCI_bridge) {
 		uint8 secondaryBus = ReadConfig(bus->domain, bus->bus, dev, function,
 			PCI_secondary_bus, 1);
 		PCIBus *newBus = _CreateBus(newDev, bus->domain, secondaryBus);
@@ -1059,7 +1102,7 @@ PCI::_DiscoverDevice(PCIBus *bus, uint8 dev, uint8 function)
 
 
 PCIBus *
-PCI::_CreateBus(PCIDev *parent, int domain, uint8 bus)
+PCI::_CreateBus(PCIDev *parent, uint8 domain, uint8 bus)
 {
 	PCIBus *newBus = new(std::nothrow) PCIBus;
 	if (newBus == NULL)
@@ -1081,7 +1124,8 @@ PCI::_CreateBus(PCIDev *parent, int domain, uint8 bus)
 PCIDev *
 PCI::_CreateDevice(PCIBus *parent, uint8 device, uint8 function)
 {
-	FLOW("PCI: CreateDevice, domain %u, bus %u, dev %u, func %u:\n", parent->domain, parent->bus, device, function);
+	FLOW("PCI: CreateDevice, domain %u, bus %u, dev %u, func %u:\n", parent->domain,
+		parent->bus, device, function);
 
 	PCIDev *newDev = new(std::nothrow) PCIDev;
 	if (newDev == NULL)
@@ -1097,8 +1141,9 @@ PCI::_CreateDevice(PCIBus *parent, uint8 device, uint8 function)
 
 	_ReadBasicInfo(newDev);
 
-	FLOW("PCI: CreateDevice, vendor 0x%04x, device 0x%04x, class_base 0x%02x, class_sub 0x%02x\n",
-		newDev->info.vendor_id, newDev->info.device_id, newDev->info.class_base, newDev->info.class_sub);
+	FLOW("PCI: CreateDevice, vendor 0x%04x, device 0x%04x, class_base 0x%02x, "
+		"class_sub 0x%02x\n", newDev->info.vendor_id, newDev->info.device_id,
+		newDev->info.class_base, newDev->info.class_sub);
 
 	// append
 	if (parent->child == NULL) {
@@ -1236,11 +1281,11 @@ PCI::_ReadHeaderInfo(PCIDev *dev)
 			WriteConfig(dev->domain, dev->bus, dev->device, dev->function,
 				PCI_command, 2, pcicmd);
 
-			dev->info.u.h0.rom_base = (ulong)pci_ram_address(
-				(void *)dev->info.u.h0.rom_base_pci);
+			dev->info.u.h0.rom_base = (addr_t)pci_ram_address(
+				(void *)(addr_t)dev->info.u.h0.rom_base_pci);
 			for (int i = 0; i < 6; i++) {
-				dev->info.u.h0.base_registers[i] = (ulong)pci_ram_address(
-					(void *)dev->info.u.h0.base_registers_pci[i]);
+				dev->info.u.h0.base_registers[i] = (addr_t)pci_ram_address(
+					(void *)(addr_t)dev->info.u.h0.base_registers_pci[i]);
 			}
 
 			dev->info.u.h0.cardbus_cis = ReadConfig(dev->domain, dev->bus,
@@ -1282,11 +1327,11 @@ PCI::_ReadHeaderInfo(PCIDev *dev)
 			WriteConfig(dev->domain, dev->bus, dev->device, dev->function,
 				PCI_command, 2, pcicmd);
 
-			dev->info.u.h1.rom_base = (ulong)pci_ram_address(
-				(void *)dev->info.u.h1.rom_base_pci);
+			dev->info.u.h1.rom_base = (addr_t)pci_ram_address(
+				(void *)(addr_t)dev->info.u.h1.rom_base_pci);
 			for (int i = 0; i < 2; i++) {
-				dev->info.u.h1.base_registers[i] = (ulong)pci_ram_address(
-					(void *)dev->info.u.h1.base_registers_pci[i]);
+				dev->info.u.h1.base_registers[i] = (addr_t)pci_ram_address(
+					(void *)(addr_t)dev->info.u.h1.base_registers_pci[i]);
 			}
 
 			dev->info.u.h1.primary_bus = ReadConfig(dev->domain, dev->bus,
@@ -1397,7 +1442,7 @@ PCI::_RefreshDeviceInfo(PCIBus *bus)
 	for (PCIDev *dev = bus->child; dev; dev = dev->next) {
 		_ReadBasicInfo(dev);
 		_ReadHeaderInfo(dev);
-#ifdef __INTEL__
+#if defined(__INTEL__) || defined(__x86_64__)
 		pci_read_arch_info(dev);
 #endif
 		if (dev->child)
@@ -1410,7 +1455,7 @@ PCI::_RefreshDeviceInfo(PCIBus *bus)
 
 
 status_t
-PCI::ReadConfig(int domain, uint8 bus, uint8 device, uint8 function,
+PCI::ReadConfig(uint8 domain, uint8 bus, uint8 device, uint8 function,
 	uint8 offset, uint8 size, uint32 *value)
 {
 	domain_data *info = _GetDomainData(domain);
@@ -1433,7 +1478,7 @@ PCI::ReadConfig(int domain, uint8 bus, uint8 device, uint8 function,
 
 
 uint32
-PCI::ReadConfig(int domain, uint8 bus, uint8 device, uint8 function,
+PCI::ReadConfig(uint8 domain, uint8 bus, uint8 device, uint8 function,
 	uint8 offset, uint8 size)
 {
 	uint32 value;
@@ -1458,7 +1503,7 @@ PCI::ReadConfig(PCIDev *device, uint8 offset, uint8 size)
 
 
 status_t
-PCI::WriteConfig(int domain, uint8 bus, uint8 device, uint8 function,
+PCI::WriteConfig(uint8 domain, uint8 bus, uint8 device, uint8 function,
 	uint8 offset, uint8 size, uint32 value)
 {
 	domain_data *info = _GetDomainData(domain);
@@ -1489,7 +1534,7 @@ PCI::WriteConfig(PCIDev *device, uint8 offset, uint8 size, uint32 value)
 
 
 status_t
-PCI::FindCapability(int domain, uint8 bus, uint8 device, uint8 function,
+PCI::FindCapability(uint8 domain, uint8 bus, uint8 device, uint8 function,
 	uint8 capID, uint8 *offset)
 {
 	if (offset == NULL) {
@@ -1556,14 +1601,14 @@ PCI::FindCapability(PCIDev *device, uint8 capID, uint8 *offset)
 
 
 PCIDev *
-PCI::FindDevice(int domain, uint8 bus, uint8 device, uint8 function)
+PCI::FindDevice(uint8 domain, uint8 bus, uint8 device, uint8 function)
 {
 	return _FindDevice(fRootBus, domain, bus, device, function);
 }
 
 
 PCIDev *
-PCI::_FindDevice(PCIBus *current, int domain, uint8 bus, uint8 device,
+PCI::_FindDevice(PCIBus *current, uint8 domain, uint8 bus, uint8 device,
 	uint8 function)
 {
 	if (current->domain == domain) {
@@ -1594,7 +1639,7 @@ PCI::_FindDevice(PCIBus *current, int domain, uint8 bus, uint8 device,
 
 
 status_t
-PCI::UpdateInterruptLine(int domain, uint8 bus, uint8 _device, uint8 function,
+PCI::UpdateInterruptLine(uint8 domain, uint8 bus, uint8 _device, uint8 function,
 	uint8 newInterruptLineValue)
 {
 	PCIDev *device = FindDevice(domain, bus, _device, function);

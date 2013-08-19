@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, Rene Gollent, rene@gollent.com
+ * Copyright 2011-2013, Rene Gollent, rene@gollent.com
  * Distributed under the terms of the MIT License.
  */
 
@@ -20,6 +20,9 @@
 #include "ValueLoader.h"
 #include "ValueLocation.h"
 #include "ValueNodeContainer.h"
+
+
+static const int64 kMaxStringSize = 64;
 
 
 // #pragma mark - BMessageWhatNodeChild
@@ -183,66 +186,62 @@ BMessageValueNode::ResolvedLocationAndValue(ValueLoader* valueLoader,
 			if (strcmp(member->Name(), "fHeader") == 0) {
 				error = baseType->ResolveDataMemberLocation(member,
 					*location, memberLocation);
+				BReference<ValueLocation> locationRef(memberLocation, true);
 				if (error != B_OK) {
 					TRACE_LOCALS(
 						"BMessageValueNode::ResolvedLocationAndValue(): "
 						"failed to resolve location of header member: %s\n",
 						strerror(error));
-					delete memberLocation;
 					return error;
 				}
 
 				error = valueLoader->LoadValue(memberLocation, valueType,
 					false, headerAddress);
-				delete memberLocation;
 				if (error != B_OK)
 					return error;
 			} else if (strcmp(member->Name(), "what") == 0) {
 				error = baseType->ResolveDataMemberLocation(member,
 					*location, memberLocation);
+				BReference<ValueLocation> locationRef(memberLocation, true);
 				if (error != B_OK) {
 					TRACE_LOCALS(
 						"BMessageValueNode::ResolvedLocationAndValue(): "
 						"failed to resolve location of header member: %s\n",
 							strerror(error));
-					delete memberLocation;
 					return error;
 				}
 				error = valueLoader->LoadValue(memberLocation, valueType,
 					false, what);
-				delete memberLocation;
 				if (error != B_OK)
 					return error;
 			} else if (strcmp(member->Name(), "fFields") == 0) {
 				error = baseType->ResolveDataMemberLocation(member,
 					*location, memberLocation);
+				BReference<ValueLocation> locationRef(memberLocation, true);
 				if (error != B_OK) {
 					TRACE_LOCALS(
 						"BMessageValueNode::ResolvedLocationAndValue(): "
 						"failed to resolve location of field member: %s\n",
 							strerror(error));
-					delete memberLocation;
 					return error;
 				}
 				error = valueLoader->LoadValue(memberLocation, valueType,
 					false, fieldAddress);
-				delete memberLocation;
 				if (error != B_OK)
 					return error;
 			} else if (strcmp(member->Name(), "fData") == 0) {
 				error = baseType->ResolveDataMemberLocation(member,
 					*location, memberLocation);
+				BReference<ValueLocation> locationRef(memberLocation, true);
 				if (error != B_OK) {
 					TRACE_LOCALS(
 						"BMessageValueNode::ResolvedLocationAndValue(): "
 						"failed to resolve location of data member: %s\n",
 							strerror(error));
-					delete memberLocation;
 					return error;
 				}
 				error = valueLoader->LoadValue(memberLocation, valueType,
 					false, fDataLocation);
-				delete memberLocation;
 				if (error != B_OK)
 					return error;
 			}
@@ -475,12 +474,6 @@ BMessageValueNode::_GetTypeForTypeCode(type_code type,
 			constraints.SetTypeKind(TYPE_COMPOUND);
 			break;
 
-		case B_POINTER_TYPE:
-			typeName = "";
-			constraints.SetTypeKind(TYPE_ADDRESS);
-			constraints.SetBaseTypeName("void");
-			break;
-
 		case B_RECT_TYPE:
 			typeName = "BRect";
 			constraints.SetTypeKind(TYPE_COMPOUND);
@@ -497,13 +490,30 @@ BMessageValueNode::_GetTypeForTypeCode(type_code type,
 			break;
 
 		case B_STRING_TYPE:
-			typeName = "";
-			constraints.SetTypeKind(TYPE_ARRAY);
-			constraints.SetBaseTypeName("char");
-			break;
+		{
+			typeName = "char";
+			constraints.SetTypeKind(TYPE_PRIMITIVE);
+			Type* baseType = NULL;
+			status_t result = fLoader->LookupTypeByName(typeName, constraints,
+				baseType);
+			if (result != B_OK)
+				return result;
+			BReference<Type> typeReference(baseType, true);
+			ArrayType* arrayType;
+			result = baseType->CreateDerivedArrayType(0, kMaxStringSize, true,
+				arrayType);
+			if (result == B_OK)
+				_type = arrayType;
 
+			return result;
+			break;
+		}
+
+		case B_POINTER_TYPE:
 		default:
-			return B_BAD_VALUE;
+			typeName = "";
+			constraints.SetTypeKind(TYPE_ADDRESS);
+			constraints.SetBaseTypeName("void");
 			break;
 	}
 

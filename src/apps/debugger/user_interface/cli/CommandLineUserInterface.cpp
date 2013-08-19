@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, Rene Gollent, rene@gollent.com.
+ * Copyright 2011-2012, Rene Gollent, rene@gollent.com.
  * Copyright 2012, Ingo Weinhold, ingo_weinhold@gmx.de.
  * Distributed under the terms of the MIT License.
  */
@@ -17,11 +17,16 @@
 
 #include "CliContext.h"
 #include "CliContinueCommand.h"
+#include "CliDebugReportCommand.h"
+#include "CliDumpMemoryCommand.h"
+#include "CliPrintVariableCommand.h"
 #include "CliQuitCommand.h"
+#include "CliStackFrameCommand.h"
 #include "CliStackTraceCommand.h"
 #include "CliStopCommand.h"
 #include "CliThreadCommand.h"
 #include "CliThreadsCommand.h"
+#include "CliVariablesCommand.h"
 
 
 static const char* kDebuggerPrompt = "debugger> ";
@@ -87,9 +92,12 @@ private:
 // #pragma mark - CommandLineUserInterface
 
 
-CommandLineUserInterface::CommandLineUserInterface()
+CommandLineUserInterface::CommandLineUserInterface(bool saveReport,
+	const char* reportPath)
 	:
 	fCommands(20, true),
+	fReportPath(reportPath),
+	fSaveReport(saveReport),
 	fShowSemaphore(-1),
 	fShown(false),
 	fTerminating(false)
@@ -125,6 +133,8 @@ CommandLineUserInterface::Init(Team* team, UserInterfaceListener* listener)
 	fShowSemaphore = create_sem(0, "show CLI");
 	if (fShowSemaphore < 0)
 		return fShowSemaphore;
+
+	team->AddListener(this);
 
 	return B_OK;
 }
@@ -201,10 +211,34 @@ CommandLineUserInterface::Run()
 	if (error != B_OK)
 		return;
 
-	_InputLoop();
+	if (!fSaveReport) {
+		_InputLoop();
+		// Release the Show() semaphore to signal Terminate().
+		release_sem(fShowSemaphore);
+	} else {
+		ArgumentVector args;
+		char buffer[256];
+		const char* parseErrorLocation;
+		snprintf(buffer, sizeof(buffer), "save-report %s",
+			fReportPath != NULL ? fReportPath : "");
+		args.Parse(buffer, &parseErrorLocation);
+		_ExecuteCommand(args.ArgumentCount(), args.Arguments());
+	}
+}
 
-	// Release the Show() semaphore to signal Terminate().
-	release_sem(fShowSemaphore);
+
+void
+CommandLineUserInterface::DebugReportChanged(
+	const Team::DebugReportEvent& event)
+{
+	printf("Successfully saved debug report to %s\n",
+		event.GetReportPath());
+
+	if (fSaveReport) {
+		fContext.QuitSession(true);
+		// Release the Show() semaphore to signal Terminate().
+		release_sem(fShowSemaphore);
+	}
 }
 
 
@@ -272,19 +306,22 @@ CommandLineUserInterface::_InputLoop()
 status_t
 CommandLineUserInterface::_RegisterCommands()
 {
-	BReference<CliCommand> stackTraceCommandReference(
-		new(std::nothrow) CliStackTraceCommand, true);
-	BReference<CliCommand> stackTraceCommandReference2(
-		stackTraceCommandReference.Get());
-
-	if (_RegisterCommand("bt", stackTraceCommandReference.Detach()) &&
-		_RegisterCommand("continue", new(std::nothrow) CliContinueCommand) &&
-		_RegisterCommand("help", new(std::nothrow) HelpCommand(this)) &&
-		_RegisterCommand("quit", new(std::nothrow) CliQuitCommand) &&
-		_RegisterCommand("sc", stackTraceCommandReference2.Detach()) &&
-		_RegisterCommand("stop", new(std::nothrow) CliStopCommand) &&
-		_RegisterCommand("thread", new(std::nothrow) CliThreadCommand) &&
-		_RegisterCommand("threads", new(std::nothrow) CliThreadsCommand)) {
+	if (_RegisterCommand("bt sc", new(std::nothrow) CliStackTraceCommand)
+		&& _RegisterCommand("continue", new(std::nothrow) CliContinueCommand)
+		&& _RegisterCommand("db ds dw dl string", new(std::nothrow)
+			CliDumpMemoryCommand)
+		&& _RegisterCommand("frame", new(std::nothrow) CliStackFrameCommand)
+		&& _RegisterCommand("help", new(std::nothrow) HelpCommand(this))
+		&& _RegisterCommand("print", new(std::nothrow) CliPrintVariableCommand)
+		&& _RegisterCommand("quit", new(std::nothrow) CliQuitCommand)
+		&& _RegisterCommand("save-report",
+			new(std::nothrow) CliDebugReportCommand)
+		&& _RegisterCommand("stop", new(std::nothrow) CliStopCommand)
+		&& _RegisterCommand("thread", new(std::nothrow) CliThreadCommand)
+		&& _RegisterCommand("threads", new(std::nothrow) CliThreadsCommand)
+		&& _RegisterCommand("variables",
+			new(std::nothrow) CliVariablesCommand)) {
+		fCommands.SortItems(&_CompareCommandEntries);
 		return B_OK;
 	}
 
@@ -300,11 +337,23 @@ CommandLineUserInterface::_RegisterCommand(const BString& name,
 	if (name.IsEmpty() || command == NULL)
 		return false;
 
-	CommandEntry* entry = new(std::nothrow) CommandEntry(name, command);
-	if (entry == NULL || !fCommands.AddItem(entry)) {
-		delete entry;
-		return false;
-	}
+	BString nextName;
+	int32 startIndex = 0;
+	int32 spaceIndex;
+	do {
+		spaceIndex = name.FindFirst(' ', startIndex);
+		if (spaceIndex == B_ERROR)
+			spaceIndex = name.Length();
+		name.CopyInto(nextName, startIndex, spaceIndex - startIndex);
+
+		CommandEntry* entry = new(std::nothrow) CommandEntry(nextName,
+			command);
+		if (entry == NULL || !fCommands.AddItem(entry)) {
+			delete entry;
+			return false;
+		}
+		startIndex = spaceIndex + 1;
+	} while (startIndex < name.Length());
 
 	return true;
 }
@@ -383,3 +432,14 @@ CommandLineUserInterface::_PrintHelp(const char* commandName)
 			entry->Command()->Summary());
 	}
 }
+
+
+/*static */
+int
+CommandLineUserInterface::_CompareCommandEntries(const CommandEntry* command1,
+	const CommandEntry* command2)
+{
+	return ::Compare(command1->Name(), command2->Name());
+}
+
+

@@ -64,7 +64,7 @@
 #endif
 
 #if !defined (errno)
-extern int errno;   
+extern int errno;
 #endif /* !errno */
 
 extern int indirection_level, subshell_environment;
@@ -494,7 +494,7 @@ get_exitstat (list)
     list = list->next;
 
   if (list == 0)
-    return (last_command_exit_value);      
+    return (last_command_exit_value);
 
   arg = list->word->word;
   if (arg == 0 || legal_number (arg, &sval) == 0)
@@ -867,7 +867,7 @@ find_special_builtin (name)
   			current_builtin->function :
   			(sh_builtin_func_t *)NULL);
 }
-  
+
 static int
 shell_builtin_compare (sbp1, sbp2)
      struct builtin *sbp1, *sbp2;

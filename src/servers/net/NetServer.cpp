@@ -80,7 +80,7 @@ private:
 			status_t			_ConfigureDevice(const char* path);
 			void				_ConfigureDevices(const char* path,
 									BMessage* suggestedInterface = NULL);
-			void				_ConfigureInterfaces(
+			void				_ConfigureInterfacesFromSettings(
 									BMessage* _missingDevice = NULL);
 			void				_ConfigureIPv6LinkLocal(const char* name);
 
@@ -88,7 +88,7 @@ private:
 			void				_StartServices();
 			status_t			_HandleDeviceMonitor(BMessage* message);
 
-			status_t			_AutoJoinNetwork(const char* name);
+			status_t			_AutoJoinNetwork(const BMessage& message);
 			status_t			_JoinNetwork(const BMessage& message,
 									const char* name = NULL);
 			status_t			_LeaveNetwork(const BMessage& message);
@@ -268,7 +268,7 @@ NetServer::MessageReceived(BMessage* message)
 
 		case kMsgInterfaceSettingsUpdated:
 		{
-			_ConfigureInterfaces();
+			_ConfigureInterfacesFromSettings();
 			break;
 		}
 
@@ -321,6 +321,12 @@ NetServer::MessageReceived(BMessage* message)
 			break;
 		}
 
+		case kMsgAutoJoinNetwork:
+		{
+			_AutoJoinNetwork(*message);
+			break;
+		}
+
 		case kMsgCountPersistentNetworks:
 		{
 			BMessage reply(B_REPLY);
@@ -351,9 +357,10 @@ NetServer::MessageReceived(BMessage* message)
 
 		case kMsgAddPersistentNetwork:
 		{
-			status_t result = _ConvertNetworkToSettings(*message);
+			BMessage network = *message;
+			status_t result = _ConvertNetworkToSettings(network);
 			if (result == B_OK)
-				result = fSettings.AddNetwork(*message);
+				result = fSettings.AddNetwork(network);
 
 			BMessage reply(B_REPLY);
 			reply.AddInt32("status", result);
@@ -531,26 +538,6 @@ NetServer::_ConfigureInterface(BMessage& message)
 		}
 	}
 
-	BNetworkDevice device(name);
-	if (device.IsWireless()) {
-		const char* networkName;
-		if (message.FindString("network", &networkName) == B_OK) {
-			// join configured network
-			status_t status = _JoinNetwork(message, networkName);
-			if (status != B_OK) {
-				fprintf(stderr, "%s: joining network \"%s\" failed: %s\n",
-					interface.Name(), networkName, strerror(status));
-			}
-		} else {
-			// auto select network to join
-			status_t status = _AutoJoinNetwork(name);
-			if (status != B_OK) {
-				fprintf(stderr, "%s: auto joining network failed: %s\n",
-					interface.Name(), strerror(status));
-			}
-		}
-	}
-
 	// Set up IPv6 Link Local address (based on MAC, if not loopback)
 	_ConfigureIPv6LinkLocal(name);
 
@@ -666,6 +653,19 @@ NetServer::_ConfigureInterface(BMessage& message)
 			if (status != B_OK) {
 				fprintf(stderr, "%s: Setting metric failed: %s\n", Name(),
 					strerror(status));
+			}
+		}
+	}
+
+	const char* networkName;
+	if (message.FindString("network", &networkName) == B_OK) {
+		// We want to join a specific network.
+		BNetworkDevice device(name);
+		if (device.IsWireless() && !device.HasLink()) {
+			status_t status = _JoinNetwork(message, networkName);
+			if (status != B_OK) {
+				fprintf(stderr, "%s: joining network \"%s\" failed: %s\n",
+					interface.Name(), networkName, strerror(status));
 			}
 		}
 	}
@@ -786,7 +786,7 @@ NetServer::_ConfigureDevices(const char* startPath,
 
 
 void
-NetServer::_ConfigureInterfaces(BMessage* _missingDevice)
+NetServer::_ConfigureInterfacesFromSettings(BMessage* _missingDevice)
 {
 	BMessage interface;
 	uint32 cookie = 0;
@@ -836,7 +836,7 @@ NetServer::_BringUpInterfaces()
 	// First, we look into the settings, and try to bring everything up from there
 
 	BMessage missingDevice;
-	_ConfigureInterfaces(&missingDevice);
+	_ConfigureInterfacesFromSettings(&missingDevice);
 
 	// check configuration
 
@@ -895,8 +895,8 @@ NetServer::_ConfigureIPv6LinkLocal(const char* name)
 	const uint8* mac = link.LinkLevelAddress();
 
 	// Check for a few failure situations
-	static const char zeroMac[6] = {0, 0, 0, 0, 0, 0};
-	static const char fullMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+	static const uint8 zeroMac[6] = {0, 0, 0, 0, 0, 0};
+	static const uint8 fullMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 	if (memcmp(mac, zeroMac, 6) == 0
 		|| memcmp(mac, fullMac, 6) == 0) {
 		// Mac address is all 0 or all FF's
@@ -971,8 +971,8 @@ NetServer::_HandleDeviceMonitor(BMessage* message)
 		|| message->FindString("path", &path) != B_OK)
 		return B_BAD_VALUE;
 
-	if (strncmp(path, "/dev/net", 9)) {
-		// not a device entry, ignore
+	if (strncmp(path, "/dev/net/", 9)) {
+		// not a valid device entry, ignore
 		return B_NAME_NOT_FOUND;
 	}
 
@@ -986,12 +986,13 @@ NetServer::_HandleDeviceMonitor(BMessage* message)
 
 
 status_t
-NetServer::_AutoJoinNetwork(const char* name)
+NetServer::_AutoJoinNetwork(const BMessage& message)
 {
-	BNetworkDevice device(name);
+	const char* name = NULL;
+	if (message.FindString("device", &name) != B_OK)
+		return B_BAD_VALUE;
 
-	BMessage message;
-	message.AddString("device", name);
+	BNetworkDevice device(name);
 
 	// Choose among configured networks
 
@@ -1112,30 +1113,39 @@ NetServer::_JoinNetwork(const BMessage& message, const char* name)
 		}
 	}
 
-	if (!askForConfig
-		&& network.authentication_mode == B_NETWORK_AUTHENTICATION_NONE) {
-		// we join the network ourselves
-		status_t status = set_80211(deviceName, IEEE80211_IOC_SSID,
-			network.name, strlen(network.name));
-		if (status != B_OK) {
-			fprintf(stderr, "%s: joining SSID failed: %s\n", name,
-				strerror(status));
-			return status;
+	// We always try to join via the wpa_supplicant. Even if we could join
+	// ourselves, we need to make sure that the wpa_supplicant knows about
+	// our intention, as otherwise it would interfere with it.
+
+	BMessenger wpaSupplicant(kWPASupplicantSignature);
+	if (!wpaSupplicant.IsValid()) {
+		// The wpa_supplicant isn't running yet, we may join ourselves.
+		if (!askForConfig
+			&& network.authentication_mode == B_NETWORK_AUTHENTICATION_NONE) {
+			// We can join this network ourselves.
+			status_t status = set_80211(deviceName, IEEE80211_IOC_SSID,
+				network.name, strlen(network.name));
+			if (status != B_OK) {
+				fprintf(stderr, "%s: joining SSID failed: %s\n", name,
+					strerror(status));
+				return status;
+			}
 		}
 
-		return B_OK;
+		// We need the supplicant, try to launch it.
+		status_t status = be_roster->Launch(kWPASupplicantSignature);
+		if (status != B_OK && status != B_ALREADY_RUNNING)
+			return status;
+
+		wpaSupplicant.SetTo(kWPASupplicantSignature);
+		if (!wpaSupplicant.IsValid())
+			return B_ERROR;
 	}
-
-	// Join via wpa_supplicant
-
-	status_t status = be_roster->Launch(kWPASupplicantSignature);
-	if (status != B_OK && status != B_ALREADY_RUNNING)
-		return status;
 
 	// TODO: listen to notifications from the supplicant!
 
 	BMessage join(kMsgWPAJoinNetwork);
-	status = join.AddString("device", deviceName);
+	status_t status = join.AddString("device", deviceName);
 	if (status == B_OK)
 		status = join.AddString("name", network.name);
 	if (status == B_OK)
@@ -1147,7 +1157,6 @@ NetServer::_JoinNetwork(const BMessage& message, const char* name)
 	if (status != B_OK)
 		return status;
 
-	BMessenger wpaSupplicant(kWPASupplicantSignature);
 	status = wpaSupplicant.SendMessage(&join);
 	if (status != B_OK)
 		return status;
@@ -1159,8 +1168,50 @@ NetServer::_JoinNetwork(const BMessage& message, const char* name)
 status_t
 NetServer::_LeaveNetwork(const BMessage& message)
 {
-	// TODO: not yet implemented
-	return B_NOT_SUPPORTED;
+	const char* deviceName;
+	if (message.FindString("device", &deviceName) != B_OK)
+		return B_BAD_VALUE;
+
+	int32 reason;
+	if (message.FindInt32("reason", &reason) != B_OK)
+		reason = IEEE80211_REASON_AUTH_LEAVE;
+
+	// We always try to send the leave request to the wpa_supplicant.
+
+	BMessenger wpaSupplicant(kWPASupplicantSignature);
+	if (wpaSupplicant.IsValid()) {
+		BMessage leave(kMsgWPALeaveNetwork);
+		status_t status = leave.AddString("device", deviceName);
+		if (status == B_OK)
+			status = leave.AddInt32("reason", reason);
+		if (status != B_OK)
+			return status;
+
+		status = wpaSupplicant.SendMessage(&leave);
+		if (status == B_OK)
+			return B_OK;
+	}
+
+	// The wpa_supplicant doesn't seem to be running, check if this was an open
+	// network we connected ourselves.
+	BNetworkDevice device(deviceName);
+	wireless_network network;
+
+	uint32 cookie = 0;
+	if (device.GetNextAssociatedNetwork(cookie, network) != B_OK
+		|| network.authentication_mode != B_NETWORK_AUTHENTICATION_NONE) {
+		// We didn't join ourselves, we can't do much.
+		return B_ERROR;
+	}
+
+	// We joined ourselves, so we can just disassociate again.
+	ieee80211req_mlme mlmeRequest;
+	memset(&mlmeRequest, 0, sizeof(mlmeRequest));
+	mlmeRequest.im_op = IEEE80211_MLME_DISASSOC;
+	mlmeRequest.im_reason = reason;
+
+	return set_80211(deviceName, IEEE80211_IOC_MLME, &mlmeRequest,
+		sizeof(mlmeRequest));
 }
 
 

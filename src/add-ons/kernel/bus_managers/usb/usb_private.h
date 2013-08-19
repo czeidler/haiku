@@ -17,7 +17,7 @@
 
 #define TRACE_OUTPUT(x, y, z...) \
 	{ \
-		dprintf("usb %s%s %ld: ", y, (x)->TypeName(), (x)->USBID()); \
+		dprintf("usb %s%s %" B_PRId32 ": ", y, (x)->TypeName(), (x)->USBID()); \
 		dprintf(z); \
 	}
 
@@ -136,13 +136,14 @@ public:
 		BusManager *					BusManagerAt(int32 index) const;
 
 		status_t						AllocateChunk(void **logicalAddress,
-											void **physicalAddress,
+											phys_addr_t *physicalAddress,
 											size_t size);
 		status_t						FreeChunk(void *logicalAddress,
-											void *physicalAddress, size_t size);
+											phys_addr_t physicalAddress,
+											size_t size);
 
 		area_id							AllocateArea(void **logicalAddress,
-											void **physicalAddress,
+											phys_addr_t *physicalAddress,
 											size_t size, const char *name);
 
 		void							NotifyDeviceChange(Device *device,
@@ -609,6 +610,8 @@ virtual	status_t						BuildDeviceName(char *string,
 											Device *device);
 
 private:
+		status_t						_DebouncePort(uint8 index);
+
 		InterruptPipe *					fInterruptPipe;
 		usb_hub_descriptor				fHubDescriptor;
 

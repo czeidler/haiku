@@ -2,7 +2,7 @@
  * Copyright (c) 2001-2008 pinc Software. All Rights Reserved.
  */
 
-//!	Handles BFS super block, disk access etc.
+//!	Handles BFS superblock, disk access etc.
 
 #include "Disk.h"
 #include "dump.h"
@@ -95,6 +95,7 @@ Cache<block_run>::Cacheable *BlockRunCache::NewCacheable(block_run run)
 
 Disk::Disk(const char *deviceName, bool rawMode, off_t start, off_t stop)
 	:
+	fBufferedFile(NULL),
 	fRawDiskOffset(0),
 	fSize(0LL),
 	fCache(this),
@@ -121,6 +122,7 @@ Disk::Disk(const char *deviceName, bool rawMode, off_t start, off_t stop)
 		//fprintf(stderr,"Could not open file: %s\n",strerror(fFile.InitCheck()));
 		return;
 	}
+	fBufferedFile = new BBufferIO(&fFile, 1024 * 1024, false);
 
 	int device = open(deviceName, O_RDONLY);
 	if (device < B_OK) {
@@ -145,17 +147,19 @@ Disk::Disk(const char *deviceName, bool rawMode, off_t start, off_t stop)
 	}
 	close(device);
 
-	if (fSize == 0LL)
-		fprintf(stderr,"Disk: Invalid file size (%Ld bytes)!\n",fSize);
+	if (fSize == 0LL) {
+		fprintf(stderr,"Disk: Invalid file size (%" B_PRIdOFF " bytes)!\n",
+			fSize);
+	}
 
 	if (rawMode && ScanForSuperBlock(start, stop) < B_OK) {
 		fFile.Unset();
 		return;
 	}
 
-	if (fFile.ReadAt(512 + fRawDiskOffset, &fSuperBlock,
+	if (fBufferedFile->ReadAt(512 + fRawDiskOffset, &fSuperBlock,
 			sizeof(disk_super_block)) < 1)
-		fprintf(stderr,"Disk: Could not read super block\n");
+		fprintf(stderr,"Disk: Could not read superblock\n");
 
 	//dump_super_block(&fSuperBlock);
 }
@@ -163,6 +167,7 @@ Disk::Disk(const char *deviceName, bool rawMode, off_t start, off_t stop)
 
 Disk::~Disk()
 {
+	delete fBufferedFile;
 }
 
 
@@ -171,7 +176,7 @@ status_t Disk::InitCheck()
 	status_t status = fFile.InitCheck();
 	if (status == B_OK)
 		return fSize == 0LL ? B_ERROR : B_OK;
-	
+
 	return status;
 }
 
@@ -201,7 +206,7 @@ uint8 *Disk::ReadBlockRun(block_run run)
 	CacheableBlockRun *entry = (CacheableBlockRun *)fCache.Get(run);
 	if (entry)
 		return entry->Data();
-	
+
 	return NULL;
 }
 
@@ -234,10 +239,11 @@ Disk::DumpBootBlockToFile()
 //	#pragma mark - Superblock recovery methods
 
 
-status_t 
+status_t
 Disk::ScanForSuperBlock(off_t start, off_t stop)
 {
-	printf("Disk size %Ld bytes, %.2f GB\n", fSize, 1.0 * fSize / (1024*1024*1024));
+	printf("Disk size %" B_PRIdOFF " bytes, %.2f GB\n", fSize, 1.0 * fSize
+		/ (1024*1024*1024));
 
 	uint32 blockSize = 4096;
 	char buffer[blockSize + 1024];
@@ -249,14 +255,17 @@ Disk::ScanForSuperBlock(off_t start, off_t stop)
 
 	BList superBlocks;
 
-	printf("Scanning Disk from %Ld to %Ld\n", start, stop);
+	printf("Scanning Disk from %" B_PRIdOFF " to %" B_PRIdOFF "\n", start,
+		stop);
 
 	for (off_t offset = start; offset < stop; offset += blockSize)
 	{
-		if (((offset-start) % (blockSize * 100)) == 0)
-			printf("  %12Ld, %.2f GB     %s1A\n",offset,1.0 * offset / (1024*1024*1024),escape);
+		if (((offset-start) % (blockSize * 100)) == 0) {
+			printf("  %12" B_PRIdOFF ", %.2f GB     %s1A\n", offset,
+				1.0 * offset / (1024*1024*1024),escape);
+		}
 
-		ssize_t bytes = fFile.ReadAt(offset, buffer, blockSize + 1024);
+		ssize_t bytes = fBufferedFile->ReadAt(offset, buffer, blockSize + 1024);
 		if (bytes < B_OK)
 		{
 			fprintf(stderr,"Could not read from device: %s\n", strerror(bytes));
@@ -271,24 +280,25 @@ Disk::ScanForSuperBlock(off_t start, off_t stop)
 				&& super->magic2 == (int32)SUPER_BLOCK_MAGIC2
 				&& super->magic3 == (int32)SUPER_BLOCK_MAGIC3)
 			{
-				printf("\n(%ld) *** BFS superblock found at: %Ld\n",superBlocks.CountItems() + 1,offset);
+				printf("\n(%" B_PRId32 ") *** BFS superblock found at: %"
+					B_PRIdOFF "\n", superBlocks.CountItems() + 1, offset);
 				dump_super_block(super);
 
-				// add a copy of the super block to the list
+				// add a copy of the superblock to the list
 				bfs_disk_info *info = (bfs_disk_info *)malloc(sizeof(bfs_disk_info));
 				if (info == NULL)
 					return B_NO_MEMORY;
 
 				memcpy(&info->super_block, super, sizeof(disk_super_block));
 				info->offset = offset + i - 512;
-					/* location off the BFS super block is 512 bytes after the partition start */
+					/* location off the BFS superblock is 512 bytes after the partition start */
 				superBlocks.AddItem(info);
 			}
 		}
 	}
 
 	if (superBlocks.CountItems() == 0) {
-		puts("\nCouldn't find any BFS super blocks!");
+		puts("\nCouldn't find any BFS superblocks!");
 		return B_ENTRY_NOT_FOUND;
 	}
 
@@ -299,9 +309,10 @@ Disk::ScanForSuperBlock(off_t start, off_t stop)
 	for (int32 i = 0; i < superBlocks.CountItems(); i++) {
 		bfs_disk_info *info = (bfs_disk_info *)superBlocks.ItemAt(i);
 
-		printf("%ld) %s, offset %Ld, size %g GB (%svalid)\n", i + 1,
-			info->super_block.name, info->offset,
-			1.0 * info->super_block.num_blocks * info->super_block.block_size / (1024*1024*1024),
+		printf("%" B_PRId32 ") %s, offset %" B_PRIdOFF ", size %g GB (%svalid)"
+			"\n", i + 1, info->super_block.name, info->offset,
+			1.0 * info->super_block.num_blocks * info->super_block.block_size
+				/ (1024*1024*1024),
 			ValidateSuperBlock(info->super_block) < B_OK ? "in" : "");
 	}
 
@@ -322,7 +333,7 @@ Disk::ScanForSuperBlock(off_t start, off_t stop)
 	// ToDo: free the other disk infos
 
 	fRawDiskOffset = info->offset;
-	fFile.Seek(fRawDiskOffset, SEEK_SET);
+	fBufferedFile->Seek(fRawDiskOffset, SEEK_SET);
 
 	if (ValidateSuperBlock(info->super_block))
 		fSize = info->super_block.block_size * info->super_block.block_size;
@@ -372,7 +383,7 @@ Disk::ValidateSuperBlock()
 status_t
 Disk::RecreateSuperBlock()
 {
-	memset(&fSuperBlock,0,sizeof(disk_super_block));
+	memset(&fSuperBlock, 0, sizeof(disk_super_block));
 
 	puts("\n*** Determine block size");
 
@@ -380,9 +391,9 @@ Disk::RecreateSuperBlock()
 	if (status < B_OK)
 		return status;
 
-	printf("\tblock size = %ld\n",BlockSize());
+	printf("\tblock size = %" B_PRId32 "\n", BlockSize());
 
-	strcpy(fSuperBlock.name,"recovered");	
+	strcpy(fSuperBlock.name,"recovered");
 	fSuperBlock.magic1 = SUPER_BLOCK_MAGIC1;
 	fSuperBlock.fs_byte_order = SUPER_BLOCK_FS_LENDIAN;
 	fSuperBlock.block_shift = get_shift(BlockSize());
@@ -408,7 +419,7 @@ Disk::RecreateSuperBlock()
 	bfs_inode indexDir;
 	bfs_inode rootDir;
 	if (ScanForIndexAndRoot(&indexDir,&rootDir) < B_OK) {
-		fprintf(stderr,"ERROR: Could not find root directory! Trying to recreate the super block will have no effect!\n\tSetting standard values for the root dir.\n");
+		fprintf(stderr,"ERROR: Could not find root directory! Trying to recreate the superblock will have no effect!\n\tSetting standard values for the root dir.\n");
 		rootDir.inode_num.allocation_group = 8;
 		rootDir.inode_num.start = 0;
 		rootDir.inode_num.length = 1;
@@ -422,7 +433,7 @@ Disk::RecreateSuperBlock()
 		GetNextSpecialInode(buffer,&offset,offset + 32LL * 65536 * BlockSize(),true);
 
 		if (fValidOffset == 0LL)
-		{			
+		{
 			fprintf(stderr,"FATAL ERROR: Could not find valid inode!\n");
 			return B_ERROR;
 		}
@@ -439,7 +450,7 @@ Disk::RecreateSuperBlock()
 	fSuperBlock.num_ags = divide_roundup(fSuperBlock.num_blocks,allocationGroupSize);
 
 	// calculate rest of log area
-	
+
 	fSuperBlock.log_blocks.allocation_group = fLogStart / allocationGroupSize;
 	fSuperBlock.log_blocks.start = fLogStart - fSuperBlock.log_blocks.allocation_group * allocationGroupSize;
 	fSuperBlock.log_blocks.length = LogSize();	// assumed length of 2048 blocks
@@ -447,7 +458,7 @@ Disk::RecreateSuperBlock()
 	if (fLogStart != ((indexDir.inode_num.allocation_group
 			<< fSuperBlock.ag_shift) + indexDir.inode_num.start - LogSize())) {
 		fprintf(stderr,"ERROR: start of logging area doesn't fit assumed value "
-			"(%Ld blocks before indices)!\n", LogSize());
+			"(%" B_PRIdOFF " blocks before indices)!\n", LogSize());
 		//gErrors++;
 	}
 
@@ -488,9 +499,9 @@ Disk::DetermineBlockSize()
 
 	// read a quarter of the drive at maximum
 	for (; offset < (fSize >> 2); offset += 1024) {
-		if (fFile.ReadAt(offset, buffer, sizeof(buffer)) < B_OK) {
-			fprintf(stderr, "could not read from device (offset = %Ld, "
-				"size = %ld)!\n", offset, sizeof(buffer));
+		if (fBufferedFile->ReadAt(offset, buffer, sizeof(buffer)) < B_OK) {
+			fprintf(stderr, "could not read from device (offset = %" B_PRIdOFF
+				", size = %ld)!\n", offset, sizeof(buffer));
 			status = B_IO_ERROR;
 			break;
 		}
@@ -547,8 +558,9 @@ Disk::GetNextSpecialInode(char *buffer, off_t *_offset, off_t end,
 	bfs_inode *inode = (bfs_inode *)buffer;
 
 	for (; offset < end; offset += BlockSize()) {
-		if (fFile.ReadAt(offset, buffer, 1024) < B_OK) {
-			fprintf(stderr,"could not read from device (offset = %Ld, size = %d)!\n",offset,1024);
+		if (fBufferedFile->ReadAt(offset, buffer, 1024) < B_OK) {
+			fprintf(stderr,"could not read from device (offset = %" B_PRIdOFF
+				", size = %d)!\n", offset, 1024);
 			*_offset = offset;
 			return B_IO_ERROR;
 		}
@@ -565,7 +577,7 @@ Disk::GetNextSpecialInode(char *buffer, off_t *_offset, off_t end,
 			&& offset >= (BlockSize() * (fLogStart + LogSize()))) {
 			fValidBlockRun = inode->inode_num;
 			fValidOffset = offset;
-			
+
 			if (skipAfterValidInode)
 				return B_OK;
 		}
@@ -573,7 +585,7 @@ Disk::GetNextSpecialInode(char *buffer, off_t *_offset, off_t end,
 		// is the inode a special root inode (parent == self)?
 
 		if (!memcmp(&inode->parent, &inode->inode_num, sizeof(inode_addr))) {
-			printf("\t  special inode found at %Ld\n", offset);
+			printf("\t  special inode found at %" B_PRIdOFF "\n", offset);
 
 			*_offset = offset;
 			return B_OK;
@@ -593,10 +605,12 @@ Disk::SaveInode(bfs_inode *inode, bool *indices, bfs_inode *indexDir,
 		printf("\troot node found!\n");
 		if (inode->inode_num.allocation_group != 8
 			|| inode->inode_num.start != 0
-			|| inode->inode_num.length != 1)
-			printf("WARNING: root node has unexpected position: (ag = %ld, "
-				"start = %d, length = %d)\n", inode->inode_num.allocation_group,
+			|| inode->inode_num.length != 1) {
+			printf("WARNING: root node has unexpected position: (ag = %"
+				B_PRId32 ", start = %d, length = %d)\n",
+				inode->inode_num.allocation_group,
 				inode->inode_num.start, inode->inode_num.length);
+		}
 		if (rootDir)
 			memcpy(rootDir, inode, sizeof(bfs_inode));
 	} else if (inode->mode & S_INDEX_DIR) {
@@ -653,31 +667,32 @@ Disk::ScanForIndexAndRoot(bfs_inode *indexDir,bfs_inode *rootDir)
 	if (!root) {
 		printf("WARNING: Could not find root node at common places!\n");
 		printf("\tScanning log area for root node\n");
-		
+
 		off_t logOffset = ToOffset(fSuperBlock.log_blocks);
 		if (GetNextSpecialInode(buffer,&logOffset,logOffset + LogSize() * BlockSize()) == B_OK)
 		{
 			SaveInode(inode,&indices,indexDir,&root,rootDir);
-			
-			printf("root node at: 0x%Lx (DiskProbe)\n",logOffset / 512);
-			//fFile.ReadAt(logOffset + BlockSize(),buffer,1024);
+
+			printf("root node at: 0x%" B_PRIxOFF " (DiskProbe)\n",
+				logOffset / 512);
+			//fBufferedFile->ReadAt(logOffset + BlockSize(),buffer,1024);
 			//if (*(uint32 *)buffer == BPLUSTREE_MAGIC)
 			//{
 			//	puts("\t\tnext block in log contains a bplustree!");
 			//}
 		}
 	}
-	
+
 	/*if (!root)
 	{
 		char txt[64];
 		printf("Should I perform a deeper search (that will take some time) (Y/N) [N]? ");
 		gets(txt);
-		
+
 		if (!strcasecmp("y",txt))
 		{
 			// search not so common places for the root node (all places)
-			
+
 			if (indices)
 				offset += BlockSize();	// the block after the indices inode
 			else
@@ -700,28 +715,28 @@ Disk::ScanForIndexAndRoot(bfs_inode *indexDir,bfs_inode *rootDir)
 ssize_t
 Disk::Read(void *buffer, size_t size)
 {
-	return fFile.Read(buffer, size);
+	return fBufferedFile->Read(buffer, size);
 }
 
 
 ssize_t
 Disk::Write(const void *buffer, size_t size)
 {
-	return fFile.Write(buffer, size);
+	return fBufferedFile->Write(buffer, size);
 }
 
 
 ssize_t
 Disk::ReadAt(off_t pos, void *buffer, size_t size)
 {
-	return fFile.ReadAt(pos + fRawDiskOffset, buffer, size);
+	return fBufferedFile->ReadAt(pos + fRawDiskOffset, buffer, size);
 }
 
 
 ssize_t
 Disk::WriteAt(off_t pos, const void *buffer, size_t size)
 {
-	return fFile.WriteAt(pos + fRawDiskOffset, buffer, size);
+	return fBufferedFile->WriteAt(pos + fRawDiskOffset, buffer, size);
 }
 
 
@@ -731,14 +746,14 @@ Disk::Seek(off_t position, uint32 seekMode)
 	// ToDo: only correct for seekMode == SEEK_SET, right??
 	if (seekMode != SEEK_SET)
 		puts("OH NO, I AM BROKEN!");
-	return fFile.Seek(position + fRawDiskOffset, seekMode);
+	return fBufferedFile->Seek(position + fRawDiskOffset, seekMode);
 }
 
 
 off_t
 Disk::Position() const
 {
-	return fFile.Position() - fRawDiskOffset;
+	return fBufferedFile->Position() - fRawDiskOffset;
 }
 
 

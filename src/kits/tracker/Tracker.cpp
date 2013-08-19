@@ -233,7 +233,7 @@ TTracker::TTracker()
 	setrlimit(RLIMIT_NOFILE, &rl);
 
 	fNodeMonitorCount = DEFAULT_MON_NUM;
-	
+
 	gLocalizedNamePreferred
 		= BLocaleRoster::Default()->IsFilesystemTranslationPreferred();
 
@@ -415,7 +415,7 @@ TTracker::MessageReceived(BMessage* message)
 		case kCloseWindowAndChildren:
 			{
 				const node_ref* itemNode;
-				int32 bytes;
+				ssize_t bytes;
 				message->FindData("node_ref", B_RAW_TYPE,
 					(const void**)&itemNode, &bytes);
 				CloseWindowAndChildren(itemNode);
@@ -830,11 +830,39 @@ TTracker::RefsReceived(BMessage* message)
 			// copy over "Poses" messenger so that refs received
 			// recipients know where the open came from
 			BMessage* bundleThis = NULL;
+			BMessage stackBundleThis;
 			BMessenger messenger;
 			if (message->FindMessenger("TrackerViewToken", &messenger)
 					== B_OK) {
-				bundleThis = new BMessage();
+				bundleThis = &stackBundleThis;
 				bundleThis->AddMessenger("TrackerViewToken", messenger);
+			} else {
+				// copy over any "be:*" fields -- e.g. /bin/open may include
+				// "be:line" and "be:column"
+				for (int32 i = 0;; i++) {
+					char* name;
+					type_code type;
+					int32 count;
+					status_t error = message->GetInfo(B_ANY_TYPE, i, &name,
+						&type, &count);
+					if (error != B_OK)
+						break;
+					if (strncmp(name, "be:", 3) != 0)
+						continue;
+					for (int32 k = 0; k < count; k++) {
+						const void* data;
+						ssize_t size;
+						if (message->FindData(name, type, k, &data, &size)
+								!= B_OK) {
+							break;
+						}
+						if (stackBundleThis.AddData(name, type, data, size)
+								!= B_OK) {
+							break;
+						}
+						bundleThis = &stackBundleThis;
+					}
+				}
 			}
 
 			for (int32 index = 0; index < count; index++) {
@@ -854,7 +882,6 @@ TTracker::RefsReceived(BMessage* message)
 					bundleThis);
 			}
 
-			delete bundleThis;
 			break;
 		}
 	}
@@ -1488,7 +1515,7 @@ TTracker::CloseParent(node_ref parent)
 void
 TTracker::ShowSettingsWindow()
 {
-	if (!fSettingsWindow) {
+	if (fSettingsWindow == NULL) {
 		fSettingsWindow = new TrackerSettingsWindow();
 		fSettingsWindow->Show();
 	} else {

@@ -35,6 +35,7 @@ All rights reserved.
 
 #include <Catalog.h>
 #include <ControlLook.h>
+#include <InterfaceDefs.h>
 #include <LayoutBuilder.h>
 #include <Locale.h>
 #include <ScrollView.h>
@@ -69,11 +70,11 @@ const uint32 kRevertButtonPressed = 'Rebp';
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "TrackerSettingsWindow"
 
+
 TrackerSettingsWindow::TrackerSettingsWindow()
 	:
 	BWindow(BRect(80, 80, 450, 350), B_TRANSLATE("Tracker preferences"),
 		B_TITLED_WINDOW, B_NOT_MINIMIZABLE | B_NOT_RESIZABLE
-		| B_NO_WORKSPACE_ACTIVATION	| B_NOT_ANCHORED_ON_ACTIVATE
 		| B_ASYNCHRONOUS_CONTROLS | B_NOT_ZOOMABLE
 		| B_AUTO_UPDATE_SIZE_LIMITS)
 {
@@ -113,8 +114,6 @@ TrackerSettingsWindow::TrackerSettingsWindow()
 		new DesktopSettingsView()));
 	fSettingsTypeListView->AddItem(new SettingsItem(B_TRANSLATE("Windows"),
 		new WindowsSettingsView()));
-	fSettingsTypeListView->AddItem(new SettingsItem(B_TRANSLATE("Trash"),
-		new TrashSettingsView()));
 	fSettingsTypeListView->AddItem(new SettingsItem(
 		B_TRANSLATE("Volume icons"), new SpaceBarSettingsView()));
 
@@ -134,19 +133,10 @@ TrackerSettingsWindow::TrackerSettingsWindow()
 bool
 TrackerSettingsWindow::QuitRequested()
 {
-	bool isHidden = false;
-
-	if (Lock()) {
-		isHidden = IsHidden();
-		Unlock();
-	} else
-		return true;
-
-	if (isHidden)
+	if (IsHidden())
 		return true;
 
 	Hide();
-
 	return false;
 }
 
@@ -194,6 +184,12 @@ TrackerSettingsWindow::Show()
 
 		Unlock();
 	}
+
+	if (IsHidden()) {
+		// move to current workspace
+		SetWorkspaces(B_CURRENT_WORKSPACE);
+	}
+
 	_inherited::Show();
 }
 
@@ -203,12 +199,12 @@ TrackerSettingsWindow::_ViewAt(int32 i)
 {
 	if (!Lock())
 		return NULL;
-		
+
 	SettingsItem* item = dynamic_cast<SettingsItem*>
 		(fSettingsTypeListView->ItemAt(i));
-	
+
 	Unlock();
-	
+
 	return item->View();
 }
 
@@ -235,7 +231,7 @@ TrackerSettingsWindow::_UpdateButtons()
 		defaultable |= _ViewAt(i)->IsDefaultable();
 		revertable |= _ViewAt(i)->IsRevertable();
 	}
-	
+
 	fDefaultsButton->SetEnabled(defaultable);
 	fRevertButton->SetEnabled(revertable);
 }
@@ -245,7 +241,7 @@ void
 TrackerSettingsWindow::_HandlePressedDefaultsButton()
 {
 	int32 itemCount = fSettingsTypeListView->CountItems();
-	
+
 	for (int32 i = 0; i < itemCount; i++) {
 		if (_ViewAt(i)->IsDefaultable())
 			_ViewAt(i)->SetDefaults();
@@ -278,14 +274,14 @@ TrackerSettingsWindow::_HandleChangedSettingsView()
 
 	BView* oldView = fSettingsContainerBox->ChildAt(0);
 
-	if (oldView)
+	if (oldView != NULL)
 		oldView->RemoveSelf();
 
 	SettingsItem* selectedItem =
 		dynamic_cast<SettingsItem*>
 			(fSettingsTypeListView->ItemAt(currentSelection));
 
-	if (selectedItem) {
+	if (selectedItem != NULL) {
 		fSettingsContainerBox->SetLabel(selectedItem->Text());
 
 		BView* view = selectedItem->View();
@@ -311,10 +307,6 @@ SettingsItem::SettingsItem(const char* label, SettingsView* view)
 void
 SettingsItem::DrawItem(BView* owner, BRect rect, bool drawEverything)
 {
-	const rgb_color kModifiedColor = {0, 0, 255, 0};
-	const rgb_color kBlack = {0, 0, 0, 0};
-	const rgb_color kSelectedColor = {140, 140, 140, 0};
-
 	if (fSettingsView) {
 		bool isRevertable = fSettingsView->IsRevertable();
 		bool isSelected = IsSelected();
@@ -322,7 +314,7 @@ SettingsItem::DrawItem(BView* owner, BRect rect, bool drawEverything)
 		if (isSelected || drawEverything) {
 			rgb_color color;
 			if (isSelected)
-				color = kSelectedColor;
+				color = ui_color(B_LIST_SELECTED_BACKGROUND_COLOR);
 			else
 				color = owner->ViewColor();
 
@@ -332,17 +324,23 @@ SettingsItem::DrawItem(BView* owner, BRect rect, bool drawEverything)
 		}
 
 		if (isRevertable)
-			owner->SetHighColor(kModifiedColor);
+			owner->SetFont(be_bold_font);
 		else
-			owner->SetHighColor(kBlack);
+			owner->SetFont(be_plain_font);
+
+		if (isSelected)
+			owner->SetHighColor(ui_color(B_LIST_SELECTED_ITEM_TEXT_COLOR));
+		else
+			owner->SetHighColor(ui_color(B_LIST_ITEM_TEXT_COLOR));
 
 		font_height fheight;
 		owner->GetFontHeight(&fheight);
 
-		owner->DrawString(Text(), BPoint(rect.left + 4, rect.top
-			+ fheight.ascent + 2 + floorf(fheight.leading / 2)));
+		owner->DrawString(Text(),
+			BPoint(rect.left + be_control_look->DefaultLabelSpacing(),
+				rect.top + fheight.ascent + 2 + floorf(fheight.leading / 2)));
 
-		owner->SetHighColor(kBlack);
+		owner->SetHighColor(ui_color(B_LIST_ITEM_TEXT_COLOR));
 		owner->SetLowColor(owner->ViewColor());
 	}
 }

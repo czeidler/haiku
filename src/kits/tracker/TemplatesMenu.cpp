@@ -122,7 +122,7 @@ TemplatesMenu::BuildMenu(bool addItems)
 	fOpenItem = NULL;
 	int32 count = CountItems();
 	while (count--)
-		delete RemoveItem(0L);
+		delete RemoveItem((int32)0);
 
 	// Add the Folder
 	IconMenuItem* menuItem = new IconMenuItem(B_TRANSLATE("New folder"),
@@ -164,7 +164,7 @@ TemplatesMenu::BuildMenu(bool addItems)
 
 				entry_ref ref;
 				entry.GetRef(&ref);
-	
+
 				BMessage* message = new BMessage(kNewEntryFromTemplate);
 				message->AddRef("refs_template", &ref);
 				message->AddString("name", fileName);

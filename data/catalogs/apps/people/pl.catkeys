@@ -1,4 +1,4 @@
-1	polish	x-vnd.Be-PEPL	2993050801
+1	polish	x-vnd.Be-PEPL	2332202134
 Edit	People		Edytuj
 Error	People		Błąd
 City	People		Miasto
@@ -21,9 +21,9 @@ Nickname	People		Pseudonim
 Quit	People		Wyjdź
 Name	People		Imię i nazwisko
 Revert	People		Przywróć
+Don't save	People		Nie zapisuj
 Undo	People		Cofnij
 E-mail	People		E-mail
-Save changes before quitting?	People		Zapisać zmiany przed wyjściem?
 Load image…	People		Wczytaj obraz…
 OK	People		OK
 Remove image	People		Usuń obraz
@@ -31,6 +31,7 @@ Launching the FileTypes preflet to configure Person attributes has failed.\n\nEr
 Home phone	People		Telefon domowy
 Save as…	People		Zapisz jako…
 Redo	People		Powtórz
+Save changes before closing?	People		Czy zapisać zmiany przed zamknięciem?
 Paste	People		Wklej
 Drop an image here,\nor use the contextual menu.	People		Opuść obraz tutaj,\nlub użyj menu kontekstowego.
 Save	People		Zapisz
@@ -38,7 +39,7 @@ Person	Short mimetype description		Osoba
 New person…	People		Nowa osoba…
 Address	People		Adres
 URL	People		Adres URL
-Sorry	People		OK
+Sorry	People		Przykro nam
 Zip	People		Kod pocztowy
 Contact information for a person.	Long mimetype description		Informacje kontaktowe osoby.
 Fax	People		Faks

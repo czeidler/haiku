@@ -229,12 +229,11 @@ BTextWidget::CheckExpiration()
 		get_click_speed(&doubleClickSpeed);
 
 		bigtime_t delta = system_time() - fLastClickedTime;
-	
+
 		if (delta > doubleClickSpeed) {
 			// at least 'doubleClickSpeed' microseconds ellapsed and no click
 			// was registered since.
 			fLastClickedTime = 0;
-			fParams.poseView->SetTextWidgetToCheck(NULL);
 			StartEdit(fParams.bounds, fParams.poseView, fParams.pose);
 		}
 	} else {
@@ -279,7 +278,7 @@ BTextWidget::MouseUp(BRect bounds, BPoseView* view, BPose* pose, BPoint)
 
 		fParams.pose = pose;
 		fParams.bounds = bounds;
-		fParams.poseView = view;		
+		fParams.poseView = view;
 	} else
 		fLastClickedTime = 0;
 }
@@ -335,7 +334,8 @@ TextViewFilter(BMessage* message, BHandler**, BMessageFilter* filter)
 void
 BTextWidget::StartEdit(BRect bounds, BPoseView* view, BPose* pose)
 {
-	if (!IsEditable())
+	view->SetTextWidgetToCheck(NULL, this);
+	if (!IsEditable() || IsActive())
 		return;
 
 	BEntry entry(pose->TargetModel()->EntryRef());

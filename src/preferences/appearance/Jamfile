@@ -10,12 +10,13 @@ Preference Appearance :
 	APRMain.cpp
 	AntialiasingSettingsView.cpp
 	LookAndFeelSettingsView.cpp
+	FakeScrollBar.cpp
 	FontSelectionView.cpp
 	FontView.cpp
 	APRView.cpp
 	APRWindow.cpp
+	ColorPreview.cpp
 	ColorSet.cpp
-	ColorWell.cpp
 	ColorWhichItem.cpp
 
 	# These are currently disabled while everything else is being worked on
@@ -37,11 +38,10 @@ DoCatalogs Appearance :
 	AntialiasingSettingsView.cpp
 	APRView.cpp
 	APRWindow.cpp
+	ColorPreview.cpp
 	ColorSet.cpp
-	ColorWell.cpp
 	ColorWhichItem.cpp
 	LookAndFeelSettingsView.cpp
 	FontView.cpp
 	FontSelectionView.cpp
 ;
-

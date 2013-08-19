@@ -597,7 +597,7 @@ BlockAllocator::InitializeAndClearBitmap(Transaction& transaction)
 	memset(buffer, 0, numBits >> 3);
 
 	off_t offset = 1;
-		// the bitmap starts directly after the super block
+		// the bitmap starts directly after the superblock
 
 	// initialize the AllocationGroup objects and clear the on-disk bitmap
 
@@ -926,7 +926,7 @@ BlockAllocator::AllocateBlocks(Transaction& transaction, int32 groupIndex,
 
 	fVolume->SuperBlock().used_blocks
 		= HOST_ENDIAN_TO_BFS_INT64(fVolume->UsedBlocks() + bestLength);
-		// We are not writing back the disk's super block - it's
+		// We are not writing back the disk's superblock - it's
 		// either done by the journaling code, or when the disk
 		// is unmounted.
 		// If the value is not correct at mount time, it will be
@@ -2013,7 +2013,7 @@ BlockAllocator::_CheckInodeBlocks(Inode* inode, const char* name)
 					fCheckCookie->control.stats.double_indirect_block_runs++;
 					fCheckCookie->control.stats.blocks_in_double_indirect
 						+= runs[index % runsPerBlock].Length();
-				} while ((++index % runsPerArray) != 0);
+				} while ((++index % runsPerBlock) != 0);
 			}
 
 			fCheckCookie->control.stats.double_indirect_array_blocks++;
@@ -2132,8 +2132,8 @@ BlockAllocator::_AddInodeToIndex(Inode* inode)
 void
 BlockAllocator::Dump(int32 index)
 {
-	kprintf("allocation groups: %ld (base %p)\n", fNumGroups, fGroups);
-	kprintf("blocks per group: %ld\n", fBlocksPerGroup);
+	kprintf("allocation groups: %" B_PRId32 " (base %p)\n", fNumGroups, fGroups);
+	kprintf("blocks per group: %" B_PRId32 "\n", fBlocksPerGroup);
 
 	for (int32 i = 0; i < fNumGroups; i++) {
 		if (index != -1 && i != index)
@@ -2141,15 +2141,15 @@ BlockAllocator::Dump(int32 index)
 
 		AllocationGroup& group = fGroups[i];
 
-		kprintf("[%3ld] num bits:       %lu  (%p)\n", i, group.NumBits(),
-			&group);
-		kprintf("      num blocks:     %lu\n", group.NumBlocks());
-		kprintf("      start:          %ld\n", group.Start());
-		kprintf("      first free:     %ld\n", group.fFirstFree);
-		kprintf("      largest start:  %ld%s\n", group.fLargestStart,
+		kprintf("[%3" B_PRId32 "] num bits:       %" B_PRIu32 "  (%p)\n", i,
+			group.NumBits(), &group);
+		kprintf("      num blocks:     %" B_PRIu32 "\n", group.NumBlocks());
+		kprintf("      start:          %" B_PRId32 "\n", group.Start());
+		kprintf("      first free:     %" B_PRId32 "\n", group.fFirstFree);
+		kprintf("      largest start:  %" B_PRId32 "%s\n", group.fLargestStart,
 			group.fLargestValid ? "" : "  (invalid)");
-		kprintf("      largest length: %ld\n", group.fLargestLength);
-		kprintf("      free bits:      %ld\n", group.fFreeBits);
+		kprintf("      largest length: %" B_PRId32 "\n", group.fLargestLength);
+		kprintf("      free bits:      %" B_PRId32 "\n", group.fFreeBits);
 	}
 }
 

@@ -2,7 +2,7 @@
 Printer: %printer_name%\nDriver:  %driver%\n	TestPageView		Drukarka: %printer_name%\nSterownik:  %driver%\n
 Waiting	JobListView		Oczekuję
 Print test page	PrintersWindow		Wydrukuj stronę testową
-Test Page	TestPageView		Strona testowa
+Test Page	TestPageView		Strona Testowa
 Test Page	PrintersWindow		Strona testowa
 page	JobListView		strona
 Cancel	AddPrinterDialog		Anuluj
@@ -10,7 +10,7 @@ Add printer	AddPrinterDialog		Dodaj drukarkę
 Green	TestPageView		Zielony
 Printers	PrintersWindow		Drukarki
 Default Printer	PrinterListView		Domyślna drukarka
-Transport: %transport% %transport_address%	PrinterListView		Transport: %transport% %transport_address%
+Transport: %transport% %transport_address%	PrinterListView		Podsystem transportu: %transport%, adres: %transport_address%
 No pending jobs.	PrinterListView		Brak oczekujących zadań.
 pages	JobListView		strony
 Printers	System name		Drukarki
@@ -22,14 +22,14 @@ Driver: %driver%	PrinterListView		Sterownik: %driver%
 Black	TestPageView		Czarny
 Restart job	PrintersWindow		Zrestartuj zadanie
 Add	AddPrinterDialog		Dodaj
-Make default	PrintersWindow		Utwórz domyślny
-Transport: %transport% %transport_address%	TestPageView		Transport: %transport% %transport_address%
+Make default	PrintersWindow		Ustaw jako domyślną drukarkę
+Transport: %transport% %transport_address%	TestPageView		Podsystem transportu: %transport%, adres: %transport_address%
 Cancel job	PrintersWindow		Anuluj zadanie
 Yellow	TestPageView		Żółty
 Blue	TestPageView		Niebieski
 1 pending job.	PrinterListView		1 zadanie w toku.
 Remove	PrintersWindow		Usuń
-<pick one>	AddPrinterDialog		<wybierz jeden>
+<pick one>	AddPrinterDialog		<wybierz>
 Add …	PrintersWindow		Dodaj …
 Print jobs for 	PrintersWindow		Drukowanie dla 
 Failed	JobListView		Nie wykonano

@@ -44,6 +44,7 @@ All rights reserved.
 
 #include "BarApp.h"
 #include "BarMenuBar.h"
+#include "BarView.h"
 #include "ExpandoMenuBar.h"
 #include "icons.h"
 #include "ResourceSet.h"
@@ -272,8 +273,11 @@ TWindowMenuItem::DrawContent()
 		+ ((frame.Height() - fTitleAscent - fTitleDescent) / 2) + 1.0f;
 
 	menu->MovePenTo(contLoc);
-	// Set the pen color so that the label is always visible.
-	menu->SetHighColor(ui_color(B_MENU_ITEM_TEXT_COLOR));
+
+	if (IsSelected())
+		menu->SetHighColor(ui_color(B_MENU_SELECTED_ITEM_TEXT_COLOR));
+	else
+		menu->SetHighColor(ui_color(B_MENU_ITEM_TEXT_COLOR));
 
 	BMenuItem::DrawContent();
 

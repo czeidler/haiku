@@ -72,7 +72,11 @@ All rights reserved.
 #elif __GNUC__ <= 2
 	#define BMenuBar_StartMenuBar_Hack StartMenuBar__8BMenuBarlbT2P5BRect
 #elif __GNUC__ > 2
-	#define BMenuBar_StartMenuBar_Hack _ZN8BMenuBar12StartMenuBarElbbP5BRect
+	#if B_HAIKU_64_BIT
+		#define BMenuBar_StartMenuBar_Hack _ZN8BMenuBar12StartMenuBarEibbP5BRect
+	#else
+		#define BMenuBar_StartMenuBar_Hack _ZN8BMenuBar12StartMenuBarElbbP5BRect
+	#endif
 #else
 #	error "You may want to port this ugly hack to your compiler ABI"
 #endif
@@ -96,6 +100,7 @@ TBarWindow::TBarWindow()
 	desk_settings* settings = ((TBarApp*)be_app)->Settings();
 	if (settings->alwaysOnTop)
 		SetFeel(B_FLOATING_ALL_WINDOW_FEEL);
+
 	fBarView = new TBarView(Bounds(), settings->vertical, settings->left,
 		settings->top, settings->state, settings->width);
 	AddChild(fBarView);

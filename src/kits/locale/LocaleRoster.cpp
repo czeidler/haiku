@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2010, Haiku. All rights reserved.
+ * Copyright 2003-2012, Haiku. All rights reserved.
  * Distributed under the terms of the MIT License.
  *
  * Authors:
@@ -10,28 +10,23 @@
 
 #include <LocaleRoster.h>
 
-#include <ctype.h>
-#include <set>
-
 #include <assert.h>
-#include <syslog.h>
+#include <ctype.h>
+
+#include <new>
 
 #include <Autolock.h>
 #include <Bitmap.h>
 #include <Catalog.h>
-#include <Collator.h>
-#include <DefaultCatalog.h>
-#include <Directory.h>
 #include <Entry.h>
-#include <File.h>
 #include <FormattingConventions.h>
 #include <fs_attr.h>
 #include <IconUtils.h>
 #include <Language.h>
 #include <Locale.h>
+#include <LocaleRosterData.h>
 #include <MutableLocaleRoster.h>
 #include <Node.h>
-#include <Path.h>
 #include <Roster.h>
 #include <String.h>
 #include <TimeZone.h>
@@ -46,7 +41,6 @@
 
 using BPrivate::CatalogAddOnInfo;
 using BPrivate::MutableLocaleRoster;
-using BPrivate::RosterData;
 
 
 /*
@@ -68,26 +62,6 @@ int32 BLocaleRoster::kEmbeddedCatResId = 0xCADA;
 	// this may live in an app- or add-on-file
 
 
-static status_t
-load_resources_if_needed(RosterData* rosterData)
-{
-	if (rosterData->fAreResourcesLoaded)
-		return B_OK;
-
-	status_t result = rosterData->fResources.SetToImage(
-		(const void*)&BLocaleRoster::Default);
-	if (result != B_OK)
-		return result;
-
-	result = rosterData->fResources.PreloadResourceType();
-	if (result != B_OK)
-		return result;
-
-	rosterData->fAreResourcesLoaded = true;
-	return B_OK;
-}
-
-
 static const char*
 country_code_for_language(const BLanguage& language)
 {
@@ -95,7 +69,7 @@ country_code_for_language(const BLanguage& language)
 		return language.CountryCode();
 
 	// TODO: implement for real! For now, we just map some well known
-	// languages to countries to make ReadOnlyBootPrompt happy.
+	// languages to countries to make FirstBootPrompt happy.
 	switch ((tolower(language.Code()[0]) << 8) | tolower(language.Code()[1])) {
 		case 'be':	// Belarus
 			return "BY";
@@ -150,12 +124,16 @@ country_code_for_language(const BLanguage& language)
 
 
 BLocaleRoster::BLocaleRoster()
+	:
+	fData(new(std::nothrow) BPrivate::LocaleRosterData(BLanguage("en_US"),
+		BFormattingConventions("en_US")))
 {
 }
 
 
 BLocaleRoster::~BLocaleRoster()
 {
+	delete fData;
 }
 
 
@@ -169,7 +147,7 @@ BLocaleRoster::Default()
 status_t
 BLocaleRoster::Refresh()
 {
-	return RosterData::Default()->Refresh();
+	return fData->Refresh();
 }
 
 
@@ -179,16 +157,21 @@ BLocaleRoster::GetDefaultTimeZone(BTimeZone* timezone) const
 	if (!timezone)
 		return B_BAD_VALUE;
 
-	RosterData* rosterData = RosterData::Default();
-	BAutolock lock(rosterData->fLock);
+	BAutolock lock(fData->fLock);
 	if (!lock.IsLocked())
 		return B_ERROR;
 
-	*timezone = rosterData->fDefaultTimeZone;
+	*timezone = fData->fDefaultTimeZone;
 
 	return B_OK;
 }
 
+
+const BLocale*
+BLocaleRoster::GetDefaultLocale() const
+{
+	return &fData->fDefaultLocale;
+}
 
 status_t
 BLocaleRoster::GetLanguage(const char* languageCode,
@@ -212,12 +195,11 @@ BLocaleRoster::GetPreferredLanguages(BMessage* languages) const
 	if (!languages)
 		return B_BAD_VALUE;
 
-	RosterData* rosterData = RosterData::Default();
-	BAutolock lock(rosterData->fLock);
+	BAutolock lock(fData->fLock);
 	if (!lock.IsLocked())
 		return B_ERROR;
 
-	*languages = rosterData->fPreferredLanguages;
+	*languages = fData->fPreferredLanguages;
 
 	return B_OK;
 }
@@ -368,12 +350,12 @@ BLocaleRoster::GetFlagIconForCountry(BBitmap* flagIcon, const char* countryCode)
 	if (countryCode == NULL)
 		return B_BAD_VALUE;
 
-	RosterData* rosterData = RosterData::Default();
-	BAutolock lock(rosterData->fLock);
+	BAutolock lock(fData->fLock);
 	if (!lock.IsLocked())
 		return B_ERROR;
 
-	status_t status = load_resources_if_needed(rosterData);
+	BResources* resources;
+	status_t status = fData->GetResources(&resources);
 	if (status != B_OK)
 		return status;
 
@@ -390,8 +372,8 @@ BLocaleRoster::GetFlagIconForCountry(BBitmap* flagIcon, const char* countryCode)
 	normalizedCode[2] = '\0';
 
 	size_t size;
-	const void* buffer = rosterData->fResources.LoadResource(
-		B_VECTOR_ICON_TYPE, normalizedCode, &size);
+	const void* buffer = resources->LoadResource(B_VECTOR_ICON_TYPE,
+		normalizedCode, &size);
 	if (buffer == NULL || size == 0)
 		return B_NAME_NOT_FOUND;
 
@@ -408,12 +390,12 @@ BLocaleRoster::GetFlagIconForLanguage(BBitmap* flagIcon,
 		|| languageCode[1] == '\0')
 		return B_BAD_VALUE;
 
-	RosterData* rosterData = RosterData::Default();
-	BAutolock lock(rosterData->fLock);
+	BAutolock lock(fData->fLock);
 	if (!lock.IsLocked())
 		return B_ERROR;
 
-	status_t status = load_resources_if_needed(rosterData);
+	BResources* resources;
+	status_t status = fData->GetResources(&resources);
 	if (status != B_OK)
 		return status;
 
@@ -425,8 +407,8 @@ BLocaleRoster::GetFlagIconForLanguage(BBitmap* flagIcon,
 	normalizedCode[2] = '\0';
 
 	size_t size;
-	const void* buffer = rosterData->fResources.LoadResource(
-		B_VECTOR_ICON_TYPE, normalizedCode, &size);
+	const void* buffer = resources->LoadResource(B_VECTOR_ICON_TYPE,
+		normalizedCode, &size);
 	if (buffer != NULL && size != 0) {
 		return BIconUtils::GetVectorIcon(static_cast<const uint8*>(buffer),
 			size, flagIcon);
@@ -451,15 +433,14 @@ BLocaleRoster::GetAvailableCatalogs(BMessage*  languageList,
 	if (languageList == NULL)
 		return B_BAD_VALUE;
 
-	RosterData* rosterData = RosterData::Default();
-	BAutolock lock(rosterData->fLock);
+	BAutolock lock(fData->fLock);
 	if (!lock.IsLocked())
 		return B_ERROR;
 
-	int32 count = rosterData->fCatalogAddOnInfos.CountItems();
+	int32 count = fData->fCatalogAddOnInfos.CountItems();
 	for (int32 i = 0; i < count; ++i) {
 		CatalogAddOnInfo* info
-			= (CatalogAddOnInfo*)rosterData->fCatalogAddOnInfos.ItemAt(i);
+			= (CatalogAddOnInfo*)fData->fCatalogAddOnInfos.ItemAt(i);
 
 		if (!info->MakeSureItsLoaded() || !info->fLanguagesFunc)
 			continue;
@@ -475,12 +456,11 @@ BLocaleRoster::GetAvailableCatalogs(BMessage*  languageList,
 bool
 BLocaleRoster::IsFilesystemTranslationPreferred() const
 {
-	RosterData* rosterData = RosterData::Default();
-	BAutolock lock(rosterData->fLock);
+	BAutolock lock(fData->fLock);
 	if (!lock.IsLocked())
 		return B_ERROR;
 
-	return rosterData->fIsFilesystemTranslationPreferred;
+	return fData->fIsFilesystemTranslationPreferred;
 }
 
 
@@ -521,11 +501,8 @@ BLocaleRoster::GetLocalizedFileName(BString& localizedFileName,
 	// The signature is missing application/
 	signature.Prepend("application/");
 	status = roster.FindApp(signature, &catalogRef);
-	if (status != B_OK) {
-		log_team(LOG_ERR, "Could not find the entry_ref for signature %s"
-				" to load a catalog.", signature.String());
+	if (status != B_OK)
 		return status;
-	}
 
 	BCatalog catalog(catalogRef);
 	const char* temp = catalog.GetString(string, context);
@@ -562,11 +539,8 @@ BLocaleRoster::_GetCatalog(BCatalog* catalog, vint32* catalogInitStatus)
 		}
 	}
 
-	if (!found) {
-		log_team(LOG_DEBUG, "Catalog %x doesn't belong to any image!",
-			catalog);
+	if (!found)
 		return catalog;
-	}
 
 	// load the catalog for this mimetype and return it to the app
 	entry_ref ref;

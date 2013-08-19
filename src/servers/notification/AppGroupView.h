@@ -29,18 +29,22 @@ public:
 			void				Draw(BRect updateRect);
 
 			bool				HasChildren();
+			int32				ChildrenCount();
 
 			void				AddInfo(NotificationView* view);
 
 			const BString&		Group() const;
 
 private:
+			void				_DrawCloseButton(const BRect& updateRect);
+
 			BString				fLabel;
 			NotificationWindow*	fParent;
 			infoview_t			fInfo;
 			bool				fCollapsed;
 			BRect				fCloseRect;
 			BRect				fCollapseRect;
+			bool				fCloseClicked;
 };
 
 #endif	// _APP_GROUP_VIEW_H

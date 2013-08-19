@@ -471,10 +471,10 @@ AHCIPort::FillPrdTable(volatile prd *prdTable, int *prdCount, int prdMax,
 			FLOW("FillPrdTable: prd-entry %u, addr %p, size %lu\n",
 				*prdCount, address, bytes);
 
-			prdTable->dba  = LO32(address);
+			prdTable->dba = LO32(address);
 			prdTable->dbau = HI32(address);
-			prdTable->res  = 0;
-			prdTable->dbc  = bytes - 1;
+			prdTable->res = 0;
+			prdTable->dbc = bytes - 1;
 			*prdCount += 1;
 			prdTable++;
 			address = address + bytes;
@@ -582,16 +582,17 @@ AHCIPort::ScsiInquiry(scsi_ccb *request)
 	}
 */
 
-	scsiData.device_type = fIsATAPI ? scsi_dev_CDROM : scsi_dev_direct_access;
+	scsiData.device_type = fIsATAPI
+		? ataData.word_0.atapi.command_packet_set : scsi_dev_direct_access;
 	scsiData.device_qualifier = scsi_periph_qual_connected;
 	scsiData.device_type_modifier = 0;
-	scsiData.removable_medium = fIsATAPI;
+	scsiData.removable_medium = ataData.word_0.ata.removable_media_device;
 	scsiData.ansi_version = 2;
 	scsiData.ecma_version = 0;
 	scsiData.iso_version = 0;
 	scsiData.response_data_format = 2;
 	scsiData.term_iop = false;
-	scsiData.additional_length = sizeof(scsiData) - 4;
+	scsiData.additional_length = sizeof(scsi_res_inquiry) - 4;
 	scsiData.soft_reset = false;
 	scsiData.cmd_queue = false;
 	scsiData.linked = false;
@@ -599,26 +600,16 @@ AHCIPort::ScsiInquiry(scsi_ccb *request)
 	scsiData.write_bus16 = true;
 	scsiData.write_bus32 = false;
 	scsiData.relative_address = false;
-	memcpy(scsiData.vendor_ident, ataData.model_number,
-		sizeof(scsiData.vendor_ident));
-	memcpy(scsiData.product_ident, ataData.model_number + 8,
-		sizeof(scsiData.product_ident));
-	memcpy(scsiData.product_rev, ataData.serial_number,
-		sizeof(scsiData.product_rev));
 
 	if (!fIsATAPI) {
-		bool lba = ataData.dma_supported != 0;
-		bool lba48 = ataData.lba48_supported != 0;
-		uint32 sectors = ataData.lba_sector_count;
-		uint64 sectors48 = ataData.lba48_sector_count;
-		fUse48BitCommands = lba && lba48;
-		fSectorSize = 512;
-		fSectorCount = !(lba || sectors) ? 0 : lba48 ? sectors48 : sectors;
+		fSectorCount = ataData.SectorCount(fUse48BitCommands, true);
+		fSectorSize = ataData.SectorSize();
 		fTrim = ataData.data_set_management_support;
 		TRACE("lba %d, lba48 %d, fUse48BitCommands %d, sectors %" B_PRIu32
 			", sectors48 %" B_PRIu64 ", size %" B_PRIu64 "\n",
-			lba, lba48, fUse48BitCommands, sectors, sectors48,
-			fSectorCount * fSectorSize);
+			ataData.dma_supported != 0, ataData.lba48_supported != 0,
+			fUse48BitCommands, ataData.lba_sector_count,
+			ataData.lba48_sector_count, fSectorCount * fSectorSize);
 	}
 
 #if 0
@@ -644,6 +635,17 @@ AHCIPort::ScsiInquiry(scsi_ccb *request)
 	TRACE("serial number: %s\n", serialNumber);
 	TRACE("firmware rev.: %s\n", firmwareRev);
 	TRACE("trim support: %s\n", fTrim ? "yes" : "no");
+
+	// There's not enough space to fit all of the data in. ATA has 40 bytes for
+	// the model number, 20 for the serial number and another 8 for the
+	// firmware revision. SCSI has room for 8 for vendor ident, 16 for product
+	// ident and another 4 for product revision. We just try and fit in as much
+	// as possible of the model number into the vendor and product ident fields
+	// and put a little of the serial number into the product revision field.
+	memcpy(scsiData.vendor_ident, modelNumber, sizeof(scsiData.vendor_ident));
+	memcpy(scsiData.product_ident, modelNumber + 8,
+		sizeof(scsiData.product_ident));
+	memcpy(scsiData.product_rev, serialNumber, sizeof(scsiData.product_rev));
 
 	if (sg_memcpy(request->sg_list, request->sg_count, &scsiData,
 			sizeof(scsiData)) < B_OK) {
@@ -950,7 +952,7 @@ AHCIPort::ScsiExecuteRequest(scsi_ccb *request)
 				request->subsys_status = SCSI_REQ_INVALID;
 				gSCSI->finished(request, 1);
 			}
-			break; 
+			break;
 		case SCSI_OP_SYNCHRONIZE_CACHE:
 			ScsiSynchronizeCache(request);
 			break;

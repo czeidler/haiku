@@ -1,4 +1,4 @@
-1	hindi	x-vnd.Haiku-libtracker	2038664208
+1	hindi	x-vnd.Haiku-libtracker	3225080926
 common	B_COMMON_DIRECTORY		सामान्य
 OK	WidgetAttributeText		ठीक है
 Icon view	VolumeWindow		चिह्न दृश्य
@@ -197,7 +197,6 @@ Resize to fit	VolumeWindow		आकार बदलने के फिट कर
 Could not find application \"%appname\"	OpenWithWindow		आवेदन नहीं मिला \"%appname\"
 The selected item cannot be moved to the Trash. Would you like to delete it instead? (This operation cannot be reverted.)	PoseView		चयनित आइटम को कचरा पेटी में स्थानांतरित नहीं किया जा सकता है. क्या आप इसे इसकी बजाय मिटाना चाहते हैं? (यह आपरेशन किया जाना है. नहीं लौट सकते हैं)
 Invert	SelectionWindow		पलटे
-Save Query as template…	FindPanel		टेम्पलेट के रूप में सहेजें क्वेरी...
 rename	InfoWindow	As in 'if you rename this folder...' (en) 'Wird dieser Ordner umbenannt...' (de)	फिर से नाम दें 
 Find	FindPanel		खोजें
 Move	FSUtils	Button label, 'Move' (en), 'Verschieben' (de)	मूव 
@@ -242,7 +241,6 @@ TiB	WidgetAttributeText		ती बी
 The file \"%name\" already exists in the specified folder. Do you want to replace it?	FilePanelPriv		फ़ाइल \"%name\"पहले से निर्दिष्ट फ़ोल्डर में मौजूद है. क्या आप इसे बदलना चाहते हैं?
 Cancel	ContainerWindow		रद्द करें
 Only the boot disk	AutoMounterSettings		केवल बूट डिस्क
-Trash	TrackerSettingsWindow		रद्दी
 Unmount	ContainerWindow		अनमाउंट
 Copy layout	ContainerWindow		लेआउट की नकल करें
 label too long	PoseView		लेबल बहुत लंबा हैं
@@ -372,7 +370,6 @@ Icon view	DeskWindow		आइकन का दृश्य
 Select all	QueryContainerWindow		सभी चुनें
 Files cannot be moved or deleted from a read-only volume.	PoseView		केवल पढ़ने के लिए संस्करणों में फाइले कॉपी या हटाए नहीं जा सकती .
 There was a problem trying to replace \"%name\". The item might be open or busy.	FSUtils		वहां एक तरह से बदलने की कोशिश कर समस्या थी \"%name\". आइटम खोलें या व्यस्त हो सकता है.
-You cannot put the Trash, home or Desktop directory into the trash.	FSUtils		आप रद्दी, घर या डेस्कटॉप निर्देशिका रद्दी में नहीं डाल सकते.
 Owner	FilePermissionsView		मालिक
 There was a problem trying to save in the folder you specified. Please try another one.	FilePanelPriv		आपके द्वारा निर्दिष्ट फ़ोल्डर में सहेजने मे समस्या थी.एक और  प्रयास करें.
 Restore	ContainerWindow		पुनर्स्थापित करें
@@ -391,7 +388,6 @@ Paste layout	ContainerWindow		लेआउट चिपकाएँ
 Select	InfoWindow		चुनें
 Could not update permissions of file \"%name\". %error	FSUtils		फ़ाइल की अनुमतियाँ अद्यतन नहीं कि जा सकती \"%name\". %error
 Select…	FilePanelPriv		चुनें ...
-Don't move files to Trash	SettingsView		रद्दी में फाइलों मत डालें
 There was an error resolving the link.	Tracker		एक कड़ी को हल करने में त्रुटि हुई.
 %BytesPerSecond/s	StatusWindow		%BytesPerSecond/s
 You can't move or copy the trash.	FSUtils		आप रद्दी को कॉपी या स्थानांतरित नहीं कर सकते हैं.
@@ -422,7 +418,6 @@ Automatic disk mounting	AutoMounterSettings		स्वचालित डिस�
 Original name	ContainerWindow		मूल नाम
 Find	FSUtils		खोजें
 Error copying file \"%name\":\n\t%error\n\nWould you like to continue?	FSUtils		फ़ाइल की प्रतिलिपि में त्रुटि \"%name\":\n\t%error\n\nक्या आप जारी रखना चाहेंगे?
-Ask before delete	SettingsView		हटाने से पहले पूछें 
 Single window navigation	SettingsView		एक खिड़की मे नैवगेशन
 parent folder	NavMenu		मूल फ़ोल्डर
 contains	FindPanel		शामिल हैं

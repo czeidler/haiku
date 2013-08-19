@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009, Haiku Inc.
+ * Copyright 2002-2012, Haiku Inc.
  * Distributed under the terms of the MIT License.
  *
  * Authors:
@@ -191,6 +191,16 @@ BEntry::Exists() const
 }
 
 
+const char*
+BEntry::Name() const
+{
+	if (fCStatus != B_OK)
+		return NULL;
+
+	return fName;
+}
+
+
 status_t
 BEntry::SetTo(const BDirectory* dir, const char* path, bool traverse)
 {
@@ -360,18 +370,13 @@ BEntry::GetParent(BDirectory* dir) const
 status_t
 BEntry::GetName(char* buffer) const
 {
-	status_t result = B_ERROR;
+	if (fCStatus != B_OK)
+		return B_NO_INIT;
+	if (buffer == NULL)
+		return B_BAD_VALUE;
 
-	if (fCStatus != B_OK) {
-		result = B_NO_INIT;
-	} else if (buffer == NULL) {
-		result = B_BAD_VALUE;
-	} else {
-		strcpy(buffer, fName);
-		result = B_OK;
-	}
-
-	return result;
+	strcpy(buffer, fName);
+	return B_OK;
 }
 
 
@@ -684,14 +689,14 @@ BEntry::_Dump(const char* name)
 		printf("------------------------------------------------------------\n");
 	}
 
-	printf("fCStatus == %ld\n", fCStatus);
+	printf("fCStatus == %" B_PRId32 "\n", fCStatus);
 
 	struct stat st;
 	if (fDirFd != -1
 		&& _kern_read_stat(fDirFd, NULL, false, &st,
 				sizeof(struct stat)) == B_OK) {
-		printf("dir.device == %ld\n", st.st_dev);
-		printf("dir.inode  == %lld\n", st.st_ino);
+		printf("dir.device == %" B_PRIdDEV "\n", st.st_dev);
+		printf("dir.inode  == %" B_PRIdINO "\n", st.st_ino);
 	} else {
 		printf("dir == NullFd\n");
 	}

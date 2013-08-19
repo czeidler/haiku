@@ -148,11 +148,6 @@ public:
 		return fObject == other;
 	}
 
-	bool operator==(const Type* other) const
-	{
-		return (fObject == other);
-	}
-
 	bool operator!=(const BReference<Type>& other) const
 	{
 		return fObject != other.fObject;
@@ -161,11 +156,6 @@ public:
 	bool operator!=(const Type* other) const
 	{
 		return fObject != other;
-	}
-
-	bool operator!=(const Type* other) const
-	{
-		return (fObject != other);
 	}
 
 private:

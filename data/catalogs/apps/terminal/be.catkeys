@@ -1,11 +1,12 @@
-1	belarusian	x-vnd.Haiku-Terminal	1294209621
+1	belarusian	x-vnd.Haiku-Terminal	2967760334
 Not found.	Terminal TermWindow		Не знойдзена.
 Switch Terminals	Terminal TermWindow		Пераключыць Тэрміналы
 Change directory	Terminal TermView		Змяніць дырэкторыю
+Cursor	Terminal AppearancePrefView		Курсор
+Professional	Terminal colors scheme		Прафесіянал
 OK	Terminal TermWindow		ОК
 New Terminal	Terminal TermWindow		Новы Тэрмінал
 Terminal couldn't start the shell. Sorry.	Terminal TermApp		Тэрмінал не змог запусціць абалонку. Выбачайце.
-Text size	Terminal TermWindow		Памер тэксту
 Match case	Terminal FindWindow		З улікам рэгістру
 Quit	Terminal TermWindow		Выйсці
 Use default shell	Terminal Shell		Ужыць абалонку па змоўчанню
@@ -13,18 +14,20 @@ Confirm exit if active programs exist	Terminal AppearancePrefView		Пытацц�
 The pattern specifying the current tab title. The following placeholders\ncan be used:\n	Terminal TermWindow		Шаблон для цякучага імя ўкладкі. Можна ўжываць наступныя\n запаўняльнікі:\n
 Select all	Terminal TermWindow		Выбраць усё
 Close tab	Terminal TermWindow		Закрыць укладку
-Custom	Terminal colors schema		Спецыяльнае
-Save to file…	Terminal PrefWindow		Захаваць у файл...
+Save to file…	Terminal PrefWindow		Захаваць у файл…
 OK	Terminal PrefWindow		ОК
-Black on White	Terminal colors schema		Чорны на Белым
 Window title:	Terminal AppearancePrefView		Імя вакна:
 Font:	Terminal AppearancePrefView		Шрыфт:
 Copy here	Terminal TermView		Капіяваць сюды
 Really close?	Terminal TermWindow		Сапраўды закрыць?
 Copy	Terminal TermWindow		Капіяваць
+Terminal	Terminal TermWindow	The title for the main window menubar entry related to terminal sessions	Тэрмінал
+Color scheme:	Terminal AppearancePrefView		Каляровая схема:
 Window title:	Terminal TermWindow		Імя вакна:
 Unrecognized option \"%s\"\n	Terminal arguments parsing		Невядомая опцыя \"%s\"\n
-%app% settings	Terminal PrefWindow	window title	Наладкі %app% 
+Blue	Terminal colors scheme		Сіні
+Custom	Terminal colors scheme		Спецыяльнае
+%app% settings	Terminal PrefWindow	window title	Наладкі %app%
 Cancel	Terminal SetTitleWindow		Адмена
 Increase	Terminal TermWindow		Павялічыць
 Settings	Terminal TermWindow		Наладкі
@@ -34,22 +37,21 @@ Find	Terminal FindWindow		Шукаць
 Appearance	Terminal PrefWindow		Знешні выгляд
 Tab title:	Terminal AppearancePrefView		Імя ўкладкі:
 The pattern specifying the window titles. The following placeholders\ncan be used:\n	Terminal AppearancePrefView		Шаблон для цякучага імя вакна. Можна ўжываць наступныя\n запаўняльнікі:\n
-Color schema:	Terminal AppearancePrefView		Каляровая схема:
 OK	Terminal SetTitleWindow		ОК
 Background	Terminal AppearancePrefView		Фон
 Use selection	Terminal FindWindow		Карыстаць выдзяленне
-Green on Black	Terminal colors schema		Залёны на Белым
 The process \"%1\" is still running.\nIf you close the tab, the process will be killed.	Terminal TermWindow		Працэс \"%1\" яшчэ актыўны.\nКалі вы закрыеце ўкладку, працэс будзе забіты.
-Size:	Terminal AppearancePrefView		Памер:
-Cannot execute \"%command\":\n\t%error	Terminal Shell		Немагчыма выканаць \"%command\":\n\t%памылка
-  -h,     --help               print this help\n  -t,     --title              set window title\n  -f,     --fullscreen         start fullscreen\n	Terminal TermApp		-h, --help вывесцi дапамогу\n-t, --title задаць загаловак вакна\n-f, --fullscreen запусціць на поўны экран\n
+Cannot execute \"%command\":\n\t%error	Terminal Shell		Немагчыма выканаць \"%command\":\n\t%error
+  -h,     --help               print this help\n  -t,     --title              set window title\n  -f,     --fullscreen         start fullscreen\n	Terminal TermApp		  -h,     --help               вывесцi дапамогу\n  -t,     --title              задаць загаловак вакна\n  -f,     --fullscreen         запусціць на поўны экран\n
 Full screen	Terminal TermWindow		Поўны экран
-Window title…	Terminal TermWindow		Загаловак вакна...
-Page setup…	Terminal TermWindow		Наладкі старонкі...
+Window title…	Terminal TermWindow		Загаловак вакна…
+Page setup…	Terminal TermWindow		Наладкі старонкі…
 The following processes are still running:\n\n\t%1\n\nIf you close the Terminal, the processes will be killed.	Terminal TermWindow		Наступныя працэсы яшчэ актыўныя:\n\n\t%1\n\nКалі вы закрыеце Тэрмінал, працэсы будуць забітыя.
 Insert path	Terminal TermView		Уставіць пуць
 Haiku Terminal\nCopyright 2001-2009 Haiku, Inc.\nCopyright(C) 1999 Kazuho Okui and Takashi Murai.\n\nUsage: %s [OPTION] [SHELL]\n	Terminal TermApp		Тэрмінал Haiku\nCopyright 2001-2009 Haiku, Inc.\nCopyright(C) 1999 Kazuho Okui, Takashi Murai.\n\nКарыстанне: %s [OPTION] [SHELL]\n
 No search string was entered.	Terminal TermWindow		Страка для пошуку не ўведзена.
+Font size	Terminal TermWindow		Памер шрыфта
+Blinking cursor	Terminal AppearancePrefView		Мільгаючы курсор
 Don't save	Terminal PrefWindow		Не захоўваць
 Set window title	Terminal TermWindow		Прызначыць імя вакна
 Terminal	System name		Тэрмінал
@@ -57,16 +59,19 @@ Close other tabs	Terminal TermWindow		Закрыць астатнія ўклад
 Match word	Terminal FindWindow		Усё слова
 Nothing is selected.	Terminal TermWindow		Нічога не выбрана.
 Text not found.	Terminal TermWindow		Тэкст не знойдзены.
-Find…	Terminal TermWindow		Пошук...
+Find…	Terminal TermWindow		Пошук…
 The process \"%1\" is still running.\nIf you close the Terminal, the process will be killed.	Terminal TermWindow		Працэс \"%1\" яшчэ актыўны.\nКалі вы закрыеце Тэрмінал, працэс будзе забіты.
 Move here	Terminal TermView		Перамясціць сюды
-\t%d\t-\tThe current working directory of the active process in the\n\t\t\tcurrent tab. Optionally the maximum number of path components\n\t\t\tcan be specified. E.g. '%2d' for at most two components.\n\t%i\t-\tThe index of the window.\n\t%p\t-\tThe name of the active process in the current tab.\n\t%t\t-\tThe title of the current tab.\n\t%%\t-\tThe character '%'.	Terminal ToolTips		\t%d\t-\tРабочы каталог актыўнага працэсу\n\t\t\tў цякучай укладцы.Дадаткова можна ўказаць макісмальную колькасць кампанентаў пуці.\n\t\t\t Напрыклад, '%2d' - не больша за два кампаненты.\n\t%i\t-\tІндэкс вакна.\n\t%p\t-\tІмя актыўнага працэсу ў цякучай укладцы.\n\t%t\t-\tІмя цякучай укладкі.\n\t%%\t-\tСімвал '%'.
-White on Black	Terminal colors schema		Белы на Чорным
+Retro	Terminal colors scheme		Даўніна
 Error!	Terminal getString		Памылка!
 New tab	Terminal TermWindow		Новая ўкладка
 The pattern specifying the tab titles. The following placeholders\ncan be used:\n	Terminal AppearancePrefView		Шаблон для імёнаў ўкладак. Можна ўжываць наступныя\n запаўняльнікі:\n
 Selected background	Terminal AppearancePrefView		Выбраны фон
+Slate	Terminal colors scheme		Шыфер
+Text under cursor	Terminal AppearancePrefView		Тэкст пад курсорам
+Midnight	Terminal colors scheme		Поўнач
 Decrease	Terminal TermWindow		Паменшыць
+Default	Terminal colors scheme		Дапомная
 Create link here	Terminal TermView		Стварыць спасылку сюды
 Close	Terminal TermWindow		Закрыць
 Text	Terminal AppearancePrefView		Тэкст
@@ -74,9 +79,10 @@ Clear all	Terminal TermWindow		Ачысціць усё
 Text encoding	Terminal TermWindow		Кадоўка тэксту
 size	Terminal TermView		памер
 Close window	Terminal TermWindow		Закрыць вакно
+\t%d\t-\tThe current working directory of the active process in the\n\t\t\tcurrent tab. Optionally the maximum number of path components\n\t\t\tcan be specified. E.g. '%2d' for at most two components.\n\t%T\t-\tThe Terminal application name for the current locale.\n\t%e\t-\tThe encoding of the current tab. Not shown for UTF-8.\n\t%i\t-\tThe index of the window.\n\t%p\t-\tThe name of the active process in the current tab.\n\t%t\t-\tThe title of the current tab.\n\t%%\t-\tThe character '%'.	Terminal ToolTips		\t%d\t-\tРабочы каталог актыўнага працэсу\n\t\t\tў цякучай укладцы.Дадаткова можна ўказаць макісмальную колькасць кампанентаў пуці.\n\t\t\t Напрыклад, '%2d' - не больша за два кампаненты.\n\t%T\t-\tІмя праграмы Тэрмінала ў актуальнай лакалі.\n\t%e\t-\tКадоўка актыўнай укладкі. Калі UTF-8 то не паказваецца.\n\t%i\t-\tІндэкс вакна.\n\t%p\t-\tІмя актыўнага працэсу ў цякучай укладцы.\n\t%t\t-\tІмя цякучай укладкі.\n\t%%\t-\tСімвал '%'.
 Save as default	Terminal TermWindow		Захаваць як прадвызначаныя
 Set tab title	Terminal TermWindow		Прызначыць імя ўкладкі
-Settings…	Terminal TermWindow		Наладкі...
+Settings…	Terminal TermWindow		Наладкі…
 Abort	Terminal Shell		Спыніць
 Edit	Terminal TermWindow		Правіць
 Color:	Terminal AppearancePrefView		Колер:
@@ -87,7 +93,7 @@ Cancel	Terminal TermWindow		Адмена
 OK	Terminal TermApp		ОК
 Find failed	Terminal TermWindow		Не ўдалося знайсці
 Search forward	Terminal FindWindow		Шукаць далей
-Edit tab title…	Terminal TermWindow		Правіць імя ўкладкі...
+Edit tab title…	Terminal TermWindow		Правіць імя ўкладкі…
 Find previous	Terminal TermWindow		Знайсці ранейшае
 Tab title:	Terminal TermWindow		Імя ўкладкі:
 Find next	Terminal TermWindow		Знайсці далейшае
@@ -95,7 +101,7 @@ Close active tab	Terminal TermWindow		Закрыць актыўную ўклад
 Paste	Terminal TermWindow		Уставіць
 Save changes to this settings panel?	Terminal PrefWindow		Захаваць змены ў гэтых наладках?
 Cancel	Terminal PrefWindow		Адмена
-Shell 	Terminal TermWindow		Абалонка
+Shell 	Terminal TermWindow		Абалонка 
 Save	Terminal PrefWindow		Захаваць
 \t%d\t-\tThe current working directory of the active process.\n\t\t\tOptionally the maximum number of path components can be\n\t\t\tspecified. E.g. '%2d' for at most two components.\n\t%i\t-\tThe index of the tab.\n\t%p\t-\tThe name of the active process.\n\t%%\t-\tThe character '%'.	Terminal ToolTips		\t%d\t-\tРабочы каталог актыўнага працэсу.\n\t\t\tДадаткова можна ўказаць макісмальную колькасць кампанентаў пуці.\n\t\t\t Напрыклад, '%2d' - не больша за два кампаненты.\n\t%i\t-\tІндэкс укладкі.\n\t%p\t-\tІмя актыўнага працэсу.\n\t%%\t-\tСімвал '%'.
 Cancel	Terminal TermView		Адмена
