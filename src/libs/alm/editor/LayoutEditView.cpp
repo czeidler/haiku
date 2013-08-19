@@ -401,7 +401,7 @@ LayoutEditView::TestAction(EditAction* action, bool deleteAction)
 	fOverlapManager.ConnectAreas();
 
 //TODO this is only necessary for the bad resize action and can be removed after fixing it
-fALMEngine->Solver()->Solve();
+fALMEngine->ValidateLayout();
 
 	if (possible == false) {
 		BString message = "Can't perform ";
@@ -1155,7 +1155,8 @@ StrokeRect(areaFrame);
 		const float space = 2;
 		itemFrame.InsetBy(-space, -space);
 		region.Exclude(itemFrame);
-	}
+	} else if (dynamic_cast<BLayout*>(item) != NULL)
+		region.Exclude(item->Frame());
 
 	const int8 shade = 240;
 	rgb_color backgoundColor = {shade, shade, shade};
@@ -1263,11 +1264,11 @@ LayoutEditView::Draw(BRect updateRect)
 
 	BRegion background(updateRect);
 	for (int32 i = 0; i < fALMEngine->CountItems(); i++) {
-		BView* view = fALMEngine->ItemAt(i)->View();
-		if (view == NULL || view == this)
+		BLayoutItem* item = fALMEngine->ItemAt(i);
+		BView* view = item->View();
+		if (view == this)
 			continue;
-		BRect frame = view->Frame();
-		background.Exclude(frame);
+		_RecursiveExcludeViews(item, background);
 	}
 	FillRegion(&background);
 
@@ -1782,4 +1783,22 @@ LayoutEditView::_CheckTempEditConstraints()
 
 	for (int32 i = 0; i < toBeRemoved.CountItems(); i++)
 		fALMEngine->RemoveConstraint(toBeRemoved.ItemAt(i), true);
+}
+
+
+void
+LayoutEditView::_RecursiveExcludeViews(BLayoutItem* item, BRegion& region)
+{
+	BView* view = item->View();
+	if (view == NULL) {
+		BLayout* layout = dynamic_cast<BLayout*>(item);
+		if (layout != NULL) {
+			for (int32 i = 0; i < layout->CountItems(); i++)
+				_RecursiveExcludeViews(layout->ItemAt(i), region);
+			return;
+		} else
+			return;
+	}
+	BRect itemFrame = item->Frame();
+	region.Exclude(itemFrame);
 }

@@ -375,6 +375,9 @@ private:
 
 			void				_CheckTempEditConstraints();
 
+			void				_RecursiveExcludeViews(BLayoutItem* item,
+									BRegion& region);
+
 			BALMEditor*			fEditor;
 			BALMLayout*			fALMEngine;
 			BMessageFilter*		fMessageFilter;

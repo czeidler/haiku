@@ -32,23 +32,32 @@ public:
 		BALMLayout* layout = new BALMLayout(10.);
 		SetLayout(layout);
 		
-		CustomizableNodeView* nodeView = new CustomizableNodeView(
+		fNodeView = new CustomizableNodeView(
 			CustomizableRoster::DefaultRoster());
-		layout->AddView(nodeView, layout->Left(), layout->Top(), layout->Right(),
-			layout->Bottom());
+		layout->AddView(fNodeView, layout->Left(), layout->Top(),
+			layout->Right(), layout->Bottom());
 		
-		editView->StartWatching(nodeView, kCustomizableSelected);
-		nodeView->StartWatching(editView, kCustomizableSelected);
+		editView->StartWatching(fNodeView, kCustomizableSelected);
+		fNodeView->StartWatching(editView, kCustomizableSelected);
 	}
 
 	bool QuitRequested()
 	{
+		BMessage layout;
+		fNodeView->StoreLayout(&layout);
+		fEditor->SetLayerLayout(layout);
 		fEditor->StopEdit();
 		return true;
 	}
 
+	CustomizableNodeView* GetLayerView()
+	{
+		return fNodeView;
+	}
+
 private:
 			BALMEditor*			fEditor;
+			CustomizableNodeView* fNodeView;
 };
 
 
@@ -64,6 +73,8 @@ BALMEditor::BALMEditor(BALMLayout* layout)
 	fLayout(layout),
 	fEditView(NULL),
 	fLayerWindow(NULL),
+	fEnableLayerWindow(false),
+	fCreationMode(false),
 	fShowXTabs(false),
 	fShowYTabs(false),
 	fFreePlacement(false)
@@ -97,10 +108,13 @@ BALMEditor::StartEdit()
 	fEditWindow->Show();
 	fEditWindowMessenger = BMessenger(NULL, fEditWindow);
 
-
-//	fLayerWindow = new LayerWindow(this, fEditView);
-//	fLayerWindowMessenger = BMessenger(NULL, fLayerWindow);
-//	fLayerWindow->Show();
+ 	if (fEnableLayerWindow) {
+		LayerWindow* layerWindow = new LayerWindow(this, fEditView);
+		fLayerWindow = layerWindow;
+		layerWindow->GetLayerView()->RestoreLayout(&fLayerLayout);
+		fLayerWindowMessenger = BMessenger(NULL, fLayerWindow);
+		fLayerWindow->Show();
+ 	}
 }
 
 
@@ -225,6 +239,14 @@ BALMEditor::UpdateEditWindow()
 
 
 void
+BALMEditor::SetLayerLayout(const BMessage& archive)
+{
+	BAutolock _(fLock);
+	fLayerLayout = archive;
+}
+
+
+void
 BALMEditor::SetShowXTabs(bool show)
 {
 	BAutolock _(fLock);
@@ -273,6 +295,27 @@ bool
 BALMEditor::ShowYTabs()
 {
 	return fShowYTabs;
+}
+
+
+void
+BALMEditor::SetEnableLayerWindow(bool enabled)
+{
+	fEnableLayerWindow = enabled;
+}
+
+
+void
+BALMEditor::SetEnableCreationMode(bool enabled)
+{
+	fCreationMode = enabled;
+}
+
+
+bool
+BALMEditor::IsCreationMode()
+{
+	return fCreationMode;
 }
 
 

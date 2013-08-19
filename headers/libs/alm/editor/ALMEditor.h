@@ -67,10 +67,15 @@ public:
 			BALMLayout*			Layout();
 			void				UpdateEditWindow();
 
+			void				SetLayerLayout(const BMessage& archive);
+
 			void				SetShowXTabs(bool show);
 			void				SetShowYTabs(bool show);
 			bool				ShowXTabs();
 			bool				ShowYTabs();
+			void				SetEnableLayerWindow(bool enabled);
+			void				SetEnableCreationMode(bool enabled);
+			bool				IsCreationMode();
 
 			void				SetFreePlacement(bool freePlacement);
 			bool				FreePlacement();
@@ -103,7 +108,10 @@ private:
 			BMessenger			fEditWindowMessenger;
 
 			BWindow*			fLayerWindow;
+			BMessage			fLayerLayout;
 			BMessenger			fLayerWindowMessenger;
+			bool				fEnableLayerWindow;
+			bool				fCreationMode;
 
 			BLocker				fLock;
 
