@@ -9,12 +9,15 @@ UseLibraryHeaders charlemagne ;
 SubDirSysHdrs [ FDirName $(HAIKU_TOP) headers libs alm customization ] ;
 
 
+
 local components_source =
 	UIComponents.cpp
-	ViewContainer.idl
 	CustomTypes.cpp
 	;
 
+if $(HAIKU_BUILD_FEATURE_PIGIN) {
+	components_source += ViewContainer.idl ;
+}
 
 SubDirSysHdrs [ FDirName $(HAIKU_TOP) headers libs alm editor ] ;
 UsePrivateHeaders interface shared ;

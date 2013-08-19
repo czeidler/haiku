@@ -15,8 +15,25 @@
 
 #include <ArrayContainer.h>
 
+#if HAS_PIGIN
 #include "ViewContainer.h"
+#else
+#include "CustomTypes.h"
 
+class IViewContainer : public Customizable {
+public:
+	virtual 					~IViewContainer() {}
+
+	virtual BString				Identifier() = 0;
+	virtual void				SetIdentifier(const BString& id) = 0;
+
+	virtual BViewLocalPointer	View() = 0;
+	virtual BViewLocalPointer	CreateConfigView() = 0;
+	virtual BLayoutItemLocalPointer	LayoutItem() = 0;
+
+	virtual void				RemoveSelf() = 0;
+};
+#endif
 
 namespace BALM {
 
